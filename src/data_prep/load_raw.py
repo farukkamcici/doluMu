@@ -16,12 +16,21 @@ df  = pl.concat([pl.scan_csv(f) for f in files])
 # agg.collect(engine="streaming").write_parquet("../../data/processed/transport_hourly.parquet")
 
 #hourly district data
-district_agg = (df
-       .select([
-            'transition_date', 'transition_hour', 'number_of_passage', 'town'
-        ])
-        .group_by(['transition_date', 'transition_hour', 'town'])
-        .agg(pl.sum('number_of_passage').alias('passage_sum')))
+# district_agg = (df
+#        .select([
+#             'transition_date', 'transition_hour', 'number_of_passage', 'town'
+#         ])
+#         .group_by(['transition_date', 'transition_hour', 'town'])
+#         .agg(pl.sum('number_of_passage').alias('passage_sum')))
+#
+# district_agg.collect(engine="streaming").write_parquet("../../data/processed/transport_district_hourly.parquet")
 
-district_agg.collect(engine="streaming").write_parquet("../../data/processed/transport_district_hourly.parquet")
+#line meta-data
+district_meta = (df
+       .select([
+            'transport_type_id', 'road_type', 'line', 'line_name'
+        ])
+        .unique(subset=['line_name']))
+
+district_meta.sink_parquet("../../data/processed/transport_meta.parquet")
 
