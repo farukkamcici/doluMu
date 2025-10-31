@@ -2,3 +2,6 @@ polars
 pathlib
 pandas
 pyarrow
+openmeteo_requests
+requests_cache
+retry_requests
