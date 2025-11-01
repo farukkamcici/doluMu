@@ -35,9 +35,9 @@ for start_date, end_date in batches:
     hourly = r.Hourly()
 
     hourly_Data = {
-        "date": pd.date_range(
-            start=pd.to_datetime(hourly.Time(), unit="s", utc=True),
-            end=pd.to_datetime(hourly.TimeEnd(), unit="s", utc=True),
+        "datetime": pd.date_range(
+            start=pd.to_datetime(hourly.Time(), unit="s"),
+            end=pd.to_datetime(hourly.TimeEnd(), unit="s"),
             freq=pd.Timedelta(seconds=hourly.Interval()),
             inclusive="left"
         ),
@@ -53,4 +53,4 @@ weather_df = pd.concat(all_frames).reset_index(drop=True)
 
 weather_df.to_parquet("../../data/processed/weather_dim.parquet")
 
-print(f"Toplam kayıt: {len(weather_df)} satır ({weather_df['date'].min()} → {weather_df['date'].max()})")
+print(f"Toplam kayıt: {len(weather_df)} satır ({weather_df['datetime'].min()} → {weather_df['datetime'].max()})")

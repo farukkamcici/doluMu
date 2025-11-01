@@ -10,8 +10,8 @@ dates = pl.date_range(start_date, edate, interval="1d", eager=True)
 calendar = pl.DataFrame({"date": dates})
 
 calendar = calendar.with_columns([
-    pl.col("date").dt.weekday().alias("day_of_week"), #0=Mon
-    (pl.col("date").dt.weekday() >= 5).alias("is_weekend"), #weekend -> True
+    pl.col("date").dt.weekday().alias("day_of_week"),
+    (pl.col("date").dt.weekday() >= 5).cast(pl.Int8).alias("is_weekend"), #weekend -> True
     pl.col("date").dt.month().alias("month"),
     pl.col("date").dt.year().alias("year")
 ])
@@ -31,7 +31,7 @@ calendar = calendar.with_columns([
 
 
 calendar = calendar.with_columns([
-    (~pl.col("month").is_in([6,7,8])).alias("is_school_term")
+    (~pl.col("month").is_in([6,7,8])).cast(pl.Int8).alias("is_school_term")
 ])
 
 holiday_path = Path("../../data/raw/holidays-2022-2031.csv")
