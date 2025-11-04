@@ -56,7 +56,7 @@ features = (transport.join(weather, on="datetime", how="left")
             .join(calendar, on="date", how="left")
             )
 
-features = features.drop(["datetime", "date"])
+features = features.drop("date")
 bool_cols = ["is_weekend", "is_school_term", "is_holiday", "holiday_win_m1", "holiday_win_p1"]
 features = features.with_columns([pl.col(c).cast(pl.Int8) for c in bool_cols])
 
