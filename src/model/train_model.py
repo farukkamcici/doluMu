@@ -1,347 +1,221 @@
-# ---MODEL TRAINING V1---
+"""
+Train LightGBM models for the Istanbul Transit Crowding project.
+
+This script:
+ - Loads train/validation data
+ - Builds LightGBM datasets
+ - Trains the model according to YAML configuration
+ - Logs all parameters and artifacts to MLflow
+ - Saves the trained model
+"""
+
 from pathlib import Path
-import json
 import pandas as pd
-import numpy as np
 import lightgbm as lgb
-from lightgbm import early_stopping
-import matplotlib.pyplot as plt
+import mlflow
+import mlflow.lightgbm
 
-# === Paths ===
-DATA_DIR = Path("../../data/processed/split_features")
-MODEL_DIR = Path("../../models")
-REPORT_DIR = Path("../../reports/logs")
-FIG_DIR = Path("../../reports/figs")
+from utils.paths import SPLIT_FEATURES_DIR, MODEL_DIR, ensure_dirs
+from utils.data_prep import prepare_data
+from utils.config_loader import load_config
 
-CAT_COLS = ["line_name", "season"]
 
-# === Outlier filter (line-based) ===
-def cap_outliers(df, col="y", z_thresh=3):
-    df[col] = df[col].astype(float)
-    def _cap(x):
-        mean, std = x.mean(), x.std() + 1e-6
-        z = np.abs((x - mean) / std)
-        capped = mean + np.sign(x - mean) * z_thresh * std
-        return np.where(z > z_thresh, capped, x)
-    df[col] = df.groupby("line_name")[col].transform(_cap)
-    return df
+# === Load configuration ===
+CFG = load_config("v2")  # choose model version
 
-# === Line-based normalization ===
-def normalize_by_line(df):
-    """Her line_name kendi ortalama-std’sine göre normalize edilir."""
-    df["y_norm"] = df.groupby("line_name")["y"].transform(
-        lambda x: (x - x.mean()) / (x.std() + 1e-6)
-    )
-    return df
 
-# === Load data ===
+# === Force MLflow to use a consistent local directory ===
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+MLFLOW_DIR = PROJECT_ROOT / "mlruns"
+mlflow.set_tracking_uri(f"file://{MLFLOW_DIR}")
+mlflow.set_experiment("IstanbulCrowdingForecast")
+
+
+# === Data loading ===
 def load_data():
-    train_df = pd.read_parquet(DATA_DIR / "train_features.parquet")
-    val_df = pd.read_parquet(DATA_DIR / "val_features.parquet")
+    """Load preprocessed training and validation feature datasets."""
+    train_df = pd.read_parquet(SPLIT_FEATURES_DIR / "train_features.parquet")
+    val_df = pd.read_parquet(SPLIT_FEATURES_DIR / "val_features.parquet")
     print(f"Train shape: {train_df.shape}, Val shape: {val_df.shape}")
     return train_df, val_df
 
-# === Prepare data ===
-def prepare_data(train_df, val_df):
-    # 1. Aykırı değerleri kırp
-    train_df = cap_outliers(train_df, "y")
-    val_df = cap_outliers(val_df, "y")
 
-    # 2. Normalize et
-    train_df = normalize_by_line(train_df)
-    val_df = normalize_by_line(val_df)
-
-    target_col = "y_norm"
-
-    X_train = train_df.drop(columns=["y", "y_norm"])
-    y_train = train_df[target_col]
-    X_val = val_df.drop(columns=["y", "y_norm"])
-    y_val = val_df[target_col]
-
-    for c in CAT_COLS:
-        if c in X_train.columns:
-            X_train[c] = X_train[c].astype("category")
-        if c in X_val.columns:
-            X_val[c] = X_val[c].astype("category")
-
-    train_set = lgb.Dataset(
-        X_train,
-        label=y_train,
-        feature_name=list(X_train.columns),
-        categorical_feature=CAT_COLS,
-        free_raw_data=False
-    )
-
-    val_set = lgb.Dataset(
-        X_val,
-        label=y_val,
-        feature_name=list(X_val.columns),
-        categorical_feature=CAT_COLS,
-        free_raw_data=False,
-        reference=train_set
-    )
-
-    return X_train, y_train, X_val, y_val, train_set, val_set
-
-# === Model parameters (same as old V1) ===
-def get_params():
-    params = {
-        "objective": "regression",
-        "metric": ["l1", "l2"],  # MAE and MSE
-        "boosting_type": "gbdt",
-        "learning_rate": 0.05,
-        "num_leaves": 64,
-        "feature_fraction": 0.9,
-        "bagging_fraction": 0.8,
-        "bagging_freq": 1,
-        "min_data_in_leaf": 50,
-        "verbose": -1,
-        "seed": 42,
-        "num_threads": 8,
-    }
-    return params
-
-# === Train model ===
-def train_model(train_set, val_set, params):
+# === Model training ===
+def train_model(train_set, val_set):
+    """Train LightGBM model using parameters from config."""
+    params = CFG["params"]
     model = lgb.train(
         params,
         train_set,
-        num_boost_round=2000,
+        num_boost_round=CFG["model"]["num_boost_round"],
         valid_sets=[train_set, val_set],
         valid_names=["train", "valid"],
-        callbacks=[early_stopping(stopping_rounds=100)]
+        callbacks=[
+            # lgb.early_stopping(CFG["train"]["early_stopping_rounds"]),
+            lgb.log_evaluation(CFG["train"]["eval_freq"]),
+        ],
     )
     return model
 
-# === Compute metrics ===
-def compute_metrics(model, X_val, y_val):
-    y_pred = model.predict(X_val, num_iteration=model.best_iteration)
-    mae = np.mean(np.abs(y_val - y_pred))
-    rmse = np.sqrt(np.mean((y_val - y_pred) ** 2))
-    smape = np.mean(2 * np.abs(y_val - y_pred) / (np.abs(y_val) + np.abs(y_pred) + 1e-8))
-    return {"mae": float(mae), "rmse": float(rmse), "smape": float(smape)}
 
-# === Save outputs ===
-def save_outputs(model, metrics, X_train):
-    MODEL_DIR.mkdir(parents=True, exist_ok=True)
-    REPORT_DIR.mkdir(parents=True, exist_ok=True)
-    FIG_DIR.mkdir(parents=True, exist_ok=True)
-
-    model_path = MODEL_DIR / "lgbm_transport_v1_norm.txt"
+# === Save model ===
+def save_model(model):
+    """Save trained model to /models directory."""
+    ensure_dirs()
+    model_name = CFG["model"]["name"]
+    model_path = MODEL_DIR / f"{model_name}.txt"
     model.save_model(str(model_path), num_iteration=model.best_iteration)
+    print(f"Model saved → {model_path}")
 
-    metrics_out = {
-        **metrics,
-        "best_iteration": int(model.best_iteration),
-        "num_features": model.num_feature()
-    }
-    (REPORT_DIR / "lgbm_metrics_v1_norm.json").write_text(json.dumps(metrics_out, indent=2))
 
-    # Feature importance
-    imp_df = pd.DataFrame({
-        "feature": X_train.columns,
-        "importance": model.feature_importance(importance_type="gain")
-    }).sort_values("importance", ascending=False)
-    imp_df.to_csv(REPORT_DIR / "feature_importance_v1_norm.csv", index=False)
 
-    # Plot
-    plt.figure(figsize=(8, 10))
-    lgb.plot_importance(model, max_num_features=20, importance_type="gain")
-    plt.title("Feature Importance (Gain) — V1 (Normalized)")
-    plt.tight_layout()
-    plt.savefig(FIG_DIR / "feature_importance_v1_norm.png")
-    plt.close()
-
-# === Main ===
+# === Main pipeline ===
 def main():
+    print(f"\n=== Training {CFG['model']['name']} ===")
+
+    # Load datasets
     train_df, val_df = load_data()
-    X_train, y_train, X_val, y_val, train_set, val_set = prepare_data(train_df, val_df)
-    params = get_params()
-    model = train_model(train_set, val_set, params)
-    metrics = compute_metrics(model, X_val, y_val)
-    save_outputs(model, metrics, X_train)
-    print("\nTraining finished (V1 normalized).")
-    print("Best iteration:", model.best_iteration)
-    print("Metrics:", json.dumps(metrics, indent=2))
+    X_train, y_train, X_val, y_val, train_set, val_set = prepare_data(train_df, val_df, CFG)
+
+    # Start MLflow run
+    with mlflow.start_run(run_name=CFG["model"]["name"]):
+        # Log parameters
+        mlflow.log_params(CFG["params"])
+        mlflow.log_param("num_boost_round", CFG["model"]["num_boost_round"])
+
+        # Train model
+        model = train_model(train_set, val_set)
+
+        # Log trained model as artifact
+        mlflow.lightgbm.log_model(
+            model,
+            name="model",
+        )
+
+        # Log key metadata
+        mlflow.log_metric("best_iteration", model.best_iteration)
+        mlflow.log_param("num_features", model.num_feature())
+        if "valid" in model.best_score:
+            mlflow.log_metric("val_mae_l1", model.best_score["valid"]["l1"])
+            mlflow.log_metric("val_mse_l2", model.best_score["valid"]["l2"])
+
+        # Save local model file
+        save_model(model)
+
+    print(f"✅ Training finished — best_iteration={model.best_iteration}")
+    print("MLflow run logged successfully.\n")
+
 
 if __name__ == "__main__":
     main()
 
 
 
-#---MODEL TRAINING V2---#-------------------------------------
+#----DART v3------------------------------------------------
+
+
+"""
+Train LightGBM DART model for the Istanbul Transit Crowding project.
+
+This script:
+ - Loads train/validation data
+ - Builds LightGBM datasets
+ - Trains the model according to YAML configuration
+ - Logs parameters and metrics to MLflow
+ - Saves the trained model
+"""
+
 # from pathlib import Path
-# import json
 # import pandas as pd
-# import numpy as np
 # import lightgbm as lgb
-# from lightgbm import early_stopping
-# import matplotlib.pyplot as plt
+# import mlflow
+# import mlflow.lightgbm
 #
-# DATA_DIR = Path("../../data/processed/split_features")
-# MODEL_DIR = Path("../../models")
-# REPORT_DIR = Path("../../reports/logs")
-# FIG_DIR = Path("../../reports/figs")
+# from utils.paths import SPLIT_FEATURES_DIR, MODEL_DIR, ensure_dirs
+# from utils.data_prep import prepare_data
+# from utils.config_loader import load_config
 #
-# CAT_COLS = ["line_name", "season"]
 #
-# # Outlier filter line-based
-# def cap_outliers(df, col="y", z_thresh=3):
-#     df[col] = df[col].astype(float)
-#     # Her line_name için ayrı ortalama ve std kullan
-#     def _cap(x):
-#         mean, std = x.mean(), x.std() + 1e-6
-#         z = np.abs((x - mean) / std)
-#         capped = mean + np.sign(x - mean) * z_thresh * std
-#         return np.where(z > z_thresh, capped, x)
-#     df[col] = df.groupby("line_name")[col].transform(_cap)
-#     return df
+# # === Load configuration ===
+# CFG = load_config("v3")  # choose model version
 #
-# # Line-based normalization
-# def normalize_by_line(df):
-#     """Her line_name kendi ortalama-std’sine göre normalize edilir."""
-#     df["y_norm"] = df.groupby("line_name")["y"].transform(
-#         lambda x: (x - x.mean()) / (x.std() + 1e-6)
-#     )
-#     return df
 #
+# # === MLflow setup ===
+# PROJECT_ROOT = Path(__file__).resolve().parents[2]
+# MLFLOW_DIR = PROJECT_ROOT / "mlruns"
+# mlflow.set_tracking_uri(f"file://{MLFLOW_DIR}")
+# mlflow.set_experiment("IstanbulCrowdingForecast")
+#
+#
+# # === Data loading ===
 # def load_data():
-#     train_df = pd.read_parquet(DATA_DIR / "train_features.parquet")
-#     val_df = pd.read_parquet(DATA_DIR / "val_features.parquet")
-#
+#     """Load preprocessed training and validation feature datasets."""
+#     train_df = pd.read_parquet(SPLIT_FEATURES_DIR / "train_features.parquet")
+#     val_df = pd.read_parquet(SPLIT_FEATURES_DIR / "val_features.parquet")
 #     print(f"Train shape: {train_df.shape}, Val shape: {val_df.shape}")
-#
 #     return train_df, val_df
 #
-# def prepare_data(train_df, val_df):
-#     train_df = cap_outliers(train_df, "y")
-#     val_df = cap_outliers(val_df, "y")
-#     train_df = normalize_by_line(train_df)
-#     val_df = normalize_by_line(val_df)
 #
-#     target_col = "y_norm"
-#
-#     X_train = train_df.drop(columns=["y", "y_norm"])
-#     y_train = train_df[target_col]
-#     X_val = val_df.drop(columns=["y", "y_norm"])
-#     y_val = val_df[target_col]
-#
-#     for c in CAT_COLS:
-#         if c in X_train.columns:
-#             X_train[c] = X_train[c].astype("category")
-#         if c in X_val.columns:
-#             X_val[c] = X_val[c].astype("category")
-#
-#     train_set = lgb.Dataset(
-#         X_train,
-#         label = y_train,
-#         feature_name = list(X_train.columns),
-#         categorical_feature = CAT_COLS,
-#         free_raw_data=False
-#     )
-#
-#     val_set = lgb.Dataset(
-#         X_val,
-#         label = y_val,
-#         feature_name = list(X_val.columns),
-#         categorical_feature = CAT_COLS,
-#         free_raw_data=False,
-#         reference = train_set
-#     )
-#
-#     return X_train, y_train, X_val, y_val, train_set, val_set
-#
-# def get_params():
-#     params = {
-#         "objective": "regression",
-#         "metric": ["l1", "l2"], # MAE and MSE
-#         "boosting_type": "gbdt",
-#         "learning_rate": 0.03,
-#         "num_leaves": 96,
-#         "feature_fraction": 0.8,
-#         "bagging_fraction": 0.8,
-#         "bagging_freq": 1,
-#         "lambda_l1": 0.1,
-#         "lambda_l2": 1.0,
-#         "min_gain_to_split": 0.01,
-#         "path_smooth": 0.1,
-#         "cat_l2": 10.0,
-#         "cat_smooth": 20.0,
-#         "min_data_in_leaf": 100,
-#         "seed": 42,
-#         "deterministic": True,
-#         "verbose": -1,
-#         "num_threads": 8,
-#     }
-#
-#     return params
-#
-# def train_model(train_set, val_set, params):
+# # === Model training ===
+# def train_model(train_set, val_set):
+#     """Train LightGBM DART model using parameters from YAML."""
+#     params = CFG["params"]
 #     model = lgb.train(
 #         params,
 #         train_set,
-#         num_boost_round=4000,
+#         num_boost_round=CFG["model"]["num_boost_round"],
 #         valid_sets=[train_set, val_set],
 #         valid_names=["train", "valid"],
-#         callbacks = [early_stopping(stopping_rounds=100, verbose=True)]
+#         callbacks=[
+#             # early stopping yok → DART desteklemiyor
+#             lgb.log_evaluation(CFG["train"]["eval_freq"]),
+#         ],
 #     )
-#
 #     return model
 #
-# def compute_metrics(model, X_val, y_val):
-#     y_pred = model.predict(X_val, num_iteration=model.best_iteration)
 #
-#     mae = np.mean(np.abs(y_val - y_pred))
-#     rmse = np.sqrt(np.mean((y_val - y_pred)**2))
-#     smape = np.mean(2 * np.abs(y_val - y_pred) / (np.abs(y_val) + np.abs(y_pred) + 1e-8))
-#
-#     return {"mae": float(mae), "rmse": float(rmse), "smape": float(smape)}
-#
-#
-# def save_outputs(model, metrics, X_train):
-#     MODEL_DIR.mkdir(parents=True, exist_ok=True)
-#     REPORT_DIR.mkdir(parents=True, exist_ok=True)
-#     FIG_DIR.mkdir(parents=True, exist_ok=True)
-#
-#     model_path = MODEL_DIR / "lgbm_transport_v2.txt"
-#     model.save_model(str(model_path), num_iteration=model.best_iteration)
-#
-#     metrics_out = {
-#         **metrics,
-#         "best_iteration": int(model.best_iteration),
-#         "num_features": model.num_feature()
-#     }
-#     (REPORT_DIR / "lgbm_metrics_v2.json").write_text(json.dumps(metrics_out, indent=2))
-#
-#     # Feature importance
-#     imp_df = pd.DataFrame({
-#         "feature": X_train.columns,
-#         "importance": model.feature_importance(importance_type="gain")
-#     }).sort_values("importance", ascending=False)
-#     imp_df.to_csv(REPORT_DIR / "feature_importance_v2.csv", index=False)
-#
-#     # Plot
-#     plt.figure(figsize=(8, 10))
-#     lgb.plot_importance(model, max_num_features=20, importance_type="gain")
-#     plt.title("Feature Importance (Gain)")
-#     plt.tight_layout()
-#     plt.savefig(FIG_DIR / "feature_importance_v2.png")
-#     plt.close()
+# # === Save model ===
+# def save_model(model):
+#     """Save trained model to /models directory."""
+#     ensure_dirs()
+#     model_name = CFG["model"]["name"]
+#     model_path = MODEL_DIR / f"{model_name}.txt"
+#     model.save_model(str(model_path))
+#     print(f"Model saved → {model_path}")
 #
 #
+# # === Main pipeline ===
 # def main():
-#     train_df, val_df = load_data()
-#     X_train, y_train, X_val, y_val, train_set, val_set = prepare_data(train_df, val_df)
-#     params = get_params()
-#     model = train_model(train_set, val_set, params)
-#     metrics = compute_metrics(model, X_val, y_val)
-#     save_outputs(model, metrics, X_train)
+#     print(f"\n=== Training {CFG['model']['name']} (DART) ===")
 #
-#     print("\nTraining finished (v2).")
-#     print("Best iteration:", model.best_iteration)
-#     print("Metrics:", json.dumps(metrics, indent=2))
+#     # Load datasets
+#     train_df, val_df = load_data()
+#     X_train, y_train, X_val, y_val, train_set, val_set = prepare_data(train_df, val_df, CFG)
+#
+#     # Start MLflow run
+#     with mlflow.start_run(run_name=CFG["model"]["name"]):
+#         # Log configuration
+#         mlflow.log_params(CFG["params"])
+#         mlflow.log_param("num_boost_round", CFG["model"]["num_boost_round"])
+#
+#         # Train
+#         model = train_model(train_set, val_set)
+#
+#         # Log model + metadata
+#         mlflow.lightgbm.log_model(model, name="model")
+#         mlflow.log_param("num_features", model.num_feature())
+#
+#         # Log validation metrics if available
+#         if "valid" in model.best_score:
+#             mlflow.log_metric("val_l1", model.best_score["valid"]["l1"])
+#             mlflow.log_metric("val_l2", model.best_score["valid"]["l2"])
+#
+#         # Save model locally
+#         save_model(model)
+#
+#     print("✅ Training finished successfully.")
+#     print("MLflow run logged.\n")
+#
 #
 # if __name__ == "__main__":
 #     main()
-#
-#

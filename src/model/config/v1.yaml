@@ -1,0 +1,16 @@
+# Model configuration: v1 baseline
+model:
+  name: "lgbm_transport_v1"
+  num_boost_round: 2000
+
+params:
+  objective: "regression"
+  metric: ["l1", "l2"]
+  boosting_type: "gbdt"
+  learning_rate: 0.05
+  num_leaves: 64
+  feature_fraction: 0.9
+  bagging_fraction: 0.8
+  bagging_freq: 1
+  min_data_in_leaf: 50
+  verbose: -1

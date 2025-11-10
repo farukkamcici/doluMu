@@ -1,0 +1,24 @@
+# Model configuration: v2 tuned
+model:
+  name: "lgbm_transport_v2"
+  description: "Tuned LightGBM model with stronger regularization"
+  num_boost_round: 4000
+
+params:
+  objective: "regression"
+  metric: ["l1", "l2"]
+  boosting_type: "gbdt"
+  learning_rate: 0.03
+  num_leaves: 96
+  feature_fraction: 0.8
+  bagging_fraction: 0.8
+  bagging_freq: 1
+  lambda_l1: 0.1
+  lambda_l2: 1.0
+  min_gain_to_split: 0.01
+  path_smooth: 0.1
+  cat_l2: 10.0
+  cat_smooth: 20.0
+  min_data_in_leaf: 100
+  deterministic: true
+  verbose: -1

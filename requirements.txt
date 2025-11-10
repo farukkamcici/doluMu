@@ -10,3 +10,5 @@ lightgbm
 scikit-learn
 matplotlib
 shap
+PyYAML
+mlflow
