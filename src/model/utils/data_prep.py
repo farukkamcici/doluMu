@@ -32,14 +32,21 @@ def prepare_data(train_df, val_df, cfg):
     # Aykırı ve normalize
     train_df = cap_outliers(train_df, "y", z_thresh)
     val_df = cap_outliers(val_df, "y", z_thresh)
+
     if cfg["features"]["normalize_by_line"]:
         train_df = normalize_by_line(train_df)
         val_df = normalize_by_line(val_df)
 
-    X_train = train_df.drop(columns=["y", target_col])
-    y_train = train_df[target_col]
-    X_val = val_df.drop(columns=["y", target_col])
-    y_val = val_df[target_col]
+        X_train = train_df.drop(columns=["y", target_col])
+        y_train = train_df[target_col]
+        X_val = val_df.drop(columns=["y", target_col])
+        y_val = val_df[target_col]
+    else:
+        X_train = train_df.drop(columns=[target_col])
+        y_train = train_df[target_col]
+        X_val = val_df.drop(columns=[target_col])
+        y_val = val_df[target_col]
+
 
     for c in cat_cols:
         if c in X_train.columns:

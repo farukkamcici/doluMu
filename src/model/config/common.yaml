@@ -7,9 +7,9 @@ paths:
 
 features:
   categorical: ["line_name", "season"]
-  target: "y_norm"
+  target: "y"
   outlier_cap_z: 3.0
-  normalize_by_line: true
+  normalize_by_line: false
 
 train:
   early_stopping_rounds: 100

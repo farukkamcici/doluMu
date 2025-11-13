@@ -165,10 +165,15 @@ def evaluate_model_fresh(model_name, model, train_df, val_df):
     val_df_bl, b24, b168, blinehour = compute_baselines(train_df, val_df)
 
     # Predict (normalized -> real)
+    # start = time.time()
+    # y_pred_norm = model.predict(X_val, num_iteration=model.best_iteration)
+    # pred_time = time.time() - start
+    # y_pred_real = denormalize_predictions(train_df, val_df, y_pred_norm)
+
+    # Predict (real scale)
     start = time.time()
-    y_pred_norm = model.predict(X_val, num_iteration=model.best_iteration)
+    y_pred_real = model.predict(X_val, num_iteration=model.best_iteration)
     pred_time = time.time() - start
-    y_pred_real = denormalize_predictions(train_df, val_df, y_pred_norm)
 
     # Core metrics
     m = {
@@ -320,3 +325,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
