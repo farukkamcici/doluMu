@@ -1,0 +1,33 @@
+'use client';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { Bus, Calendar, Settings } from 'lucide-react';
+import { cn } from '@/lib/utils';
+
+function NavItem({ href, icon: Icon, label }) {
+  const pathname = usePathname();
+  // Active if pathname matches href exactly OR if it's root and href is root
+  const isActive = pathname === href || (href !== '/' && pathname.startsWith(href));
+  
+  return (
+    <Link href={href} className={cn(
+      "flex flex-col items-center justify-center space-y-1 transition-colors w-full h-full",
+      isActive ? "text-primary" : "text-gray-500 hover:text-text"
+    )}>
+      <Icon className="h-6 w-6" />
+      <span className="text-[10px] font-medium">{label}</span>
+    </Link>
+  );
+}
+
+export default function BottomNav() {
+  return (
+    <div className="fixed bottom-0 left-0 right-0 z-[1000] border-t border-white/10 bg-surface pb-safe shadow-lg">
+       <nav className="mx-auto flex h-16 max-w-md items-center justify-around">
+         <NavItem href="/" icon={Bus} label="Lines" />
+         <NavItem href="/forecast" icon={Calendar} label="Forecast" />
+         <NavItem href="/settings" icon={Settings} label="Settings" />
+       </nav>
+     </div>
+  );
+}

@@ -1,6 +1,6 @@
 # Project Logbook                                                                                                                                           
 
-_Last updated: 2025-11-18_                                                                                                                                  
+_Last updated: 2025-11-19_                                                                                                                                  
 
 ## Log Schema                                                                                                                                               
 - **Timestamp:** Commit date and hour (local timezone) recorded from repository history.                                                                    
@@ -8,6 +8,23 @@ _Last updated: 2025-11-18_
 - **Summary:** One-line status of the project immediately after the commit.                                                                                 
 - **Details:** Key updates introduced in the commit with brief explanations.                                                                                
 - **Notes:** Additional context or decisions relevant to the logged work.                                                                                   
+
+## Entry · 2025-11-19 18:03 (+03)
+
+### Commit
+- **Hash:** `c100978`
+- **Message:** `add random forest baseline training script, evaluation metrics, and update documentation`
+
+### Summary
+- Added a Random Forest baseline model to the project for performance comparison.
+
+### Details
+- Created `src/model/utils/train_rf_baseline.py` to train a Random Forest model as a baseline.
+- The script is designed to be run from the Makefile, but the evaluation has not been performed yet.
+- Updated project documentation to reflect the addition of the new baseline model.
+
+### Notes
+- The Random Forest model is intended to provide an additional baseline for evaluating the performance of the main LightGBM models. The evaluation reports for this model will be generated later.
 
 ## Entry · 2025-11-18 16:51 (+03)
 

@@ -36,7 +36,6 @@ Bu repo, İstanbul Büyükşehir Belediyesi’nin paylaşılmış saatlik yolcu 
 
 3. Gerekli veri dosyalarını `data/raw/` klasörüne yerleştirin (İBB saatlik yolcu CSV’leri, `holidays-2022-2031.csv`, vb.).
 
-> Makefile, aktif sanal ortamı (`$VIRTUAL_ENV`) veya proje kökündeki `.venv/` klasörünü otomatik seçer. Farklı bir yorumlayıcı kullanmak için komutları `PYTHON=/path/to/python make ...` biçiminde çalıştırabilirsiniz.
 
 ## Veri Pipeline’ı
 
@@ -109,23 +108,6 @@ Bu repo, İstanbul Büyükşehir Belediyesi’nin paylaşılmış saatlik yolcu 
    - Eğitimde kullanılan modelleri (varsayılan olarak `lgbm_transport_v1.txt`/`lgbm_transport_v2.txt`) yükler, tahminleri yeniden ölçekler ve lag-24h, lag-168h, line+hour ortalaması baselines ile karşılaştırır.
    - MAE/RMSE/SMAPE metrikleri, saat bazlı hatalar, en problemli 10 hat listesi, önem değişim tablosu ve SHAP özet grafiği üreterek `reports/logs/` ve `reports/figs/` klasörlerine kaydeder.
    - Not: Eğer yalnızca `lgbm_transport_v1_norm.txt` mevcutsa scriptteki dosya adlarını eşleştirin. SHAP örneklem sayısı (varsayılan 5000) bellek ihtiyacına göre güncellenebilir.
-
-## Makefile Kısayolları
-
-Aşağıdaki hedefler güncel pipeline’ı otomatikleştirmek için tanımlanmıştır (ayrıntılar için `Makefile` dosyasına bakınız):
-
-```bash
-make install            # pip install -r requirements.txt
-make data-raw           # load_raw.py
-make data-clean         # clean_data.py
-make data-explore       # explore_data.py
-make features-final     # build_final_features.py
-make features-qa        # check_features_quality.py
-make features-split     # split_features.py
-make model-train        # train_model.py
-make model-eval         # eval_model.py
-make pipeline           # data-raw → features-final → features-qa → features-split
-```
 
 ## Dokümantasyon
 

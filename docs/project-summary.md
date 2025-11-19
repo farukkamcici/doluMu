@@ -62,3 +62,5 @@ ied to automatically discover, evaluate, and compare all trained models, making 
 roving maintainability.
 
 - 2025-11-18: Generated evaluation reports for the `lgbm_transport_v6` model, which demonstrates a significant improvement over baseline models with a test set MAE of 72.77. Updated project documentation to include these latest results.
+
+- 2025-11-19: Added a Random Forest baseline model (`src/model/utils/train_rf_baseline.py`) to the project. This model will be used as an additional baseline for performance comparison against the LightGBM models. The evaluation for this model has not been run yet.
