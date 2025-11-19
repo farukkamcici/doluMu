@@ -9,6 +9,27 @@ _Last updated: 2025-11-19_
 - **Details:** Key updates introduced in the commit with brief explanations.                                                                                
 - **Notes:** Additional context or decisions relevant to the logged work.                                                                                   
 
+## Entry · 2025-11-19 19:59 (+03)
+
+### Commit
+- **Hash:** `e8854d7`
+- **Message:** `add frontend setup with Next.js, Tailwind CSS, and initial components`
+
+### Summary
+- Established the initial frontend application structure with Next.js and Tailwind CSS.
+
+### Details
+- Created the basic frontend skeleton with a mobile-first design.
+- Implemented the main map view, a search bar, and a bottom navigation bar.
+- Set up the project with a dark/marine theme using a custom color palette in Tailwind CSS.
+- Added a data layer with dummy data for transport lines and a Zustand store for state management.
+- Implemented a line detail panel with a chart to display crowd forecast data.
+- Added a time slider to control the displayed hour.
+- Implemented multi-page navigation with separate pages for "Forecast" and "Settings".
+
+### Notes
+- This commit marks the initial setup of the frontend application. The components are functional but use dummy data.
+
 ## Entry · 2025-11-19 18:03 (+03)
 
 ### Commit

@@ -64,3 +64,9 @@ roving maintainability.
 - 2025-11-18: Generated evaluation reports for the `lgbm_transport_v6` model, which demonstrates a significant improvement over baseline models with a test set MAE of 72.77. Updated project documentation to include these latest results.
 
 - 2025-11-19: Added a Random Forest baseline model (`src/model/utils/train_rf_baseline.py`) to the project. This model will be used as an additional baseline for performance comparison against the LightGBM models. The evaluation for this model has not been run yet.
+
+
+
+## Frontend Development
+
+- 2025-11-19: Established the initial frontend application with Next.js and Tailwind CSS, featuring a mobile-first, dark-themed UI. Key components include a map view, a functional search bar, a line detail panel with data visualization, and a bottom navigation system. The frontend is powered by a Zustand store for state management and uses dummy data for now. Multi-page navigation for "Forecast" and "Settings" has been implemented.
