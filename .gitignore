@@ -257,4 +257,6 @@ cython_debug/
 data/
 models/
 docs/
-mlruns
+mlruns.DS_Store
+mlruns/
+**/.DS_Store

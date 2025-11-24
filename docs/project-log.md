@@ -1,13 +1,34 @@
-# Project Logbook                                                                                                                                           
+# Project Logbook
 
-_Last updated: 2025-11-19_                                                                                                                                  
+_Last updated: 2025-11-24_
 
-## Log Schema                                                                                                                                               
-- **Timestamp:** Commit date and hour (local timezone) recorded from repository history.                                                                    
-- **Commit:** Hash and message identifying the change captured in the log.                                                                                  
-- **Summary:** One-line status of the project immediately after the commit.                                                                                 
-- **Details:** Key updates introduced in the commit with brief explanations.                                                                                
-- **Notes:** Additional context or decisions relevant to the logged work.                                                                                   
+## Log Schema
+- **Timestamp:** Commit date and hour (local timezone) recorded from repository history.
+- **Commit:** Hash and message identifying the change captured in the log.
+- **Summary:** One-line status of the project immediately after the commit.
+- **Details:** Key updates introduced in the commit with brief explanations.
+- **Notes:** Additional context or decisions relevant to the logged work.
+
+## Entry · 2025-11-24 15:00 (+03)
+
+### Commit
+- **Hash:** `828d5aee70a696634f5b6fa51f3f3b48bd9bd1c9`
+- **Message:** `add alert component and locate button for user location tracking; integrate with map and store`
+
+### Summary
+- Implemented a "Current Location" feature with a floating button on the map and replaced the default browser alert with a custom, modern alert component.
+
+### Details
+- Added a "Locate Me" button to the map that uses the browser's Geolocation API to find the user's location.
+- The map view now centers on the user's location and displays a custom, modern marker.
+- The button is positioned at the bottom right, above the tab bar, and styled to be modern and borderless.
+- Created a new `Alert.jsx` component for displaying error messages, managed through the global Zustand store.
+- The alert component is styled according to the project's design system and automatically dismisses after 5 seconds.
+- Updated the `useAppStore` to manage state for both user location and alert messages.
+
+### Notes
+- The new alert system provides a more integrated and user-friendly way to display notifications.
+- The "Locate Me" feature enhances user experience by allowing quick map orientation to their current position.
 
 ## Entry · 2025-11-19 19:59 (+03)
 
@@ -62,30 +83,31 @@ _Last updated: 2025-11-19_
 - Updated `project-log.md` and `project-summary.md` to reflect the latest changes and model performance.
 
 ### Notes
-- The v6 model shows strong performance, especially in improving upon the baseline. The top 10 worst performing lines are consistent with previous models, with MARMARAY and metro lines having the highest MAE.
+- The v6 model shows strong performance, especially in improving upon the baseline. The top 10 worst performing lines are consistent with previous models, with MARMARAY and metro lines having the highest MA
+E.
 
-## Entry · 2025-11-17 16:17 (+03)                                                                                                                           
-                                                                                                                                                            
-### Commit                                                                                                                                                  
-- **Hash:** `b441ca9`                                                                                                                                       
-- **Message:** `refactor: Overhaul model evaluation and testing scripts for robustness`                                                                     
-                                                                                                                                                            
-### Summary                                                                                                                                                 
+## Entry · 2025-11-17 16:17 (+03)
+
+### Commit
+- **Hash:** `b441ca9`
+- **Message:** `refactor: Overhaul model evaluation and testing scripts for robustness`
+
+### Summary
 - Refactored the model evaluation and testing scripts to be configuration-driven, robustly handling multiple model versions and fixing critical data-handlin
-g bugs.                                                                                                                                                     
-                                                                                                                                                            
-### Details                                                                                                                                                 
+g bugs.
+
+### Details
 - Rewrote `src/model/eval_model.py` to dynamically load the correct configuration (`v1.yaml`, `v5.yaml`, etc.) for each model being evaluated, ensuring a pe
-rfect match with the training environment.                                                                                                                  
+rfect match with the training environment.
 - Fixed a persistent `ValueError` related to categorical feature encoding by ensuring the evaluation script mimics the training script's data handling (usin
-g combined train+validation sets for category mapping).                                                                                                     
+g combined train+validation sets for category mapping).
 - Re-integrated denormalization logic into `eval_model.py` (controlled by a `needs_denormalization` config flag) to correctly process older, normalized mode
-ls.                                                                                                                                                         
+ls.
 - Rewrote `src/model/test_model.py` as a command-line tool that accepts a model version (e.g., `v5`) and loads its configuration dynamically, removing all h
-ardcoded values.                                                                                                                                            
-- Added detailed segment analysis (MAE by hour, top 10 worst lines) back into the evaluation and test reports.                                              
-                                                                                                                                                            
-### Notes                                                                                                                                                   
+ardcoded values.
+- Added detailed segment analysis (MAE by hour, top 10 worst lines) back into the evaluation and test reports.
+
+### Notes
 - This major refactoring makes the model evaluation and testing pipeline significantly more robust, maintainable, and resilient to changes in model configur
 ations.
 
@@ -123,7 +145,8 @@ ations.
 - Heavily refactored `src/model/eval_model.py` to automatically discover all model files (`.txt`) in the `/models` directory instead of hardcoding paths for v1 and v2.
 - The evaluation script now generates a single, unified comparison report (`evaluation_summary_all.csv` and `.json`) for all discovered models.
 - Added on-demand artifact generation to the evaluation script, which now creates feature importance and SHAP plots only if they are missing for a given model.
-- Created a new `src/model/utils` directory to house shared utilities for configuration loading (`config_loader.py`), data preparation (`data_prep.py`), and path management (`paths.py`), improving code organization.
+- Created a new `src/model/utils` directory to house shared utilities for configuration loading (`config_loader.py`), data preparation (`data_prep.py`), and path management (`paths.py`), improving code orga
+nization.
 - Updated `requirements.txt` to include `PyYAML` and `mlflow`.
 
 ### Notes
@@ -140,14 +163,19 @@ ations.
 - Delivered the repository’s first full modeling loop, from normalized LightGBM training through a multi-baseline evaluation and SHAP explainability assets, to validate the v1/v2 architecture.
 
 ### Details
-- Added `src/model/train_model.py` to orchestrate the v1 normalized LightGBM pipeline: caps per-line outliers, derives `y_norm`, handles categorical typing, trains with early stopping, then persists the booster alongside gain-based feature importances, CSV exports, and PNG charts under `models/` and `reports/`.
-- Embedded a commented v2 configuration within the training script documenting the alternative hyperparameters, callbacks, and artifact naming (`lgbm_transport_v2.txt`) so follow-up tuning work can be activated without rewriting the setup.
-- Authored `src/model/eval_model.py` to reload v1/v2 boosters, denormalize predictions with train-set statistics, and benchmark them against lag-24h, lag-168h, and line+hour means while emitting MAE/RMSE/SMAPE metrics, per-hour slices, worst-line diagnostics, SHAP summaries, and improvement ratios to JSON/CSV/PNG outputs.
-- Refined `src/features/split_features.py` by parsing `datetime` before applying the cutoff windows and dropping both `datetime` and `year`, keeping the split parquet files free from leak-prone time columns for downstream modeling scripts.
+- Added `src/model/train_model.py` to orchestrate the v1 normalized LightGBM pipeline: caps per-line outliers, derives `y_norm`, handles categorical typing, trains with early stopping, then persists the boo
+ster alongside gain-based feature importances, CSV exports, and PNG charts under `models/` and `reports/`.
+- Embedded a commented v2 configuration within the training script documenting the alternative hyperparameters, callbacks, and artifact naming (`lgbm_transport_v2.txt`) so follow-up tuning work can be activ
+ated without rewriting the setup.
+- Authored `src/model/eval_model.py` to reload v1/v2 boosters, denormalize predictions with train-set statistics, and benchmark them against lag-24h, lag-168h, and line+hour means while emitting MAE/RMSE/SM
+APE metrics, per-hour slices, worst-line diagnostics, SHAP summaries, and improvement ratios to JSON/CSV/PNG outputs.
+- Refined `src/features/split_features.py` by parsing `datetime` before applying the cutoff windows and dropping both `datetime` and `year`, keeping the split parquet files free from leak-prone time columns
+ for downstream modeling scripts.
 - Expanded `requirements.txt` with `matplotlib` for plotting and `shap` for model explainability, satisfying the new training and evaluation dependencies in a single install step.
 
 ### Notes
-- Regenerate the split parquet files before training so `train_model.py` can build normalized datasets, and align the saved booster filenames (e.g., rename `lgbm_transport_v1_norm.txt` to the name expected by `eval_model.py`) ahead of running the evaluation workflow.
+- Regenerate the split parquet files before training so `train_model.py` can build normalized datasets, and align the saved booster filenames (e.g., rename `lgbm_transport_v1_norm.txt` to the name expected 
+by `eval_model.py`) ahead of running the evaluation workflow.
 - SHAP sampling in `eval_model.py` draws 5k validation rows; ensure the environment has sufficient memory/GPU (if available) or reduce the sample size for constrained setups.
 
 ## Entry · 2025-11-04 13:18 (+03)
@@ -180,7 +208,8 @@ ations.
 ### Details
 - Redirected hourly aggregation outputs in `src/data_prep/load_raw.py` to `data/interim` to distinguish staging artifacts from processed modeling assets.
 - Hardened calendar dimension typing by casting weekend and school-term indicators to `Int8`, preventing Polars-to-parquet boolean drift before joins.
-- Assembled the modeling-ready dataset via `src/features/build_final_features.py`, joining lagged transport, weather, and calendar tables and normalizing categorical/time features prior to persisting `features_pl.parquet`.
+- Assembled the modeling-ready dataset via `src/features/build_final_features.py`, joining lagged transport, weather, and calendar tables and normalizing categorical/time features prior to persisting `featu
+res_pl.parquet`.
 - Normalized the weather dimension to use a `datetime` column and consistent timestamp logging, enabling direct joins without timezone conversion hacks.
 - Authored `src/features/check_features_quality.py` for Polars-based data quality audits, producing timestamped logs under `docs/data_quality_log_pl.txt` with schema, null, and range diagnostics.
 - Added `src/features/convert_features_to_pandas.py` to emit `features_pd.parquet`, keeping downstream notebooks aligned with pandas tooling.
