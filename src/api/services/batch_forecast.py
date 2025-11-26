@@ -64,9 +64,18 @@ def run_daily_forecast_job(db: Session, store: FeatureStore, model: lgb.Booster,
         
         print(f"✓ Calendar features loaded: {calendar_features}")
         
+        print("Batch-loading lag features for all lines...")
+        lag_batch = store.get_batch_historical_lags(line_names, date_str)
+        print(f"✓ Lag features loaded: {len(lag_batch.get('seasonal', {}))} seasonal, {len(lag_batch.get('fallback', {}))} fallback")
+        
+        fallback_lags = {
+            'lag_24h': 0.0, 'lag_48h': 0.0, 'lag_168h': 0.0,
+            'roll_mean_24h': 0.0, 'roll_std_24h': 0.0
+        }
+        
         # Build all prediction inputs in batch
         batch_inputs = []
-        batch_metadata = []  # Store line_name and hour for later
+        batch_metadata = []
         
         for idx, line_name in enumerate(line_names):
             if idx % 100 == 0:
@@ -77,7 +86,8 @@ def run_daily_forecast_job(db: Session, store: FeatureStore, model: lgb.Booster,
                 if not weather_data:
                     continue
 
-                lag_features = store.get_historical_lags(line_name, hour, date_str)
+                key = (line_name, hour)
+                lag_features = lag_batch['seasonal'].get(key) or lag_batch['fallback'].get(key) or fallback_lags
 
                 model_input_data = {
                     "line_name": line_name, "hour_of_day": hour,

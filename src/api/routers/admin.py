@@ -130,28 +130,33 @@ def test_forecast_quick(
     
     # 4. Build inputs
     start = time.time()
+    lag_batch_start = time.time()
+    lag_batch = store.get_batch_historical_lags(line_names, date_str)
+    timing['lag_batch_fetch'] = time.time() - lag_batch_start
+    
+    fallback_lags = {
+        'lag_24h': 0.0, 'lag_48h': 0.0, 'lag_168h': 0.0,
+        'roll_mean_24h': 0.0, 'roll_std_24h': 0.0
+    }
+    
     batch_inputs = []
     for line_name in line_names:
         for hour in range(num_hours):
-            lag_start = time.time()
-            lag_features = store.get_historical_lags(line_name, hour, date_str)
-            lag_time = time.time() - lag_start
+            key = (line_name, hour)
+            lag_features = lag_batch['seasonal'].get(key) or lag_batch['fallback'].get(key) or fallback_lags
             
             model_input_data = {
                 "line_name": line_name, "hour_of_day": hour,
                 **calendar_features, **weather_data.get(hour, {}), **lag_features
             }
             model_input = ModelInput(**model_input_data)
-            batch_inputs.append({
-                **model_input.model_dump(),
-                "_lag_fetch_time": lag_time
-            })
+            batch_inputs.append(model_input.model_dump())
     timing['input_building'] = time.time() - start
-    avg_lag_time = sum(x['_lag_fetch_time'] for x in batch_inputs) / len(batch_inputs)
+    avg_lag_time = timing['lag_batch_fetch'] / len(batch_inputs) if batch_inputs else 0
     
     # 5. Predict
     start = time.time()
-    df_batch = pd.DataFrame([{k: v for k, v in x.items() if not k.startswith('_')} for x in batch_inputs])
+    df_batch = pd.DataFrame(batch_inputs)
     df_batch = df_batch[COLUMN_ORDER]
     df_batch['line_name'] = df_batch['line_name'].astype('category')
     df_batch['season'] = df_batch['season'].astype('category')

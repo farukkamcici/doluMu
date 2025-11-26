@@ -16,11 +16,12 @@ class FeatureStore:
             ]
 
             # 2. Load and Optimization
-            # We convert datetime immediately to allow .dt accessors
             self.features_df = pl.read_parquet(features_path, columns=required_cols).with_columns([
                 pl.col(['y', 'lag_24h', 'lag_48h', 'lag_168h', 'roll_mean_24h', 'roll_std_24h']).cast(pl.Float32),
                 pl.col('hour_of_day').cast(pl.UInt8),
-                pl.col('datetime').cast(pl.Datetime)  # Ensure it is Datetime type
+                pl.col('datetime').cast(pl.Datetime),
+                pl.col('datetime').dt.month().alias('month'),
+                pl.col('datetime').dt.day().alias('day')
             ])
 
             self.calendar_df = pl.read_parquet(calendar_path)
@@ -30,9 +31,10 @@ class FeatureStore:
             self.line_max_capacity = dict(zip(max_caps["line_name"], max_caps["max_y"]))
             self.global_average_max = max_caps["max_y"].mean() if not max_caps.is_empty() else 0
 
-            # 4. No Dictionary Cache (We filter on-the-fly)
-            self.lags_cache = None
-
+            # 4. Pre-compute latest lags per line/hour/month/day for fast lookup
+            print("Building lag lookup cache...")
+            self.lag_lookup = self._build_lag_lookup()
+            
             elapsed = time.time() - start_time
             print(f"Feature Store initialized successfully in {elapsed:.2f}s.")
 
@@ -42,6 +44,36 @@ class FeatureStore:
             self.calendar_df = None
             self.line_max_capacity = {}
             self.global_average_max = 0
+            self.lag_lookup = None
+
+    def _build_lag_lookup(self):
+        if self.features_df is None:
+            return {}
+        
+        lag_cols = ['lag_24h', 'lag_48h', 'lag_168h', 'roll_mean_24h', 'roll_std_24h']
+        
+        seasonal = (
+            self.features_df
+            .group_by(['line_name', 'hour_of_day', 'month', 'day'])
+            .agg([
+                pl.col('datetime').max().alias('latest_dt'),
+                *[pl.col(c).last().alias(c) for c in lag_cols]
+            ])
+        )
+        
+        fallback = (
+            self.features_df
+            .group_by(['line_name', 'hour_of_day'])
+            .agg([
+                pl.col('datetime').max().alias('latest_dt'),
+                *[pl.col(c).last().alias(c) for c in lag_cols]
+            ])
+        )
+        
+        return {
+            'seasonal': seasonal,
+            'fallback': fallback
+        }
 
     def get_calendar_features(self, date_str: str) -> dict:
         if self.calendar_df is None: return {}
@@ -64,47 +96,71 @@ class FeatureStore:
         return features
 
     def get_historical_lags(self, line_name: str, hour: int, target_date_str: str) -> dict:
-        """
-        Smart Retrieval Strategy:
-        1. Try to find the most recent historical record for the SAME MONTH and DAY.
-           (e.g., if predicting for Nov 24 2025, try to find Nov 24 2024, 2023...)
-        2. If not found, fallback to the absolute latest record available for that line/hour.
-        """
         fallback_lags = {
             'lag_24h': 0.0, 'lag_48h': 0.0, 'lag_168h': 0.0,
             'roll_mean_24h': 0.0, 'roll_std_24h': 0.0
         }
-        if self.features_df is None: return fallback_lags
+        if not self.lag_lookup: 
+            return fallback_lags
 
         target_dt = datetime.strptime(target_date_str, "%Y-%m-%d")
         target_month = target_dt.month
         target_day = target_dt.day
-
         lag_cols = ['lag_24h', 'lag_48h', 'lag_168h', 'roll_mean_24h', 'roll_std_24h']
 
-        # --- STRATEGY 1: Seasonal Match (Same Month & Day) ---
-        seasonal_match = self.features_df.filter(
+        seasonal_match = self.lag_lookup['seasonal'].filter(
             (pl.col("line_name") == line_name) &
             (pl.col("hour_of_day") == hour) &
-            (pl.col("datetime").dt.month() == target_month) &
-            (pl.col("datetime").dt.day() == target_day) &
-            (pl.col("datetime") < target_dt)  # Ensure we don't pick future if dataset has it
-        ).sort("datetime", descending=True).limit(1)
+            (pl.col("month") == target_month) &
+            (pl.col("day") == target_day)
+        )
 
         if not seasonal_match.is_empty():
             return seasonal_match.select(lag_cols).row(0, named=True)
 
-        # --- STRATEGY 2: Fallback (Absolute Latest Record) ---
-        # If Nov 24 doesn't exist in history, take the last known data point.
-        latest_record = self.features_df.filter(
+        fallback_match = self.lag_lookup['fallback'].filter(
             (pl.col("line_name") == line_name) &
             (pl.col("hour_of_day") == hour)
-        ).sort("datetime", descending=True).limit(1)
+        )
 
-        if not latest_record.is_empty():
-            return latest_record.select(lag_cols).row(0, named=True)
+        if not fallback_match.is_empty():
+            return fallback_match.select(lag_cols).row(0, named=True)
 
         return fallback_lags
+    
+    def get_batch_historical_lags(self, line_names: list, target_date_str: str):
+        if not self.lag_lookup:
+            return {}
+        
+        target_dt = datetime.strptime(target_date_str, "%Y-%m-%d")
+        target_month = target_dt.month
+        target_day = target_dt.day
+        lag_cols = ['line_name', 'hour_of_day', 'lag_24h', 'lag_48h', 'lag_168h', 'roll_mean_24h', 'roll_std_24h']
+        
+        seasonal_batch = self.lag_lookup['seasonal'].filter(
+            (pl.col("line_name").is_in(line_names)) &
+            (pl.col("month") == target_month) &
+            (pl.col("day") == target_day)
+        ).select(lag_cols)
+        
+        fallback_batch = self.lag_lookup['fallback'].filter(
+            pl.col("line_name").is_in(line_names)
+        ).select(lag_cols)
+        
+        seasonal_dict = {}
+        for row in seasonal_batch.iter_rows(named=True):
+            key = (row['line_name'], row['hour_of_day'])
+            seasonal_dict[key] = {k: row[k] for k in lag_cols if k not in ['line_name', 'hour_of_day']}
+        
+        fallback_dict = {}
+        for row in fallback_batch.iter_rows(named=True):
+            key = (row['line_name'], row['hour_of_day'])
+            fallback_dict[key] = {k: row[k] for k in lag_cols if k not in ['line_name', 'hour_of_day']}
+        
+        return {
+            'seasonal': seasonal_dict,
+            'fallback': fallback_dict
+        }
 
     def get_crowd_level(self, line_name: str, prediction_value: float) -> str:
         max_capacity = self.line_max_capacity.get(line_name, self.global_average_max)
