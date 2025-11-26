@@ -2,6 +2,7 @@ import MapCaller from '@/components/map/MapCaller';
 import SearchBar from '@/components/ui/SearchBar';
 import BottomNav from '@/components/ui/BottomNav';
 import LineDetailPanel from '@/components/ui/LineDetailPanel';
+import TemperatureBadge from '@/components/ui/Nowcast';
 
 export default function Home() {
   return (
@@ -17,6 +18,9 @@ export default function Home() {
           {/* Weather Badge will be rendered here with w-auto */}
         </div>
       </div>
+
+      {/* Weather Badge - Positioned Absolutely */}
+      <TemperatureBadge />
 
       {/* Full Screen Map Layer */}
       <div className="flex-1 z-0 relative">

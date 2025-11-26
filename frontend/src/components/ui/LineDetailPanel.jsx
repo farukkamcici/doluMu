@@ -46,7 +46,7 @@ export default function LineDetailPanel() {
   const status = currentHourData ? crowdLevelConfig[currentHourData.crowd_level] : null;
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-[2000] flex flex-col rounded-t-3xl bg-surface p-6 shadow-2xl transition-transform duration-300 ease-out">
+    <div className="fixed bottom-0 left-0 right-0 z-[999] flex flex-col rounded-t-3xl bg-surface p-6 pb-20 shadow-2xl transition-transform duration-300 ease-out">
       
       <div className="mb-6 flex items-start justify-between">
         <div>

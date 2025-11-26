@@ -66,7 +66,11 @@ const TemperatureBadge = () => {
     }, [fetchWeatherData]);
 
     // Handle expansion with auto-collapse
-    const handleToggle = useCallback(() => {
+    const handleToggle = useCallback((e) => {
+        // Prevent event propagation to avoid interfering with other UI elements
+        e.stopPropagation();
+        e.preventDefault();
+        
         setIsExpanded(prev => {
             const newState = !prev;
             
