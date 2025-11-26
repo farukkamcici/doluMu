@@ -64,3 +64,26 @@ def trigger_forecast_job(
     background_tasks.add_task(run_daily_forecast_job, db, store, model, target_date)
 
     return {"message": "Forecast job started in the background.", "target_date": target_date}
+
+
+@router.post("/admin/jobs/reset")
+def reset_stuck_jobs(db: Session = Depends(get_db)):
+    """
+    Reset all jobs stuck in RUNNING status to FAILED.
+    Useful for cleaning up after server crashes or interrupted jobs.
+    """
+    stuck_jobs = db.query(JobExecution).filter(JobExecution.status == "RUNNING").all()
+    
+    if not stuck_jobs:
+        return {"message": "No stuck jobs found.", "reset_count": 0}
+    
+    reset_count = 0
+    for job in stuck_jobs:
+        job.status = "FAILED"
+        job.end_time = datetime.now()
+        job.error_message = "Job reset by admin - was stuck in RUNNING state"
+        reset_count += 1
+    
+    db.commit()
+    
+    return {"message": f"Reset {reset_count} stuck job(s) to FAILED status.", "reset_count": reset_count}

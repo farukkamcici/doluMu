@@ -3,6 +3,7 @@ from sqlalchemy.dialects.postgresql import insert
 import pandas as pd
 import lightgbm as lgb
 from datetime import datetime
+import traceback
 from ..db import SessionLocal
 from ..models import TransportLine, DailyForecast, JobExecution
 from ..schemas import ModelInput
@@ -16,19 +17,27 @@ ISTANBUL_LON = 28.9784
 
 
 def run_daily_forecast_job(db: Session, store: FeatureStore, model: lgb.Booster, target_date: datetime.date):
-    # 1. Create Job Log (STARTED)
-    job_log = JobExecution(
-        job_type="daily_forecast",
-        status="RUNNING",
-        start_time=datetime.now()
-    )
-    db.add(job_log)
-    db.commit()
-    db.refresh(job_log)
-
-    print(f"Starting daily forecast job for date: {target_date} (Job ID: {job_log.id})")
-
+    """
+    Run daily forecast job in background.
+    NOTE: Creates its own DB session to avoid session lifecycle issues with background tasks.
+    """
+    # Create a NEW session for this background task (ignore the passed session)
+    db = SessionLocal()
+    job_log = None
+    
     try:
+        # 1. Create Job Log (STARTED)
+        job_log = JobExecution(
+            job_type="daily_forecast",
+            status="RUNNING",
+            start_time=datetime.now()
+        )
+        db.add(job_log)
+        db.commit()
+        db.refresh(job_log)
+
+        print(f"Starting daily forecast job for date: {target_date} (Job ID: {job_log.id})")
+
         # Fetch all available lines
         all_lines = db.query(TransportLine.line_name).all()
         line_names = [line[0] for line in all_lines]
@@ -45,16 +54,17 @@ def run_daily_forecast_job(db: Session, store: FeatureStore, model: lgb.Booster,
         for line_name in line_names:
             calendar_features = store.get_calendar_features(date_str)
             if not calendar_features:
+                print(f"No calendar features for {date_str}, skipping...")
                 continue
 
             for hour in range(24):
                 weather_data = daily_weather_data.get(hour)
                 if not weather_data:
+                    print(f"No weather data for hour {hour}, skipping...")
                     continue
 
-                # --- CHANGE HERE: Pass date_str for seasonal matching ---
+                # Get historical lag features with seasonal matching
                 lag_features = store.get_historical_lags(line_name, hour, date_str)
-                # -------------------------------------------------------
 
                 model_input_data = {
                     "line_name": line_name, "hour_of_day": hour,
@@ -94,6 +104,7 @@ def run_daily_forecast_job(db: Session, store: FeatureStore, model: lgb.Booster,
 
         # Bulk Upsert
         if forecasts_to_insert:
+            print(f"Inserting {len(forecasts_to_insert)} forecast records...")
             stmt = insert(DailyForecast).values(forecasts_to_insert)
             stmt = stmt.on_conflict_do_update(
                 constraint='_line_date_hour_uc',
@@ -106,6 +117,9 @@ def run_daily_forecast_job(db: Session, store: FeatureStore, model: lgb.Booster,
             )
             db.execute(stmt)
             db.commit()
+            print(f"Successfully inserted {len(forecasts_to_insert)} records.")
+        else:
+            print("⚠️ No forecasts generated. Check calendar/weather data availability.")
 
         # 2. Update Job Log (SUCCESS)
         job_log.status = "SUCCESS"
@@ -119,12 +133,30 @@ def run_daily_forecast_job(db: Session, store: FeatureStore, model: lgb.Booster,
     except Exception as e:
         # 3. Update Job Log (FAILED)
         db.rollback()
-        print(f"❌ Job {job_log.id} failed: {e}")
+        error_details = traceback.format_exc()
+        print(f"❌ Job failed: {e}")
+        print(f"Full traceback:\n{error_details}")
 
-        job_log.status = "FAILED"
-        job_log.end_time = datetime.now()
-        job_log.error_message = str(e)
-        db.add(job_log)
-        db.commit()
+        try:
+            # Fetch job_log again in case it was detached or never created
+            if job_log is None or job_log.id is None:
+                job_log = db.query(JobExecution).filter(
+                    JobExecution.status == "RUNNING"
+                ).order_by(JobExecution.start_time.desc()).first()
+            
+            if job_log:
+                job_log.status = "FAILED"
+                job_log.end_time = datetime.now()
+                job_log.error_message = error_details[:1000]  # Limit to 1000 chars
+                db.commit()
+                print(f"Updated job {job_log.id} status to FAILED.")
+        except Exception as update_error:
+            print(f"Failed to update job status: {update_error}")
+            db.rollback()
 
         return {"status": "failed", "error": str(e)}
+    
+    finally:
+        # Always close the session we created
+        db.close()
+        print("Database session closed.")
