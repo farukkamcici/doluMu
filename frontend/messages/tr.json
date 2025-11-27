@@ -1,0 +1,71 @@
+{
+  "metadata": {
+    "title": "İstanbul Toplu Taşıma - Yoğunluk Tahmini",
+    "description": "Yapay zeka destekli İstanbul toplu taşıma sistemi yoğunluk tahminleri"
+  },
+  "navigation": {
+    "lines": "Hatlar",
+    "forecast": "Tahmin",
+    "settings": "Ayarlar"
+  },
+  "searchBar": {
+    "placeholder": "Hat ara (örn: M2, 500T)",
+    "loading": "Yükleniyor...",
+    "noResults": "\"{query}\" için hat bulunamadı"
+  },
+  "lineDetail": {
+    "estimatedCrowd": "Tahmini Yoğunluk: {hour}:00",
+    "occupancy": "Doluluk",
+    "predictedPassengers": "Tahmini yolcu sayısı",
+    "maxCapacity": "Maksimum kapasite",
+    "forecast24h": "24 Saatlik Tahmin",
+    "crowdLevels": {
+      "Low": "Düşük Yoğunluk",
+      "Medium": "Orta Yoğunluk",
+      "High": "Yüksek Yoğunluk",
+      "Very High": "Çok Yüksek Yoğunluk",
+      "Unknown": "Bilinmiyor"
+    }
+  },
+  "transportTypes": {
+    "bus": "Otobüs",
+    "metro": "Metro",
+    "ferry": "Vapur",
+    "unknown": "Bilinmiyor"
+  },
+  "weather": {
+    "nextHours": "Sonraki Saatler",
+    "autoCloses": "Birkaç saniye içinde otomatik kapanır"
+  },
+  "timeSlider": {
+    "timeTravel": "Zaman Seçici"
+  },
+  "forecast": {
+    "title": "Tahmin Sayfası",
+    "selectLine": "Bir hat seçin",
+    "noData": "Veri bulunamadı"
+  },
+  "settings": {
+    "title": "Ayarlar",
+    "language": "Dil",
+    "theme": "Tema",
+    "about": "Hakkında"
+  },
+  "admin": {
+    "title": "Yönetim Paneli",
+    "dashboard": "Kontrol Paneli"
+  },
+  "errors": {
+    "networkError": "Ağ hatası. Lütfen bağlantınızı kontrol edin.",
+    "notFound": "Hat bulunamadı",
+    "serverError": "Sunucu hatası. Lütfen daha sonra tekrar deneyin.",
+    "noForecast": "{line} için tahmin bulunamadı"
+  },
+  "common": {
+    "close": "Kapat",
+    "loading": "Yükleniyor",
+    "error": "Hata",
+    "retry": "Tekrar Dene",
+    "istanbul": "İstanbul"
+  }
+}

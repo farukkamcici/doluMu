@@ -2,7 +2,7 @@ export const TRANSPORT_TYPES = {
   1: {
     id: 1,
     name: 'Bus',
-    label: 'Otobüs',
+    labelKey: 'bus',
     bgColor: 'bg-blue-500/20',
     textColor: 'text-blue-400',
     borderColor: 'border-blue-500/30'
@@ -10,7 +10,7 @@ export const TRANSPORT_TYPES = {
   2: {
     id: 2,
     name: 'Rail',
-    label: 'Metro',
+    labelKey: 'metro',
     bgColor: 'bg-purple-500/20',
     textColor: 'text-purple-400',
     borderColor: 'border-purple-500/30'
@@ -18,7 +18,7 @@ export const TRANSPORT_TYPES = {
   3: {
     id: 3,
     name: 'Ferry',
-    label: 'Vapur',
+    labelKey: 'ferry',
     bgColor: 'bg-cyan-500/20',
     textColor: 'text-cyan-400',
     borderColor: 'border-cyan-500/30'
@@ -44,7 +44,7 @@ export const getTransportType = (typeId) => {
   return TRANSPORT_TYPES[typeId] || {
     id: typeId,
     name: 'Unknown',
-    label: 'Bilinmiyor',
+    labelKey: 'unknown',
     bgColor: 'bg-gray-500/20',
     textColor: 'text-gray-400',
     borderColor: 'border-gray-500/30'

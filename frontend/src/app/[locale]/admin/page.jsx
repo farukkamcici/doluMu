@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect } from 'react';
+import { useTranslations } from 'next-intl';
 import axios from 'axios';
 import { format, addDays } from 'date-fns';
 
@@ -59,6 +60,7 @@ const ErrorModal = ({ error, onClose }) => {
 // --- MAIN PAGE ---
 
 export default function AdminDashboard() {
+  const t = useTranslations('admin');
   const [stats, setStats] = useState(null);
   const [jobs, setJobs] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -146,10 +148,10 @@ export default function AdminDashboard() {
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-6 pb-6 border-b border-gray-800">
           <div>
             <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400 bg-clip-text text-transparent">
-              Transport AI Monitor
+              {t('title')}
             </h1>
             <p className="text-gray-400 mt-2 text-sm">
-                System Status & ETL Pipeline Control
+                {t('dashboard')}
             </p>
           </div>
 

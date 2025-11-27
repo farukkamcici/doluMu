@@ -1,5 +1,7 @@
+import { useTranslations } from 'next-intl';
 import BottomNav from '@/components/ui/BottomNav';
-import { Info, Moon, Shield } from 'lucide-react';
+import LanguageSwitcher from '@/components/ui/LanguageSwitcher';
+import { Info, Moon, Shield, Globe } from 'lucide-react';
 
 function SettingItem({ icon: Icon, label, value }) {
   return (
@@ -14,14 +16,23 @@ function SettingItem({ icon: Icon, label, value }) {
 }
 
 export default function SettingsPage() {
+  const t = useTranslations('settings');
+  
   return (
     <main className="relative flex min-h-screen flex-col bg-background pb-20 font-sans text-text">
       <div className="p-6 pt-12">
-        <h1 className="text-2xl font-bold text-primary">Settings</h1>
+        <h1 className="text-2xl font-bold text-primary">{t('title')}</h1>
       </div>
 
       <div className="mx-4 overflow-hidden rounded-2xl bg-surface border border-white/5">
-        <SettingItem icon={Moon} label="Theme" value="Dark (Default)" />
+        <div className="flex items-center justify-between border-b border-white/5 p-4">
+          <div className="flex items-center gap-3">
+            <Globe size={20} className="text-secondary" />
+            <span>{t('language')}</span>
+          </div>
+          <LanguageSwitcher />
+        </div>
+        <SettingItem icon={Moon} label={t('theme')} value="Dark (Default)" />
         <SettingItem icon={Shield} label="Data Source" value="IBB Open Data" />
         <SettingItem icon={Info} label="Version" value="v1.0.0 (MVP)" />
       </div>

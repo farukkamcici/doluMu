@@ -1,7 +1,10 @@
+'use client';
+import { useTranslations } from 'next-intl';
 import useAppStore from '@/store/useAppStore';
 import { Clock } from 'lucide-react';
 
 export default function TimeSlider() {
+  const t = useTranslations('timeSlider');
   const { selectedHour, setSelectedHour } = useAppStore();
 
   return (
@@ -9,7 +12,7 @@ export default function TimeSlider() {
       <div className="mb-2 flex items-center justify-between">
         <div className="flex items-center gap-2 text-secondary">
           <Clock size={16} />
-          <span className="text-sm font-medium">Time Travel</span>
+          <span className="text-sm font-medium">{t('timeTravel')}</span>
         </div>
         <span className="text-xl font-bold text-primary">
           {selectedHour}:00

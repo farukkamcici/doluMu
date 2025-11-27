@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { useTranslations } from 'next-intl';
 import useAppStore from '@/store/useAppStore';
 import { Loader, AlertTriangle, Droplets } from 'lucide-react';
 
@@ -8,6 +9,7 @@ const ISTANBUL_COORDS = [41.0082, 28.9784];
 
 
 const TemperatureBadge = () => {
+    const t = useTranslations();
     const [weatherData, setWeatherData] = useState(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
@@ -190,7 +192,7 @@ const TemperatureBadge = () => {
                                     {currentTemp ? Math.round(currentTemp) : '--'}°
                                 </div>
                                 <div className="text-[10px] text-secondary/70 leading-tight font-medium">
-                                    İstanbul
+                                    {t('common.istanbul')}
                                 </div>
                             </div>
                         </>
@@ -216,7 +218,7 @@ const TemperatureBadge = () => {
                             {/* Next Hours Forecast - Vertical List */}
                             {futureHours.length > 0 && (
                                 <div>
-                                    <div className="text-[10px] text-secondary/60 font-medium mb-1.5 transition-all duration-300">Next Hours</div>
+                                    <div className="text-[10px] text-secondary/60 font-medium mb-1.5 transition-all duration-300">{t('weather.nextHours')}</div>
                                     <div className="space-y-1">
                                         {futureHours.map(({ key, actualHour, data }, index) => (
                                             <div 
@@ -251,7 +253,7 @@ const TemperatureBadge = () => {
 
                             {/* Hint */}
                             <div className="text-[9px] text-secondary/40 text-center pt-0.5">
-                                Auto-closes in a few seconds
+                                {t('weather.autoCloses')}
                             </div>
                         </div>
                     )}

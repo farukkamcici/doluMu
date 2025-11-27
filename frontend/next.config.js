@@ -8,9 +8,13 @@ const withPWA = require("@ducanh2912/next-pwa").default({
   workboxOptions: { disableDevLogs: true },
 });
 
+const withNextIntl = require('next-intl/plugin')(
+  './src/i18n/request.js'
+);
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   turbopack: {},
 };
 
-module.exports = withPWA(nextConfig);
+module.exports = withPWA(withNextIntl(nextConfig));

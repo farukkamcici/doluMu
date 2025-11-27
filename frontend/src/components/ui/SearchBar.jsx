@@ -1,18 +1,20 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { Search } from 'lucide-react';
 import useAppStore from '@/store/useAppStore';
 import { searchLines } from '@/lib/api';
 import { useDebounce } from '@/hooks/useDebounce';
 import { getTransportType } from '@/lib/transportTypes';
+import { useGetTransportLabel } from '@/hooks/useGetTransportLabel';
 
 export default function SearchBar() {
+  const t = useTranslations('searchBar');
+  const getTransportLabel = useGetTransportLabel();
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
   const { setSelectedLine } = useAppStore();
-  const router = useRouter();
   const debouncedQuery = useDebounce(query, 300);
 
   useEffect(() => {
@@ -59,14 +61,14 @@ export default function SearchBar() {
            type="text" 
            value={query}
            onChange={(e) => setQuery(e.target.value)}
-           placeholder="Search line (e.g., M2, 500T)" 
+           placeholder={t('placeholder')} 
            className="flex-1 bg-transparent text-sm text-text outline-none placeholder:text-gray-500" 
          />
       </div>
       
       {(results.length > 0 || loading) && (
         <div className="absolute top-full mt-2 w-full max-h-[400px] overflow-y-auto overflow-hidden rounded-xl border border-white/10 bg-surface shadow-xl z-50">
-          {loading && <div className="p-4 text-center text-sm text-gray-400">Loading...</div>}
+          {loading && <div className="p-4 text-center text-sm text-gray-400">{t('loading')}</div>}
           {!loading && results.map((result) => {
             const transportType = getTransportType(result.transport_type_id);
             
@@ -81,7 +83,7 @@ export default function SearchBar() {
                   <span 
                     className={`px-2 py-0.5 rounded text-xs font-medium border ${transportType.bgColor} ${transportType.textColor} ${transportType.borderColor}`}
                   >
-                    {transportType.label}
+                    {getTransportLabel(transportType.labelKey)}
                   </span>
                 </div>
                 <div className="text-sm text-gray-400 line-clamp-1">
@@ -92,7 +94,7 @@ export default function SearchBar() {
           })}
           {!loading && results.length === 0 && query.length > 1 && (
             <div className="p-4 text-center text-sm text-gray-400">
-              No lines found for &quot;{query}&quot;
+              {t('noResults', { query })}
             </div>
           )}
         </div>

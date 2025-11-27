@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
+import { useTranslations } from 'next-intl';
 import useAppStore from '@/store/useAppStore';
 import { X, TrendingUp, Loader, ServerCrash, Users, Info, MapPin, Route } from 'lucide-react';
 import TimeSlider from './TimeSlider';
@@ -7,16 +8,19 @@ import CrowdChart from './CrowdChart';
 import { cn } from '@/lib/utils';
 import { getForecast } from '@/lib/api';
 import { getTransportType } from '@/lib/transportTypes';
+import { useGetTransportLabel } from '@/hooks/useGetTransportLabel';
 
 const crowdLevelConfig = {
-  "Low": { text: "Low Density", color: "text-emerald-400", progressColor: "bg-emerald-500" },
-  "Medium": { text: "Medium Density", color: "text-yellow-400", progressColor: "bg-yellow-500" },
-  "High": { text: "High Density", color: "text-orange-400", progressColor: "bg-orange-500" },
-  "Very High": { text: "Very High Density", color: "text-red-400", progressColor: "bg-red-500" },
-  "Unknown": { text: "Unknown", color: "text-gray-400", progressColor: "bg-gray-500" },
+  "Low": { color: "text-emerald-400", progressColor: "bg-emerald-500" },
+  "Medium": { color: "text-yellow-400", progressColor: "bg-yellow-500" },
+  "High": { color: "text-orange-400", progressColor: "bg-orange-500" },
+  "Very High": { color: "text-red-400", progressColor: "bg-red-500" },
+  "Unknown": { color: "text-gray-400", progressColor: "bg-gray-500" },
 };
 
 export default function LineDetailPanel() {
+  const t = useTranslations('lineDetail');
+  const getTransportLabel = useGetTransportLabel();
   const { selectedLine, isPanelOpen, closePanel, selectedHour } = useAppStore();
   const [forecastData, setForecastData] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -53,7 +57,8 @@ export default function LineDetailPanel() {
   if (!isPanelOpen || !selectedLine) return null;
 
   const currentHourData = forecastData.find(f => f.hour === selectedHour);
-  const status = currentHourData ? crowdLevelConfig[currentHourData.crowd_level] : null;
+  const crowdLevel = currentHourData?.crowd_level;
+  const status = currentHourData ? crowdLevelConfig[crowdLevel] : null;
   const metadata = selectedLine.metadata;
   const transportType = metadata ? getTransportType(metadata.transport_type_id) : null;
 
@@ -68,7 +73,7 @@ export default function LineDetailPanel() {
             </span>
             {transportType && (
               <span className={`px-2 py-1 rounded text-xs font-medium border ${transportType.bgColor} ${transportType.textColor} ${transportType.borderColor}`}>
-                {transportType.label}
+                {getTransportLabel(transportType.labelKey)}
               </span>
             )}
           </div>
@@ -97,9 +102,9 @@ export default function LineDetailPanel() {
             <>
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs text-gray-400">Estimated Crowd at {selectedHour}:00</p>
+                  <p className="text-xs text-gray-400">{t('estimatedCrowd', { hour: selectedHour })}</p>
                   <h3 className={cn("text-2xl font-bold", status.color)}>
-                    {status.text}
+                    {t(`crowdLevels.${crowdLevel}`)}
                   </h3>
                 </div>
                 <div className={cn("rounded-full p-3 bg-white/5", status.color)}>
@@ -108,7 +113,7 @@ export default function LineDetailPanel() {
               </div>
               <div className="mt-3">
                 <div className="flex justify-between text-xs text-secondary mb-1">
-                  <span>Occupancy: {currentHourData.occupancy_pct}%</span>
+                  <span>{t('occupancy')}: {currentHourData.occupancy_pct}%</span>
                   <span className="flex items-center gap-1"><Users size={12} /> {currentHourData.max_capacity.toLocaleString()}</span>
                 </div>
                 <div className="w-full bg-background rounded-full h-2.5">
@@ -121,7 +126,7 @@ export default function LineDetailPanel() {
               <div className="mt-3 pt-3 border-t border-white/5 flex items-start gap-2 text-xs text-gray-400">
                 <Info size={14} className="shrink-0 mt-0.5" />
                 <p>
-                  Predicted passenger count: <span className="font-semibold text-secondary">{Math.round(currentHourData.predicted_value).toLocaleString()}</span>
+                  {t('predictedPassengers')}: <span className="font-semibold text-secondary">{Math.round(currentHourData.predicted_value).toLocaleString()}</span>
                 </p>
               </div>
             </>
@@ -132,7 +137,7 @@ export default function LineDetailPanel() {
       <TimeSlider />
 
       <div className="mt-4 h-48 w-full">
-        <p className="mb-2 text-xs font-medium text-gray-400">24-Hour Forecast</p>
+        <p className="mb-2 text-xs font-medium text-gray-400">{t('forecast24h')}</p>
         {loading ? <div className="h-full flex items-center justify-center"><Loader className="animate-spin text-primary" /></div> : <CrowdChart data={forecastData} />}
       </div>
     </div>

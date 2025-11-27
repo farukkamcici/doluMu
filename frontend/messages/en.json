@@ -1,0 +1,71 @@
+{
+  "metadata": {
+    "title": "Istanbul Transport - Crowding Prediction",
+    "description": "AI-powered crowding predictions for Istanbul's public transportation system"
+  },
+  "navigation": {
+    "lines": "Lines",
+    "forecast": "Forecast",
+    "settings": "Settings"
+  },
+  "searchBar": {
+    "placeholder": "Search line (e.g., M2, 500T)",
+    "loading": "Loading...",
+    "noResults": "No lines found for \"{query}\""
+  },
+  "lineDetail": {
+    "estimatedCrowd": "Estimated Crowd at {hour}:00",
+    "occupancy": "Occupancy",
+    "predictedPassengers": "Predicted passenger count",
+    "maxCapacity": "Max capacity",
+    "forecast24h": "24-Hour Forecast",
+    "crowdLevels": {
+      "Low": "Low Density",
+      "Medium": "Medium Density",
+      "High": "High Density",
+      "Very High": "Very High Density",
+      "Unknown": "Unknown"
+    }
+  },
+  "transportTypes": {
+    "bus": "Bus",
+    "metro": "Metro",
+    "ferry": "Ferry",
+    "unknown": "Unknown"
+  },
+  "weather": {
+    "nextHours": "Next Hours",
+    "autoCloses": "Auto-closes in a few seconds"
+  },
+  "timeSlider": {
+    "timeTravel": "Time Travel"
+  },
+  "forecast": {
+    "title": "Forecast Page",
+    "selectLine": "Select a line",
+    "noData": "No data found"
+  },
+  "settings": {
+    "title": "Settings",
+    "language": "Language",
+    "theme": "Theme",
+    "about": "About"
+  },
+  "admin": {
+    "title": "Admin Panel",
+    "dashboard": "Dashboard"
+  },
+  "errors": {
+    "networkError": "Network error. Please check your connection.",
+    "notFound": "Line not found",
+    "serverError": "Server error. Please try again later.",
+    "noForecast": "No forecast available for {line}"
+  },
+  "common": {
+    "close": "Close",
+    "loading": "Loading",
+    "error": "Error",
+    "retry": "Retry",
+    "istanbul": "Istanbul"
+  }
+}

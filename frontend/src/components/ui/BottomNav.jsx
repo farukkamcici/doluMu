@@ -1,5 +1,6 @@
 'use client';
-import Link from 'next/link';
+import { useTranslations } from 'next-intl';
+import { Link } from '@/i18n/routing';
 import { usePathname } from 'next/navigation';
 import { Bus, Calendar, Settings } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -21,12 +22,14 @@ function NavItem({ href, icon: Icon, label }) {
 }
 
 export default function BottomNav() {
+  const t = useTranslations('navigation');
+  
   return (
     <div className="fixed bottom-0 left-0 right-0 z-[1000] border-t border-white/10 bg-surface pb-safe shadow-lg">
        <nav className="mx-auto flex h-16 max-w-md items-center justify-around">
-         <NavItem href="/" icon={Bus} label="Lines" />
-         <NavItem href="/forecast" icon={Calendar} label="Forecast" />
-         <NavItem href="/settings" icon={Settings} label="Settings" />
+         <NavItem href="/" icon={Bus} label={t('lines')} />
+         <NavItem href="/forecast" icon={Calendar} label={t('forecast')} />
+         <NavItem href="/settings" icon={Settings} label={t('settings')} />
        </nav>
      </div>
   );
