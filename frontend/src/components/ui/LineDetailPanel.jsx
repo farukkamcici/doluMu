@@ -1,11 +1,12 @@
 'use client';
 import { useState, useEffect } from 'react';
 import useAppStore from '@/store/useAppStore';
-import { X, TrendingUp, Loader, ServerCrash, Users } from 'lucide-react';
+import { X, TrendingUp, Loader, ServerCrash, Users, Info, MapPin, Route } from 'lucide-react';
 import TimeSlider from './TimeSlider';
 import CrowdChart from './CrowdChart';
 import { cn } from '@/lib/utils';
 import { getForecast } from '@/lib/api';
+import { getTransportType } from '@/lib/transportTypes';
 
 const crowdLevelConfig = {
   "Low": { text: "Low Density", color: "text-emerald-400", progressColor: "bg-emerald-500" },
@@ -53,20 +54,32 @@ export default function LineDetailPanel() {
 
   const currentHourData = forecastData.find(f => f.hour === selectedHour);
   const status = currentHourData ? crowdLevelConfig[currentHourData.crowd_level] : null;
+  const metadata = selectedLine.metadata;
+  const transportType = metadata ? getTransportType(metadata.transport_type_id) : null;
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-[999] flex flex-col rounded-t-3xl bg-surface p-6 pb-20 shadow-2xl transition-transform duration-300 ease-out">
+    <div className="fixed bottom-0 left-0 right-0 z-[999] flex flex-col rounded-t-3xl bg-surface p-6 pb-20 shadow-2xl transition-transform duration-300 ease-out max-h-[85vh] overflow-y-auto">
       
       <div className="mb-6 flex items-start justify-between">
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="rounded-lg bg-primary px-2 py-1 text-xs font-bold text-white">
+        <div className="flex-1">
+          <div className="flex items-center gap-2 flex-wrap mb-3">
+            <span className="rounded-lg bg-primary px-3 py-1.5 text-sm font-bold text-white">
               {selectedLine.id}
             </span>
-            <h2 className="text-xl font-bold text-text">{selectedLine.name}</h2>
+            {transportType && (
+              <span className={`px-2 py-1 rounded text-xs font-medium border ${transportType.bgColor} ${transportType.textColor} ${transportType.borderColor}`}>
+                {transportType.label}
+              </span>
+            )}
           </div>
+          {metadata?.line && (
+            <div className="flex items-start gap-2 text-sm text-gray-300 bg-background/50 rounded-lg p-3 border border-white/5">
+              <Route className="h-4 w-4 text-secondary shrink-0 mt-0.5" />
+              <p className="flex-1">{metadata.line}</p>
+            </div>
+          )}
         </div>
-        <button onClick={closePanel} className="rounded-full bg-background p-2 text-gray-400 hover:bg-white/10">
+        <button onClick={closePanel} className="rounded-full bg-background p-2 text-gray-400 hover:bg-white/10 ml-3">
           <X size={20} />
         </button>
       </div>
@@ -96,7 +109,7 @@ export default function LineDetailPanel() {
               <div className="mt-3">
                 <div className="flex justify-between text-xs text-secondary mb-1">
                   <span>Occupancy: {currentHourData.occupancy_pct}%</span>
-                  <span className="flex items-center gap-1"><Users size={12} /> {currentHourData.max_capacity}</span>
+                  <span className="flex items-center gap-1"><Users size={12} /> {currentHourData.max_capacity.toLocaleString()}</span>
                 </div>
                 <div className="w-full bg-background rounded-full h-2.5">
                   <div 
@@ -104,6 +117,12 @@ export default function LineDetailPanel() {
                     style={{ width: `${currentHourData.occupancy_pct}%` }}
                   ></div>
                 </div>
+              </div>
+              <div className="mt-3 pt-3 border-t border-white/5 flex items-start gap-2 text-xs text-gray-400">
+                <Info size={14} className="shrink-0 mt-0.5" />
+                <p>
+                  Predicted passenger count: <span className="font-semibold text-secondary">{Math.round(currentHourData.predicted_value).toLocaleString()}</span>
+                </p>
               </div>
             </>
           )}

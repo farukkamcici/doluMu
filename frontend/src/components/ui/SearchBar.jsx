@@ -5,6 +5,7 @@ import { Search } from 'lucide-react';
 import useAppStore from '@/store/useAppStore';
 import { searchLines } from '@/lib/api';
 import { useDebounce } from '@/hooks/useDebounce';
+import { getTransportType } from '@/lib/transportTypes';
 
 export default function SearchBar() {
   const [query, setQuery] = useState('');
@@ -26,14 +27,28 @@ export default function SearchBar() {
     }
   }, [debouncedQuery]);
 
-  const handleSelectLine = (lineName) => {
+  const handleSelectLine = (lineData) => {
     const lineObject = {
-      id: lineName,
-      name: lineName,
+      id: lineData.line_name,
+      name: lineData.line_name,
+      metadata: {
+        transport_type_id: lineData.transport_type_id,
+        road_type: lineData.road_type,
+        line: lineData.line,
+      }
     };
     setSelectedLine(lineObject);
     setResults([]);
     setQuery('');
+  };
+
+  const highlightMatch = (text, query) => {
+    if (!query || !text) return text;
+    const regex = new RegExp(`(${query})`, 'gi');
+    const parts = text.split(regex);
+    return parts.map((part, i) => 
+      regex.test(part) ? <mark key={i} className="bg-primary/30 text-primary font-semibold">{part}</mark> : part
+    );
   };
 
   return (
@@ -49,19 +64,37 @@ export default function SearchBar() {
          />
       </div>
       
-      {/* Dropdown Results */}
       {(results.length > 0 || loading) && (
-        <div className="absolute top-full mt-2 w-full overflow-hidden rounded-xl border border-white/10 bg-surface shadow-xl">
+        <div className="absolute top-full mt-2 w-full max-h-[400px] overflow-y-auto overflow-hidden rounded-xl border border-white/10 bg-surface shadow-xl z-50">
           {loading && <div className="p-4 text-center text-sm text-gray-400">Loading...</div>}
-          {!loading && results.map(lineName => (
-            <button 
-              key={lineName}
-              onClick={() => handleSelectLine(lineName)}
-              className="flex w-full items-center justify-between border-b border-white/5 p-4 text-left text-text hover:bg-white/5 last:border-0"
-            >
-              <span className="font-bold text-primary">{lineName}</span>
-            </button>
-          ))}
+          {!loading && results.map((result) => {
+            const transportType = getTransportType(result.transport_type_id);
+            
+            return (
+              <button 
+                key={result.line_name}
+                onClick={() => handleSelectLine(result)}
+                className="flex w-full flex-col gap-2 border-b border-white/5 p-4 text-left hover:bg-white/5 last:border-0 transition-colors"
+              >
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="font-bold text-lg text-primary">{result.line_name}</span>
+                  <span 
+                    className={`px-2 py-0.5 rounded text-xs font-medium border ${transportType.bgColor} ${transportType.textColor} ${transportType.borderColor}`}
+                  >
+                    {transportType.label}
+                  </span>
+                </div>
+                <div className="text-sm text-gray-400 line-clamp-1">
+                  {highlightMatch(result.line, debouncedQuery)}
+                </div>
+              </button>
+            );
+          })}
+          {!loading && results.length === 0 && query.length > 1 && (
+            <div className="p-4 text-center text-sm text-gray-400">
+              No lines found for &quot;{query}&quot;
+            </div>
+          )}
         </div>
       )}
     </div>

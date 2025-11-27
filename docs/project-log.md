@@ -1,6 +1,6 @@
 # Project Logbook
 
-_Last updated: 2025-11-26_
+_Last updated: 2025-11-27_
 
 ## Log Schema
 - **Timestamp:** Commit date and hour (local timezone) recorded from repository history.
@@ -8,6 +8,66 @@ _Last updated: 2025-11-26_
 - **Summary:** One-line status of the project immediately after the commit.
 - **Details:** Key updates introduced in the commit with brief explanations.
 - **Notes:** Additional context or decisions relevant to the logged work.
+
+## Entry · 2025-11-27 15:05 (+03)
+
+### Commit
+- **Hash:** `62ed47e5989528a2d31c97b1fbbb2c6aa82b0a42`
+- **Message:** `refactor(ui): enhance CrowdChart with improved tooltip, empty state handling, and gradient styling`
+
+### Summary
+- Integrated forecast API with frontend components, implementing robust error handling, data validation, and enhanced visualization with production-ready chart component.
+
+### Details
+- **Backend API Enhancements (routers/forecast.py):**
+  - Added comprehensive request validation with Pydantic Field constraints (hour: 0-23, occupancy: 0-100)
+  - Implemented line existence verification before forecast retrieval to prevent unnecessary queries
+  - Added date range validation limiting forecasts to 7 days in the future
+  - Enhanced error handling with specific HTTP status codes (400, 404, 500) and descriptive messages
+  - Implemented incomplete data detection logging when forecast has fewer than 24 hours
+  - Added structured error responses with contextual detail messages
+- **Backend Lines Endpoint (routers/lines.py):**
+  - Created new `GET /lines/{line_name}` endpoint for fetching transport line metadata
+  - Added `TransportLineResponse` Pydantic model with proper SQLAlchemy configuration
+  - Implemented 404 handling for non-existent lines with descriptive error messages
+- **Frontend API Client (lib/api.js):**
+  - Configured request/response interceptors for automatic retry logic on timeouts (ECONNABORTED)
+  - Implemented rate limiting handling with 1-second delay retry for 429 status codes
+  - Added 10-second timeout configuration to prevent hanging requests
+  - Enhanced `getForecast()` with URL encoding, data validation, and status-specific error messages
+  - Added response format validation checking for array type and 24-hour completeness
+  - Created `getLineMetadata()` function for line detail retrieval
+  - Implemented comprehensive error categorization (network, server, validation errors)
+- **CrowdChart Component (components/ui/CrowdChart.jsx):**
+  - Completely redesigned to consume API response format (occupancy_pct, predicted_value, crowd_level)
+  - Implemented `CustomTooltip` component showing hour, occupancy percentage, crowd level, and passenger count
+  - Added color-coding logic for occupancy levels (green <30%, yellow 30-50%, orange 50-70%, red ≥70%)
+  - Created multi-stop gradient (green → yellow → red) for visual density representation
+  - Implemented empty state UI with "No forecast data available" message
+  - Enhanced X-axis with 2-hour intervals and "h" suffix formatting
+  - Enhanced Y-axis with percentage formatting
+  - Updated grid and axis styling to match dark theme (rgba colors with opacity)
+  - Removed obsolete "score" dataKey, replaced with "occupancy_pct"
+  - Added smooth animation with 800ms duration
+- **LineDetailPanel Component (components/ui/LineDetailPanel.jsx):**
+  - Enhanced state management to reset forecastData and error on panel open/close
+  - Improved error handling displaying API error messages directly to users
+  - Added proper cleanup setting empty arrays and null errors when panel closes
+  - Enhanced error logging with contextual "Forecast fetch error" prefix
+- **SearchBar Component (components/ui/SearchBar.jsx):**
+  - Removed automatic navigation to forecast tab after line selection
+  - Line selection now opens LineDetailPanel on current page without route change
+  - Cleaned up TODO comments about API response format
+- **Configuration:**
+  - Added to-do.md to .gitignore for developer task tracking
+  - Set fallback API URL in apiClient to production endpoint
+
+### Notes
+- API integration is production-ready with proper error boundaries, validation, and UX considerations
+- Chart component now accurately represents crowd density with occupancy percentage instead of arbitrary scores
+- Retry logic handles transient network issues and rate limiting gracefully
+- Error messages are user-friendly while maintaining detailed logging for debugging
+- Empty state handling prevents rendering errors when data is unavailable
 
 ## Entry · 2025-11-26 19:21 (+03)
 

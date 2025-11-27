@@ -60,16 +60,25 @@ responseInterceptor = apiClient.interceptors.response.use(
  */
 
 /**
- * Searches for transport lines.
+ * @typedef {object} SearchResult
+ * @property {string} line_name
+ * @property {number} transport_type_id
+ * @property {string} road_type
+ * @property {string} line
+ * @property {number} relevance_score
+ */
+
+/**
+ * Searches for transport lines with metadata.
  * @param {string} query
- * @returns {Promise<string[]>}
+ * @returns {Promise<SearchResult[]>}
  */
 export const searchLines = async (query) => {
   if (!query) {
     return [];
   }
   try {
-    const response = await apiClient.get(`/lines/search?query=${query}`);
+    const response = await apiClient.get(`/lines/search?query=${encodeURIComponent(query)}`);
     return response.data;
   } catch (error) {
     console.error('Error searching lines:', error);
