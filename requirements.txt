@@ -21,3 +21,6 @@ SQLAlchemy
 tenacity
 respx
 APScheduler
+python-jose[cryptography]
+passlib[bcrypt]
+python-multipart

@@ -1,5 +1,7 @@
 from fastapi import APIRouter, Depends, BackgroundTasks, HTTPException
+from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 from typing import List
 from pydantic import BaseModel
 from datetime import date, timedelta, datetime
@@ -8,13 +10,20 @@ from ..db import get_db
 from ..state import get_model, get_feature_store
 from ..services.batch_forecast import run_daily_forecast_job
 from ..services.store import FeatureStore
-from ..models import JobExecution, TransportLine, DailyForecast
+from ..models import JobExecution, TransportLine, DailyForecast, AdminUser
+from ..auth import authenticate_user, create_access_token, get_current_user
 from .. import scheduler as sched
 
 router = APIRouter()
 
 
 # Schemas
+class TokenResponse(BaseModel):
+    access_token: str
+    token_type: str
+    username: str
+
+
 class JobLogResponse(BaseModel):
     id: int
     job_type: str
@@ -33,14 +42,61 @@ class DashboardStats(BaseModel):
     last_run_time: datetime | None
 
 
+# ============================================
+# PUBLIC ADMIN ENDPOINTS (No Auth Required)
+# ============================================
+
+@router.post("/admin/login", response_model=TokenResponse)
+async def login(
+    form_data: OAuth2PasswordRequestForm = Depends(),
+    db: Session = Depends(get_db)
+):
+    """
+    Admin login endpoint - no auth required.
+    Returns JWT token for accessing protected admin endpoints.
+    """
+    user = authenticate_user(db, form_data.username, form_data.password)
+    if not user:
+        raise HTTPException(
+            status_code=401,
+            detail="Incorrect username or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    # Update last login time
+    user.last_login = datetime.utcnow()
+    db.commit()
+    
+    # Create access token
+    access_token = create_access_token(data={"sub": user.username})
+    
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
+        "username": user.username
+    }
+
+
+# ============================================
+# PROTECTED ADMIN ENDPOINTS (Auth Required)
+# ============================================
+
+
 @router.get("/admin/jobs", response_model=List[JobLogResponse])
-def get_job_history(limit: int = 20, db: Session = Depends(get_db)):
+def get_job_history(
+    limit: int = 20,
+    db: Session = Depends(get_db),
+    current_user: AdminUser = Depends(get_current_user)
+):
     """Get job execution history with configurable limit (default: 20)"""
     return db.query(JobExecution).order_by(JobExecution.start_time.desc()).limit(limit).all()
 
 
 @router.get("/admin/stats", response_model=DashboardStats)
-def get_dashboard_stats(db: Session = Depends(get_db)):
+def get_dashboard_stats(
+    db: Session = Depends(get_db),
+    current_user: AdminUser = Depends(get_current_user)
+):
     total_lines = db.query(TransportLine).count()
     total_forecasts = db.query(DailyForecast).count()
     last_job = db.query(JobExecution).order_by(JobExecution.start_time.desc()).first()
@@ -59,7 +115,8 @@ def trigger_forecast_job(
         db: Session = Depends(get_db),
         model: lgb.Booster = Depends(get_model),
         store: FeatureStore = Depends(get_feature_store),
-        target_date: date = None
+        target_date: date = None,
+        current_user: AdminUser = Depends(get_current_user)
 ):
     if target_date is None:
         target_date = date.today() + timedelta(days=1)
@@ -71,7 +128,10 @@ def trigger_forecast_job(
 
 
 @router.post("/admin/jobs/reset")
-def reset_stuck_jobs(db: Session = Depends(get_db)):
+def reset_stuck_jobs(
+    db: Session = Depends(get_db),
+    current_user: AdminUser = Depends(get_current_user)
+):
     """
     Reset all jobs stuck in RUNNING status to FAILED.
     Useful for cleaning up after server crashes or interrupted jobs.
@@ -94,7 +154,10 @@ def reset_stuck_jobs(db: Session = Depends(get_db)):
 
 
 @router.get("/admin/feature-store/stats")
-def get_feature_store_stats(store: FeatureStore = Depends(get_feature_store)):
+def get_feature_store_stats(
+    store: FeatureStore = Depends(get_feature_store),
+    current_user: AdminUser = Depends(get_current_user)
+):
     """
     Get Feature Store fallback strategy statistics.
     Shows how often seasonal vs. hour-based vs. zero fallbacks are used.
@@ -108,34 +171,40 @@ def get_feature_store_stats(store: FeatureStore = Depends(get_feature_store)):
 
 
 @router.post("/admin/feature-store/reset-stats")
-def reset_feature_store_stats(store: FeatureStore = Depends(get_feature_store)):
+def reset_feature_store_stats(
+    store: FeatureStore = Depends(get_feature_store),
+    current_user: AdminUser = Depends(get_current_user)
+):
     """Reset fallback statistics counter."""
     store.reset_fallback_stats()
     return {"message": "Fallback statistics reset successfully."}
 
 
 @router.get("/admin/scheduler/status")
-def get_scheduler_status():
+def get_scheduler_status(current_user: AdminUser = Depends(get_current_user)):
     """Get current status of all cron jobs"""
     return sched.get_scheduler_status()
 
 
 @router.post("/admin/scheduler/pause")
-def pause_scheduler():
+def pause_scheduler(current_user: AdminUser = Depends(get_current_user)):
     """Pause all scheduled jobs (for maintenance)"""
     sched.pause_scheduler()
     return {"message": "Scheduler paused successfully"}
 
 
 @router.post("/admin/scheduler/resume")
-def resume_scheduler():
+def resume_scheduler(current_user: AdminUser = Depends(get_current_user)):
     """Resume all scheduled jobs after pause"""
     sched.resume_scheduler()
     return {"message": "Scheduler resumed successfully"}
 
 
 @router.post("/admin/scheduler/trigger/forecast")
-def trigger_forecast_manually(target_date: date = None):
+def trigger_forecast_manually(
+    target_date: date = None,
+    current_user: AdminUser = Depends(get_current_user)
+):
     """Manually trigger forecast generation (bypasses schedule)"""
     if target_date is None:
         target_date = date.today() + timedelta(days=1)
@@ -145,21 +214,28 @@ def trigger_forecast_manually(target_date: date = None):
 
 
 @router.post("/admin/scheduler/trigger/cleanup")
-def trigger_cleanup_manually(days_to_keep: int = 3):
+def trigger_cleanup_manually(
+    days_to_keep: int = 3,
+    current_user: AdminUser = Depends(get_current_user)
+):
     """Manually trigger old data cleanup (bypasses schedule)"""
     sched.trigger_cleanup_now(days_to_keep)
     return {"message": f"Cleanup triggered (keeping last {days_to_keep} days)"}
 
 
 @router.post("/admin/scheduler/trigger/quality-check")
-def trigger_quality_check_manually():
+def trigger_quality_check_manually(current_user: AdminUser = Depends(get_current_user)):
     """Manually trigger data quality check"""
     sched.trigger_quality_check_now()
     return {"message": "Data quality check triggered"}
 
 
 @router.delete("/admin/forecasts/date/{target_date}")
-def delete_forecasts_by_date(target_date: date, db: Session = Depends(get_db)):
+def delete_forecasts_by_date(
+    target_date: date,
+    db: Session = Depends(get_db),
+    current_user: AdminUser = Depends(get_current_user)
+):
     """
     Delete all forecasts for a specific date.
     Useful for re-generating forecasts or manual cleanup.
@@ -180,7 +256,10 @@ def delete_forecasts_by_date(target_date: date, db: Session = Depends(get_db)):
 
 
 @router.get("/admin/forecasts/coverage")
-def get_forecast_coverage(db: Session = Depends(get_db)):
+def get_forecast_coverage(
+    db: Session = Depends(get_db),
+    current_user: AdminUser = Depends(get_current_user)
+):
     """
     Get forecast coverage summary for next 7 days.
     Shows which dates have forecasts and how many records.
@@ -217,7 +296,8 @@ def test_forecast_quick(
     model: lgb.Booster = Depends(get_model),
     store: FeatureStore = Depends(get_feature_store),
     num_lines: int = 5,
-    num_hours: int = 3
+    num_hours: int = 3,
+    current_user: AdminUser = Depends(get_current_user)
 ):
     """
     Quick test: Run forecast for only N lines × M hours.

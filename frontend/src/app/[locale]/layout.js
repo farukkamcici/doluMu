@@ -5,6 +5,7 @@ import { notFound } from 'next/navigation';
 import { locales } from '@/i18n/config';
 import "../globals.css";
 import Alert from "@/components/ui/Alert";
+import { AuthProvider } from '@/contexts/AuthContext';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -45,8 +46,10 @@ export default async function RootLayout({ children, params }) {
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <NextIntlClientProvider messages={messages}>
-          {children}
-          <Alert />
+          <AuthProvider>
+            {children}
+            <Alert />
+          </AuthProvider>
         </NextIntlClientProvider>
       </body>
     </html>

@@ -40,3 +40,13 @@ class JobExecution(Base):
     end_time = Column(DateTime(timezone=True), nullable=True)
     records_processed = Column(Integer, default=0)
     error_message = Column(Text, nullable=True)
+
+class AdminUser(Base):
+    """Admin users for accessing the admin panel."""
+    __tablename__ = "admin_users"
+
+    id = Column(Integer, primary_key=True, index=True)
+    username = Column(String, unique=True, index=True, nullable=False)
+    hashed_password = Column(String, nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    last_login = Column(DateTime(timezone=True), nullable=True)

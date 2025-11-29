@@ -1,6 +1,127 @@
 # Project Logbook
 
-_Last updated: 2025-11-27_
+_Last updated: 2025-11-29_
+
+## Entry · 2025-11-29 19:55 (+03)
+
+### Commit
+- **Hash:** `4209c2c048e5d38814d8afe3923db8969b7d92f1`
+- **Message:** `feat(admin): integrate scheduler management and forecast coverage in admin panel`
+
+### Summary
+- Implemented comprehensive APScheduler-based cron job system with automated daily forecast generation, data cleanup, and quality monitoring, along with full admin panel integration for scheduler management and forecast coverage visualization.
+
+### Details
+- **APScheduler Integration:**
+  - Created `src/api/scheduler.py` with 400+ lines implementing complete cron job orchestration
+  - Integrated scheduler lifecycle with FastAPI application startup/shutdown in `main.py`
+  - Configured 3 automated jobs with Europe/Istanbul timezone:
+    - **Job 1**: Daily forecast generation (02:00) - generates T+1 forecasts with 3-attempt retry logic and exponential backoff
+    - **Job 2**: Cleanup old forecasts (03:00) - maintains rolling 3-day window (T-1, T, T+1) by deleting forecasts older than 3 days
+    - **Job 3**: Data quality check (04:00) - verifies forecast coverage, Feature Store health, and alerts on issues
+  - Implemented robust error handling with retry mechanisms, misfire grace time (1-2 hours), and job coalescing
+  - Added job statistics tracking (run count, error count, last status) for monitoring
+- **Admin API Endpoints:**
+  - Added `GET /admin/scheduler/status` for viewing scheduler state and all job information
+  - Added `POST /admin/scheduler/pause` and `POST /admin/scheduler/resume` for maintenance control
+  - Added `POST /admin/scheduler/trigger/forecast`, `trigger/cleanup`, and `trigger/quality-check` for manual job execution
+  - Added `DELETE /admin/forecasts/date/{date}` to delete all forecasts for specific date
+  - Added `GET /admin/forecasts/coverage` returning 7-day forecast availability summary with status indicators
+- **Frontend Components:**
+  - Created `SchedulerPanel.jsx` component displaying scheduler status, individual job cards with next/last run times, execution counts, error rates, and pause/resume controls
+  - Created `ForecastCoverage.jsx` component with table showing 7-day forecast coverage, status badges (complete/partial/missing), T-1/T/T+1 labeling, and delete actions per date
+  - Integrated both components into admin page with auto-refresh every 5 seconds
+  - Added state management for scheduler status and forecast coverage data
+- **Multi-Day Forecast Strategy:**
+  - Implemented rolling 3-day window approach: daily cleanup at 03:00 removes forecasts before T-3, maintaining only T-1 (yesterday), T (today), T+1 (tomorrow)
+  - System automatically rotates: at 02:00 generates new T+1, at 03:00 old T-3 is deleted, effectively maintaining consistent 3-day coverage
+- **Documentation:**
+  - Created `docs/cron-jobs-guide.md` (800+ lines) - comprehensive user guide covering job schedules, error handling, API reference, troubleshooting, and best practices
+  - Created `docs/cron-system-implementation.md` (400+ lines) - technical implementation summary with architecture diagrams, testing checklist, deployment instructions
+- **Dependencies:**
+  - Added `APScheduler==3.10.4` to `requirements.txt` for async job scheduling with timezone support
+
+### Notes
+- Scheduler uses AsyncIOScheduler for compatibility with FastAPI's async runtime
+- Exponential backoff retry logic: 1min → 2min → 4min delays between attempts, prevents cascading failures
+- Misfire grace time allows jobs to run even if scheduled time was missed due to server downtime (up to 1-2 hours late)
+- Job coalescing ensures multiple missed schedules combine into single execution, avoiding duplicate work
+- Cleanup job enforces minimum 3-day retention to prevent accidental data loss
+- Data quality check logs warnings but doesn't block operations, enabling proactive issue detection
+- Manual triggers bypass schedule and execute immediately, useful for testing or recovery scenarios
+- Frontend UI provides real-time visibility into scheduler health with color-coded status indicators and error rate tracking
+- All timestamps use Europe/Istanbul timezone for consistency with business operations
+- System is production-ready with graceful shutdown (waits for running jobs to complete before stopping)
+
+## Entry · 2025-11-29 19:26 (+03)
+
+### Commit
+- **Hash:** `df2ae68819a4ea2a62780f2eb88b60d4d0de29e9`
+- **Message:** `feat(admin): add target_date for job tracking and improve lag fallback stats`
+
+### Summary
+- Enhanced job execution tracking with target date column and implemented robust multi-year seasonal lag fallback strategy with comprehensive monitoring and admin panel integration.
+
+### Details
+- **Database Schema Enhancement:**
+  - Added `target_date` column (Date type) to `job_executions` table in `src/api/models.py`
+  - Column tracks which date each forecast job was generating predictions for (e.g., 2025-11-30)
+  - Created migration file `migrations/add_target_date_to_jobs.sql` with idempotent ALTER TABLE using `IF NOT EXISTS`
+  - Added index `idx_job_executions_target_date` for faster queries by target date
+  - Migration is backward compatible (NULL allowed) for existing job records
+- **Batch Forecast Service:**
+  - Updated `run_daily_forecast_job()` in `batch_forecast.py` to set `target_date` when creating job log
+  - Added fallback statistics logging at job completion showing seasonal match %, hour fallback %, and zero fallback %
+  - Enhanced console output with emoji indicators for better readability (✅ success, 📊 stats, ❌ errors)
+  - Job result now includes `fallback_stats` dictionary for monitoring lag feature retrieval quality
+- **Feature Store Enhancements:**
+  - Implemented multi-year seasonal fallback in `services/store.py` with configurable lookback window (default: 3 years)
+  - Refactored `_build_lag_lookup()` to include `year` column in seasonal aggregation, enabling year-by-year fallback
+  - Updated `get_historical_lags()` with 3-tier fallback strategy:
+    - Tier 1: Try up to 3 previous years for same month/day (e.g., Nov 29: 2024 → 2023 → 2022)
+    - Tier 2: Use most recent hour-based match (same hour, any date)
+    - Tier 3: Zero fallback as last resort
+  - Added age-based filtering to skip data older than `max_seasonal_lookback_years` (prevents using stale 2019 data in 2025)
+  - Enhanced None-value checking across all tiers to ensure data quality
+  - Implemented `get_batch_historical_lags()` optimization using same multi-year logic for bulk operations
+- **Fallback Statistics Tracking:**
+  - Added `fallback_stats` dictionary tracking usage of each tier: `seasonal_match`, `hour_fallback`, `zero_fallback`
+  - Implemented `get_fallback_stats()` method returning counts and percentages for monitoring
+  - Added `reset_fallback_stats()` method for per-job or per-day tracking
+  - Detailed logging at debug/info/warning levels based on fallback tier used
+- **Admin API Endpoints:**
+  - Updated `JobLogResponse` schema to include `target_date` field
+  - Changed `GET /admin/jobs` default limit from 10 to 20, made limit configurable via query parameter
+  - Added `GET /admin/feature-store/stats` returning fallback statistics and config (lookback window)
+  - Added `POST /admin/feature-store/reset-stats` to reset counters for fresh tracking
+  - Updated job history endpoint to return `target_date` in response
+- **Frontend Admin Panel:**
+  - Enhanced job history table to display target date prominently in large bold font with job type as subtitle
+  - Added job limit selector dropdown (10/20/50/100) in table header with instant update on change
+  - Integrated Feature Store lag fallback statistics card with 4-column grid showing:
+    - Total requests count
+    - Seasonal match % (green, target >95%)
+    - Hour fallback % (yellow, acceptable <5%)
+    - Zero fallback % (red if >5%, indicates data quality issue)
+  - Each metric shows percentage in large font with absolute hit count below in smaller text
+  - Added lookback window display (e.g., "Lookback: 3 years")
+  - All stats auto-refresh every 5 seconds for real-time monitoring
+- **Documentation:**
+  - Created `docs/lag-fallback-strategy.md` documenting multi-tier fallback logic, monitoring approach, debugging guide
+  - Created `docs/admin-panel-improvements.md` detailing UI/UX enhancements, API changes, migration guide
+  - Created `migrations/README.md` with migration application instructions for Docker and local setups
+
+### Notes
+- Multi-year seasonal fallback preserves calendar-based ridership patterns (holidays, weekends) by trying recent years first
+- Age-based filtering (3-year window) prevents using outdated data from pre-COVID era or after major route changes
+- None-value filtering ensures predictions never crash on incomplete historical data, gracefully falling back to next tier
+- Target date tracking enables debugging which date a failed job was processing and supports future multi-date scheduling
+- Fallback statistics provide data quality insights: high zero fallback % (>5%) indicates missing historical data or new transport lines
+- Seasonal match target >95% ensures most predictions use calendar-appropriate historical patterns
+- Job limit selector addresses user feedback about limited visibility (was fixed at 10, now up to 100)
+- Feature Store stats card helps identify data quality issues proactively (e.g., incomplete feature engineering, data collection gaps)
+- Migration is safe to re-run (idempotent) and doesn't require downtime (backward compatible)
+- Frontend uses locale-sensitive date formatting (MMM dd, yyyy) for better readability across languages
 
 ## Entry · 2025-11-27 16:39 (+03)
 

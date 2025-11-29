@@ -1,10 +1,13 @@
 "use client";
 import { useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
+import { useRouter } from 'next/navigation';
 import axios from 'axios';
 import { format, addDays } from 'date-fns';
 import SchedulerPanel from '@/components/admin/SchedulerPanel';
 import ForecastCoverage from '@/components/admin/ForecastCoverage';
+import ProtectedRoute from '@/components/admin/ProtectedRoute';
+import { useAuth } from '@/contexts/AuthContext';
 
 // --- COMPONENTS ---
 
@@ -61,8 +64,10 @@ const ErrorModal = ({ error, onClose }) => {
 
 // --- MAIN PAGE ---
 
-export default function AdminDashboard() {
+function AdminDashboardContent() {
   const t = useTranslations('admin');
+  const router = useRouter();
+  const { logout, user } = useAuth();
   const [stats, setStats] = useState(null);
   const [jobs, setJobs] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -82,6 +87,11 @@ export default function AdminDashboard() {
   });
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
+
+  const handleLogout = () => {
+    logout();
+    router.push('/admin/login');
+  };
 
   const fetchData = async () => {
     try {
@@ -184,12 +194,24 @@ export default function AdminDashboard() {
             <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400 bg-clip-text text-transparent">
               {t('title')}
             </h1>
-            <p className="text-gray-400 mt-2 text-sm">
+            <p className="text-gray-400 mt-2 text-sm flex items-center gap-2">
                 {t('dashboard')}
+                <span className="text-gray-600">•</span>
+                <span className="text-blue-400 font-mono text-xs">@{user?.username}</span>
             </p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3 bg-gray-900 p-2 rounded-xl border border-gray-800 shadow-lg">
+          <div className="flex flex-wrap items-center gap-3">
+            {/* Logout Button */}
+            <button
+              onClick={handleLogout}
+              className="px-4 py-2 text-xs font-bold text-gray-400 hover:text-red-400 hover:bg-red-900/20 rounded-lg transition-all border border-gray-800 hover:border-red-900/50"
+            >
+              🔒 Logout
+            </button>
+
+            {/* Controls */}
+            <div className="flex flex-wrap items-center gap-3 bg-gray-900 p-2 rounded-xl border border-gray-800 shadow-lg">
 
             {/* Date Picker */}
             <div className="flex flex-col px-2 border-r border-gray-700">
@@ -242,6 +264,7 @@ export default function AdminDashboard() {
                 </>
                 )}
             </button>
+            </div>
           </div>
         </div>
 
@@ -479,5 +502,13 @@ export default function AdminDashboard() {
 
       </div>
     </div>
+  );
+}
+
+export default function AdminDashboard() {
+  return (
+    <ProtectedRoute>
+      <AdminDashboardContent />
+    </ProtectedRoute>
   );
 }
