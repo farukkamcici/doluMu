@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import axios from 'axios';
 import { format, addDays } from 'date-fns';
 import SchedulerPanel from '@/components/admin/SchedulerPanel';
@@ -67,7 +67,9 @@ const ErrorModal = ({ error, onClose }) => {
 function AdminDashboardContent() {
   const t = useTranslations('admin');
   const router = useRouter();
-  const { logout, user } = useAuth();
+  const params = useParams();
+  const locale = params.locale || 'tr';
+  const { logout, user, getAuthHeaders } = useAuth();
   const [stats, setStats] = useState(null);
   const [jobs, setJobs] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -90,17 +92,18 @@ function AdminDashboardContent() {
 
   const handleLogout = () => {
     logout();
-    router.push('/admin/login');
+    router.push(`/${locale}/admin/login`);
   };
 
   const fetchData = async () => {
     try {
+      const headers = getAuthHeaders();
       const [statsRes, jobsRes, fsStatsRes, schedRes, covRes] = await Promise.all([
-        axios.get(`${API_URL}/admin/stats`),
-        axios.get(`${API_URL}/admin/jobs?limit=${jobLimit}`),
-        axios.get(`${API_URL}/admin/feature-store/stats`).catch(() => ({ data: null })),
-        axios.get(`${API_URL}/admin/scheduler/status`).catch(() => ({ data: null })),
-        axios.get(`${API_URL}/admin/forecasts/coverage`).catch(() => ({ data: null }))
+        axios.get(`${API_URL}/admin/stats`, { headers }),
+        axios.get(`${API_URL}/admin/jobs?limit=${jobLimit}`, { headers }),
+        axios.get(`${API_URL}/admin/feature-store/stats`, { headers }).catch(() => ({ data: null })),
+        axios.get(`${API_URL}/admin/scheduler/status`, { headers }).catch(() => ({ data: null })),
+        axios.get(`${API_URL}/admin/forecasts/coverage`, { headers }).catch(() => ({ data: null }))
       ]);
       setStats(statsRes.data);
       setJobs(jobsRes.data);
@@ -109,6 +112,10 @@ function AdminDashboardContent() {
       setForecastCoverage(covRes.data);
     } catch (error) {
       console.error("Admin data fetch error:", error);
+      if (error.response?.status === 401) {
+        logout();
+        router.push(`/${locale}/admin/login`);
+      }
     }
   };
 
@@ -123,7 +130,8 @@ function AdminDashboardContent() {
     setIsLoading(true);
     setTriggerMessage("");
     try {
-      await axios.post(`${API_URL}/admin/forecast/trigger?target_date=${selectedDate}`);
+      const headers = getAuthHeaders();
+      await axios.post(`${API_URL}/admin/forecast/trigger?target_date=${selectedDate}`, {}, { headers });
       setTriggerMessage(`🚀 Job started for ${selectedDate}. It usually takes ~30 seconds.`);
       setTimeout(fetchData, 1000);
     } catch (error) {
@@ -136,7 +144,8 @@ function AdminDashboardContent() {
   const handleReset = async () => {
     if(!confirm("⚠️ Are you sure? This will mark all stuck 'RUNNING' jobs as 'FAILED'.")) return;
     try {
-      const res = await axios.post(`${API_URL}/admin/jobs/reset`);
+      const headers = getAuthHeaders();
+      const res = await axios.post(`${API_URL}/admin/jobs/reset`, {}, { headers });
       setTriggerMessage(`🧹 ${res.data.message}`);
       fetchData();
     } catch (e) {
@@ -149,7 +158,8 @@ function AdminDashboardContent() {
     setTestResult(null);
     setTriggerMessage("");
     try {
-      const res = await axios.post(`${API_URL}/admin/forecast/test?num_lines=10&num_hours=6`);
+      const headers = getAuthHeaders();
+      const res = await axios.post(`${API_URL}/admin/forecast/test?num_lines=10&num_hours=6`, {}, { headers });
       setTestResult(res.data);
       setTriggerMessage("🧪 Test completed successfully!");
     } catch (e) {
@@ -162,8 +172,9 @@ function AdminDashboardContent() {
 
   const handlePauseResume = async () => {
     try {
+      const headers = getAuthHeaders();
       const action = schedulerStatus?.status === 'paused' ? 'resume' : 'pause';
-      await axios.post(`${API_URL}/admin/scheduler/${action}`);
+      await axios.post(`${API_URL}/admin/scheduler/${action}`, {}, { headers });
       setTriggerMessage(`⏸️ Scheduler ${action}d successfully`);
       fetchData();
     } catch (e) {
@@ -174,7 +185,8 @@ function AdminDashboardContent() {
   const handleDeleteDate = async (dateStr) => {
     if (!confirm(`⚠️ Delete ALL forecasts for ${dateStr}?`)) return;
     try {
-      const res = await axios.delete(`${API_URL}/admin/forecasts/date/${dateStr}`);
+      const headers = getAuthHeaders();
+      const res = await axios.delete(`${API_URL}/admin/forecasts/date/${dateStr}`, { headers });
       setTriggerMessage(`🗑️ Deleted ${res.data.deleted_count} forecasts for ${dateStr}`);
       fetchData();
     } catch (e) {

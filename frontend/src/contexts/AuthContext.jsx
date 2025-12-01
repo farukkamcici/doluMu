@@ -18,11 +18,15 @@ export function AuthProvider({ children }) {
     
     if (token && username) {
       setUser({ username, token });
-      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
     }
     
     setLoading(false);
   }, []);
+
+  const getAuthHeaders = () => {
+    const token = localStorage.getItem('admin_token');
+    return token ? { Authorization: `Bearer ${token}` } : {};
+  };
 
   const login = async (username, password) => {
     try {
@@ -68,6 +72,7 @@ export function AuthProvider({ children }) {
     logout,
     loading,
     isAuthenticated: !!user,
+    getAuthHeaders,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

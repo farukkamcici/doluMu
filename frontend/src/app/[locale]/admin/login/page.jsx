@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 
 export default function AdminLogin() {
@@ -10,13 +10,15 @@ export default function AdminLogin() {
   const [isLoading, setIsLoading] = useState(false);
   
   const router = useRouter();
+  const params = useParams();
+  const locale = params.locale || 'tr';
   const { login, isAuthenticated } = useAuth();
 
   useEffect(() => {
     if (isAuthenticated) {
-      router.push('/admin');
+      router.push(`/${locale}/admin`);
     }
-  }, [isAuthenticated, router]);
+  }, [isAuthenticated, router, locale]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -26,7 +28,7 @@ export default function AdminLogin() {
     const result = await login(username, password);
 
     if (result.success) {
-      router.push('/admin');
+      router.push(`/${locale}/admin`);
     } else {
       setError(result.error);
       setIsLoading(false);
@@ -119,7 +121,7 @@ export default function AdminLogin() {
         {/* Back to App Link */}
         <div className="text-center mt-6">
           <button
-            onClick={() => router.push('/')}
+            onClick={() => router.push(`/${locale}`)}
             className="text-gray-400 hover:text-white text-sm transition-colors"
           >
             ← Back to App

@@ -1,17 +1,19 @@
 "use client";
 import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 
 export default function ProtectedRoute({ children }) {
   const { isAuthenticated, loading } = useAuth();
   const router = useRouter();
+  const params = useParams();
+  const locale = params.locale || 'tr';
 
   useEffect(() => {
     if (!loading && !isAuthenticated) {
-      router.push('/admin/login');
+      router.push(`/${locale}/admin/login`);
     }
-  }, [isAuthenticated, loading, router]);
+  }, [isAuthenticated, loading, router, locale]);
 
   if (loading) {
     return (
