@@ -11,7 +11,7 @@ from ..state import get_model, get_feature_store
 from ..services.batch_forecast import run_daily_forecast_job
 from ..services.store import FeatureStore
 from ..models import JobExecution, TransportLine, DailyForecast, AdminUser
-from ..auth import authenticate_user, create_access_token, get_current_user
+from ..auth import authenticate_user, create_access_token, get_current_user, get_password_hash
 from .. import scheduler as sched
 
 router = APIRouter()
@@ -40,6 +40,23 @@ class DashboardStats(BaseModel):
     total_forecasts: int
     last_run_status: str
     last_run_time: datetime | None
+
+
+class AdminUserResponse(BaseModel):
+    id: int
+    username: str
+    created_at: datetime
+    last_login: datetime | None
+
+
+class CreateAdminUserRequest(BaseModel):
+    username: str
+    password: str
+
+
+class ChangePasswordRequest(BaseModel):
+    current_password: str
+    new_password: str
 
 
 # ============================================
@@ -376,3 +393,153 @@ def test_forecast_quick(
         "estimated_full_job_time": f"{estimated_full_time:.1f}s ({estimated_full_time/60:.1f} min)",
         "bottleneck": "lag_fetch" if avg_lag_time > 0.01 else "prediction"
     }
+
+
+# ============================================
+# ADMIN USER MANAGEMENT ENDPOINTS
+# ============================================
+
+
+@router.get("/admin/users", response_model=List[AdminUserResponse])
+def list_admin_users(
+    db: Session = Depends(get_db),
+    current_user: AdminUser = Depends(get_current_user)
+):
+    """
+    List all admin users.
+    Returns username, creation date, and last login time.
+    """
+    users = db.query(AdminUser).order_by(AdminUser.created_at.desc()).all()
+    return users
+
+
+@router.get("/admin/users/me", response_model=AdminUserResponse)
+def get_current_admin_user(
+    current_user: AdminUser = Depends(get_current_user)
+):
+    """Get current logged-in admin user details."""
+    return current_user
+
+
+@router.post("/admin/users", response_model=AdminUserResponse)
+def create_admin_user(
+    user_data: CreateAdminUserRequest,
+    db: Session = Depends(get_db),
+    current_user: AdminUser = Depends(get_current_user)
+):
+    """
+    Create a new admin user.
+    Only existing admins can create new admin users.
+    """
+    # Check if username already exists
+    existing_user = db.query(AdminUser).filter(AdminUser.username == user_data.username).first()
+    if existing_user:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Username '{user_data.username}' already exists"
+        )
+    
+    # Validate password length
+    if len(user_data.password) < 6:
+        raise HTTPException(
+            status_code=400,
+            detail="Password must be at least 6 characters long"
+        )
+    
+    # Truncate password if too long (bcrypt limit)
+    password = user_data.password[:72] if len(user_data.password) > 72 else user_data.password
+    
+    # Create new user
+    hashed_password = get_password_hash(password)
+    new_user = AdminUser(
+        username=user_data.username,
+        hashed_password=hashed_password
+    )
+    
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+    
+    print(f"✅ Admin user '{user_data.username}' created by '{current_user.username}'")
+    
+    return new_user
+
+
+@router.post("/admin/users/change-password")
+def change_password(
+    password_data: ChangePasswordRequest,
+    db: Session = Depends(get_db),
+    current_user: AdminUser = Depends(get_current_user)
+):
+    """
+    Change password for current logged-in admin user.
+    Requires current password for verification.
+    """
+    from ..auth import verify_password
+    
+    # Verify current password
+    if not verify_password(password_data.current_password, current_user.hashed_password):
+        raise HTTPException(
+            status_code=401,
+            detail="Current password is incorrect"
+        )
+    
+    # Validate new password
+    if len(password_data.new_password) < 6:
+        raise HTTPException(
+            status_code=400,
+            detail="New password must be at least 6 characters long"
+        )
+    
+    # Truncate password if too long (bcrypt limit)
+    new_password = password_data.new_password[:72] if len(password_data.new_password) > 72 else password_data.new_password
+    
+    # Update password
+    current_user.hashed_password = get_password_hash(new_password)
+    db.commit()
+    
+    print(f"✅ Password changed for admin user '{current_user.username}'")
+    
+    return {"message": "Password changed successfully"}
+
+
+@router.delete("/admin/users/{username}")
+def delete_admin_user(
+    username: str,
+    db: Session = Depends(get_db),
+    current_user: AdminUser = Depends(get_current_user)
+):
+    """
+    Delete an admin user by username.
+    Cannot delete yourself or the last remaining admin.
+    """
+    # Prevent self-deletion
+    if username == current_user.username:
+        raise HTTPException(
+            status_code=400,
+            detail="Cannot delete your own account"
+        )
+    
+    # Check if user exists
+    user_to_delete = db.query(AdminUser).filter(AdminUser.username == username).first()
+    if not user_to_delete:
+        raise HTTPException(
+            status_code=404,
+            detail=f"User '{username}' not found"
+        )
+    
+    # Check if this is the last admin
+    total_admins = db.query(AdminUser).count()
+    if total_admins <= 1:
+        raise HTTPException(
+            status_code=400,
+            detail="Cannot delete the last admin user"
+        )
+    
+    # Delete user
+    db.delete(user_to_delete)
+    db.commit()
+    
+    print(f"🗑️  Admin user '{username}' deleted by '{current_user.username}'")
+    
+    return {"message": f"Admin user '{username}' deleted successfully"}
