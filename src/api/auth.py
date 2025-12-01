@@ -27,6 +27,8 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/admin/login")
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """Verify a plain password against its hash."""
+    if len(plain_password) > 72:
+        plain_password = plain_password[:72]
     return pwd_context.verify(plain_password, hashed_password)
 
 def get_password_hash(password: str) -> str:
@@ -86,6 +88,10 @@ def create_admin_user_if_not_exists(db: Session):
     """
     admin_username = os.getenv("ADMIN_USERNAME", "admin")
     admin_password = os.getenv("ADMIN_PASSWORD", "admin123")
+    
+    if len(admin_password) > 72:
+        print(f"⚠️  Warning: ADMIN_PASSWORD is {len(admin_password)} bytes, truncating to 72 bytes for bcrypt compatibility")
+        admin_password = admin_password[:72]
     
     existing_user = db.query(AdminUser).filter(AdminUser.username == admin_username).first()
     
