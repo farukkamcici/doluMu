@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import useAppStore from '@/store/useAppStore';
+import useRoutePolyline from '@/hooks/useRoutePolyline';
 import { X, TrendingUp, Loader, ServerCrash, Users, Info, MapPin, Route, Star } from 'lucide-react';
 import TimeSlider from './TimeSlider';
 import CrowdChart from './CrowdChart';
@@ -21,7 +22,19 @@ const crowdLevelConfig = {
 export default function LineDetailPanel() {
   const t = useTranslations('lineDetail');
   const getTransportLabel = useGetTransportLabel();
-  const { selectedLine, isPanelOpen, closePanel, selectedHour, toggleFavorite, isFavorite } = useAppStore();
+  const { 
+    selectedLine, 
+    isPanelOpen, 
+    closePanel, 
+    selectedHour, 
+    toggleFavorite, 
+    isFavorite,
+    selectedDirection,
+    setSelectedDirection,
+    showRoute,
+    setShowRoute
+  } = useAppStore();
+  const { getAvailableDirections } = useRoutePolyline();
   const [forecastData, setForecastData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -156,6 +169,45 @@ export default function LineDetailPanel() {
       </div>
 
       <TimeSlider />
+
+      <div className="mt-4 mb-4 rounded-2xl bg-background p-4 border border-white/5">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <MapPin size={16} className="text-secondary" />
+            <p className="text-xs font-medium text-gray-400">Show Route on Map</p>
+          </div>
+          <button
+            onClick={() => setShowRoute(!showRoute)}
+            className={cn(
+              "px-3 py-1.5 rounded-lg text-xs font-medium transition-colors",
+              showRoute 
+                ? "bg-primary text-white" 
+                : "bg-background border border-white/10 text-gray-400 hover:bg-white/5"
+            )}
+          >
+            {showRoute ? 'Hide' : 'Show'}
+          </button>
+        </div>
+        
+        {showRoute && getAvailableDirections(selectedLine.id).length > 1 && (
+          <div className="flex gap-2">
+            {getAvailableDirections(selectedLine.id).map(dir => (
+              <button
+                key={dir}
+                onClick={() => setSelectedDirection(dir)}
+                className={cn(
+                  "flex-1 py-2 rounded-lg text-xs font-medium transition-colors",
+                  selectedDirection === dir
+                    ? "bg-primary/20 text-primary border border-primary/30"
+                    : "bg-background border border-white/10 text-gray-400 hover:bg-white/5"
+                )}
+              >
+                {dir === 'G' ? 'Gidiş' : dir === 'D' ? 'Dönüş' : dir}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
 
       <div className="mt-4 h-48 w-full">
         <p className="mb-2 text-xs font-medium text-gray-400">{t('forecast24h')}</p>

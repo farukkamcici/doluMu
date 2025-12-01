@@ -10,12 +10,16 @@ const useAppStore = create(
       userLocation: null,
       alertMessage: null,
       favorites: [],
+      selectedDirection: 'G',
+      showRoute: false,
       
       setSelectedLine: (line) => set({ selectedLine: line, isPanelOpen: true }),
-      closePanel: () => set({ isPanelOpen: false, selectedLine: null }),
+      closePanel: () => set({ isPanelOpen: false, selectedLine: null, showRoute: false }),
       setSelectedHour: (hour) => set({ selectedHour: hour }),
       setUserLocation: (location) => set({ userLocation: location }),
       setAlertMessage: (message) => set({ alertMessage: message }),
+      setSelectedDirection: (direction) => set({ selectedDirection: direction }),
+      setShowRoute: (show) => set({ showRoute: show }),
       
       toggleFavorite: (lineId) => set((state) => {
         const exists = state.favorites.includes(lineId);

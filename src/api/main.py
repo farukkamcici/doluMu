@@ -16,9 +16,6 @@ async def lifespan(app: FastAPI):
     db = SessionLocal()
     try:
         init_db(db)
-        # Create admin user if it doesn't exist
-        from .auth import create_admin_user_if_not_exists
-        create_admin_user_if_not_exists(db)
     finally:
         db.close()
 
