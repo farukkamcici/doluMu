@@ -388,7 +388,12 @@ function AdminDashboardContent() {
 
         {/* Scheduler Tab */}
         {activeTab === 'scheduler' && (
-          <SchedulerPanel schedulerStatus={schedulerStatus} onPauseResume={handlePauseResume} />
+          <SchedulerPanel 
+            schedulerStatus={schedulerStatus} 
+            onPauseResume={handlePauseResume}
+            getAuthHeaders={getAuthHeaders}
+            onRefresh={fetchData}
+          />
         )}
 
         {/* Users Tab */}
