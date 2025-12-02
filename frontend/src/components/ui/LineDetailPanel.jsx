@@ -58,6 +58,7 @@ export default function LineDetailPanel() {
   const [error, setError] = useState(null);
   const [isMinimized, setIsMinimized] = useState(false);
   const [isChartExpanded, setIsChartExpanded] = useState(false);
+  const [hasRouteData, setHasRouteData] = useState(false);
 
   useEffect(() => {
     if (isPanelOpen && selectedLine) {
@@ -94,6 +95,34 @@ export default function LineDetailPanel() {
   }, [showRoute]);
 
   useEffect(() => {
+    let isMounted = true;
+    
+    if (selectedLine && isPanelOpen) {
+      const checkRouteData = async () => {
+        const availableDirs = getAvailableDirections(selectedLine.id);
+        if (availableDirs.length > 0) {
+          const polyline = await getPolyline(selectedLine.id, selectedDirection);
+          if (isMounted) {
+            setHasRouteData(polyline && polyline.length > 0);
+          }
+        } else {
+          if (isMounted) {
+            setHasRouteData(false);
+          }
+        }
+      };
+      
+      checkRouteData();
+    } else {
+      setHasRouteData(false);
+    }
+
+    return () => {
+      isMounted = false;
+    };
+  }, [selectedLine, selectedDirection, isPanelOpen, getAvailableDirections, getPolyline]);
+
+  useEffect(() => {
     if (!isDesktop && isMinimized) {
       controls.start({ y: 0 });
     }
@@ -109,7 +138,6 @@ export default function LineDetailPanel() {
   const isFav = isFavorite(selectedLine.id);
   const availableDirections = getAvailableDirections(selectedLine.id);
   const directionInfo = getDirectionInfo(selectedLine.id);
-  const hasRouteData = availableDirections.length > 0 && getPolyline(selectedLine.id, selectedDirection).length > 0;
 
   const vibrate = (pattern) => {
     if (typeof navigator !== 'undefined' && navigator.vibrate) {
