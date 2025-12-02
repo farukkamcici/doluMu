@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
-import { X, Clock, Loader } from 'lucide-react';
+import { X, Clock, Loader, ArrowRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export default function ScheduleModal({ lineCode, isOpen, onClose, initialDirection = 'G', directionInfo = {} }) {
@@ -84,35 +84,44 @@ export default function ScheduleModal({ lineCode, isOpen, onClose, initialDirect
               const apiMeta = schedule?.meta?.[dir];
               const routeInfo = directionInfo[dir];
               
-              let label;
+              let endStop = null;
               let startStop = null;
               
               if (apiMeta?.end) {
                 // Use API metadata (from HATADI)
-                label = apiMeta.end;
+                endStop = apiMeta.end;
                 startStop = apiMeta.start;
               } else if (routeInfo?.endStop) {
                 // Fallback to route polyline data
-                label = routeInfo.endStop;
+                endStop = routeInfo.endStop;
                 startStop = routeInfo.startStop;
-              } else {
-                // Final fallback: generic labels
-                label = dir === 'G' ? t('outbound') : dir === 'D' ? t('inbound') : dir;
               }
+              
+              // Show "→ EndStop" or fallback to generic label
+              const hasStops = endStop && startStop;
               
               return (
                 <button
                   key={dir}
                   onClick={() => setActiveTab(dir)}
                   className={cn(
-                    "flex-1 py-2 px-3 rounded-lg text-xs font-medium transition-colors truncate",
+                    "flex-1 py-2 px-3 rounded-lg text-xs font-medium transition-colors min-w-0",
                     activeTab === dir
                       ? "bg-primary text-white"
                       : "bg-slate-700 text-gray-400 hover:bg-slate-600"
                   )}
-                  title={label}
+                  title={hasStops ? `${startStop} → ${endStop}` : (dir === 'G' ? t('outbound') : t('inbound'))}
                 >
-                  <span className="block truncate">{label}</span>
+                  {hasStops ? (
+                    <span className="flex items-center justify-center gap-1 min-w-0">
+                      <span className="truncate">{endStop}</span>
+                      <span className="text-[10px] text-gray-400 shrink-0">{t('direction')}</span>
+                    </span>
+                  ) : (
+                    <span className="block truncate">
+                      {dir === 'G' ? t('outbound') : dir === 'D' ? t('inbound') : dir}
+                    </span>
+                  )}
                 </button>
               );
             })}

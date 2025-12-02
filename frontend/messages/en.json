@@ -53,7 +53,8 @@
     "fullSchedule": "Full Schedule",
     "outbound": "Outbound",
     "inbound": "Inbound",
-    "departureFrom": "Departure Stop"
+    "departureFrom": "Departure Stop",
+    "direction": "Direction"
   },
   "transportTypes": {
     "bus": "Bus",

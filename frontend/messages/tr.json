@@ -53,7 +53,8 @@
     "fullSchedule": "Tüm Sefer Saatleri",
     "outbound": "Gidiş",
     "inbound": "Dönüş",
-    "departureFrom": "Kalkış Durağı"
+    "departureFrom": "Kalkış Durağı",
+    "direction": "Yönü"
   },
   "transportTypes": {
     "bus": "Otobüs",
