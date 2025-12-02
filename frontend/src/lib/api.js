@@ -150,3 +150,5 @@ export const getLineMetadata = async (lineName) => {
     return null;
   }
 };
+
+export { apiClient };
