@@ -4,9 +4,11 @@
     "description": "AI-powered crowding predictions for Istanbul's public transportation system"
   },
   "navigation": {
+    "map": "Map",
+    "favorites": "Favorites",
+    "settings": "Settings",
     "lines": "Lines",
-    "forecast": "Forecast",
-    "settings": "Settings"
+    "forecast": "Forecast"
   },
   "searchBar": {
     "placeholder": "Search line (e.g., M2, 500T)",

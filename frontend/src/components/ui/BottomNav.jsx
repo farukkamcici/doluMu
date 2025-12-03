@@ -3,7 +3,7 @@ import { useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/routing';
 import { usePathname } from 'next/navigation';
-import { Bus, Calendar, Settings } from 'lucide-react';
+import { Map, Star, Settings } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import useAppStore from '@/store/useAppStore';
 
@@ -35,8 +35,8 @@ export default function BottomNav() {
   return (
     <div className="fixed bottom-0 left-0 right-0 z-[1000] border-t border-white/10 bg-surface pb-safe shadow-lg">
        <nav className="mx-auto flex h-16 max-w-md items-center justify-around">
-         <NavItem href="/" icon={Bus} label={t('lines')} />
-         <NavItem href="/forecast" icon={Calendar} label={t('forecast')} />
+         <NavItem href="/" icon={Map} label={t('map')} />
+         <NavItem href="/forecast" icon={Star} label={t('favorites')} />
          <NavItem href="/settings" icon={Settings} label={t('settings')} />
        </nav>
      </div>

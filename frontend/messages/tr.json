@@ -4,9 +4,11 @@
     "description": "Yapay zeka destekli İstanbul toplu taşıma sistemi yoğunluk tahminleri"
   },
   "navigation": {
+    "map": "Harita",
+    "favorites": "Favoriler",
+    "settings": "Ayarlar",
     "lines": "Hatlar",
-    "forecast": "Tahmin",
-    "settings": "Ayarlar"
+    "forecast": "Tahmin"
   },
   "searchBar": {
     "placeholder": "Hat ara (örn: M2, 500T)",
