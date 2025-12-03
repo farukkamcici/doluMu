@@ -10,6 +10,7 @@ Date: 2025-12-03
 
 import requests
 import logging
+import re
 from datetime import datetime, time, timedelta
 from typing import Dict, Optional, List
 from cachetools import TTLCache
@@ -107,7 +108,7 @@ class IETTStatusService:
         Fetch disruption alerts from IETT API.
         
         According to IETT API spec (page 4), GetDuyurular_json returns ALL alerts
-        for all lines. We need to filter by HAT field to find alerts for our line.
+        for all lines. We need to filter by HATKODU field to find alerts for our line.
         
         Only returns alerts from the last 24 hours (based on GUNCELLEME_SAATI).
         
@@ -129,26 +130,27 @@ class IETTStatusService:
             )
             response.raise_for_status()
             
-            # Debug: Log response for troubleshooting
+            # Debug logging
             print(f"[DEBUG] IETT API Response Status: {response.status_code}")
             print(f"[DEBUG] Response length: {len(response.text)} chars")
-            if len(response.text) < 5000:
-                print(f"[DEBUG] Response preview: {response.text[:1000]}")
             
-            # Parse XML response
-            root = ET.fromstring(response.text)
+            # NUCLEAR OPTION: Strip all XML namespaces to avoid namespace hell
+            # This removes xmlns="" declarations that confuse ElementTree
+            xml_text = response.text
+            xml_text = re.sub(r' xmlns="[^"]+"', '', xml_text)
             
-            # Find all Table elements (each represents an announcement)
-            tables = root.findall('.//{*}Table')
-            if not tables:
-                # Try without namespace
-                tables = root.findall('.//Table')
+            print(f"[DEBUG] Stripped namespaces, parsing XML...")
+            
+            # Parse cleaned XML
+            root = ET.fromstring(xml_text)
+            
+            # Now find Table elements without namespace issues
+            tables = root.findall('.//Table')
             
             print(f"[DEBUG] Found {len(tables)} Table elements in response")
             
             if not tables:
-                logger.debug(f"No announcements found in API response")
-                print(f"[DEBUG] No Table elements found for line {line_code}")
+                print(f"[DEBUG] No Table elements found")
                 return []
             
             # Collect all alerts for this line
@@ -156,57 +158,60 @@ class IETTStatusService:
             now = datetime.now()
             cutoff_time = now - timedelta(hours=24)
             
+            # Debug: Show first few line codes found
+            sample_codes = []
+            
             for table in tables:
-                # Extract HATKODU (preferred) or HAT
-                hatkodu_elem = table.find('.//{*}HATKODU')
-                if hatkodu_elem is None:
-                    hatkodu_elem = table.find('.//HATKODU')
+                # Extract HATKODU (primary field for line matching)
+                hatkodu_elem = table.find('HATKODU')
+                mesaj_elem = table.find('MESAJ')
+                update_time_elem = table.find('GUNCELLEME_SAATI')
                 
-                # Extract MESAJ
-                mesaj_elem = table.find('.//{*}MESAJ')
-                if mesaj_elem is None:
-                    mesaj_elem = table.find('.//MESAJ')
-                
-                # Extract GUNCELLEME_SAATI for timestamp filtering
-                update_time_elem = table.find('.//{*}GUNCELLEME_SAATI')
-                if update_time_elem is None:
-                    update_time_elem = table.find('.//GUNCELLEME_SAATI')
-                
-                # Check if this announcement is for our line
-                if hatkodu_elem is not None and mesaj_elem is not None:
+                if hatkodu_elem is not None:
                     hat_code = hatkodu_elem.text.strip() if hatkodu_elem.text else ""
-                    mesaj_text = mesaj_elem.text.strip() if mesaj_elem.text else ""
                     
-                    # Match line code (case-insensitive)
-                    if hat_code.upper() == line_code.upper() and mesaj_text:
-                        # Check timestamp - only include alerts from last 24 hours
-                        if update_time_elem is not None and update_time_elem.text:
-                            update_time = self._parse_update_time(update_time_elem.text)
-                            
-                            if update_time and update_time < cutoff_time:
-                                logger.debug(f"Skipping old alert for line {line_code}: {update_time}")
-                                continue
+                    # Collect sample for debugging
+                    if len(sample_codes) < 10:
+                        sample_codes.append(hat_code)
+                    
+                    # Exact match on HATKODU (case-insensitive)
+                    if hat_code.upper() == line_code.upper():
+                        # Extract message
+                        mesaj_text = mesaj_elem.text.strip() if mesaj_elem is not None and mesaj_elem.text else ""
                         
-                        alerts.append(mesaj_text)
-                        logger.info(f"Alert found for line {line_code}: {mesaj_text[:50]}...")
+                        if mesaj_text:
+                            # Check timestamp - only include alerts from last 24 hours
+                            if update_time_elem is not None and update_time_elem.text:
+                                update_time = self._parse_update_time(update_time_elem.text)
+                                
+                                if update_time and update_time < cutoff_time:
+                                    print(f"[DEBUG] Skipping old alert for line {line_code}: {update_time}")
+                                    continue
+                            
+                            alerts.append(mesaj_text)
+                            print(f"[DEBUG] ✅ Alert matched for {line_code}: {mesaj_text[:60]}...")
+            
+            print(f"[DEBUG] Sample HATKODUs found: {sample_codes[:10]}")
             
             if alerts:
+                print(f"[DEBUG] ✅ Returning {len(alerts)} alert(s) for line {line_code}")
                 logger.info(f"Found {len(alerts)} active alert(s) for line {line_code}")
-                print(f"[DEBUG] ✅ Returning {len(alerts)} alerts for line {line_code}")
             else:
-                logger.debug(f"No active alerts found for line {line_code}")
-                print(f"[DEBUG] ❌ No alerts matched for line {line_code} after filtering")
+                print(f"[DEBUG] ❌ No alerts matched for line {line_code}")
             
             return alerts
             
         except requests.exceptions.RequestException as e:
             logger.error(f"Failed to fetch alerts for line {line_code}: {e}")
+            print(f"[ERROR] Request failed: {e}")
             return []
         except ET.ParseError as e:
             logger.error(f"XML parsing error for alerts: {e}")
+            print(f"[ERROR] XML parse failed: {e}")
             return []
         except Exception as e:
             logger.error(f"Unexpected error fetching alerts: {e}")
+            print(f"[ERROR] Unexpected error: {e}")
             return []
     
     def _parse_time(self, time_str: str) -> Optional[time]:
