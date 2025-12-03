@@ -16,9 +16,9 @@
     "noResults": "No lines found for \"{query}\""
   },
   "lineDetail": {
-    "estimatedCrowd": "Estimated Crowd at {hour}:00",
+    "estimatedCrowd": "Estimated Crowd",
     "occupancy": "Occupancy",
-    "predictedPassengers": "Predicted passenger count",
+    "predictedPassengers": "Predicted: {count} passengers",
     "maxCapacity": "Max Capacity",
     "maxCapacityTooltip": "Historical maximum crowding recorded",
     "forecast24h": "24-Hour Forecast",

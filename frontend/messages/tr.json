@@ -16,9 +16,9 @@
     "noResults": "\"{query}\" için hat bulunamadı"
   },
   "lineDetail": {
-    "estimatedCrowd": "Tahmini Yoğunluk: {hour}:00",
+    "estimatedCrowd": "Tahmini Yoğunluk",
     "occupancy": "Doluluk",
-    "predictedPassengers": "Tahmini yolcu sayısı",
+    "predictedPassengers": "Tahmini: {count} yolcu",
     "maxCapacity": "Maks. Kapasite",
     "maxCapacityTooltip": "Tarihte kaydedilen maksimum yoğunluk",
     "forecast24h": "24 Saatlik Tahmin",

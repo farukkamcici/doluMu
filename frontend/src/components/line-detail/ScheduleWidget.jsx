@@ -4,7 +4,7 @@ import { useTranslations } from 'next-intl';
 import { Clock, Loader, Calendar, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-export default function ScheduleWidget({ lineCode, direction, onShowFullSchedule, compact = false }) {
+export default function ScheduleWidget({ lineCode, direction, onShowFullSchedule, compact = false, limit = 3 }) {
   const t = useTranslations('schedule');
   const [schedule, setSchedule] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -47,7 +47,7 @@ export default function ScheduleWidget({ lineCode, direction, onShowFullSchedule
       .filter(t => t.diff >= 0)
       .sort((a, b) => a.diff - b.diff);
 
-    return futureTimes.slice(0, 3);
+    return futureTimes.slice(0, limit);
   };
 
   if (loading) {
@@ -102,7 +102,7 @@ export default function ScheduleWidget({ lineCode, direction, onShowFullSchedule
         ) : (
           <>
             {/* Desktop: Vertical List */}
-            <div className="hidden md:block space-y-1">
+            <div className="hidden md:block space-y-1 flex-1">
               {upcomingTrips.map((trip, idx) => (
                 <div 
                   key={idx}
