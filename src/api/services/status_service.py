@@ -129,6 +129,12 @@ class IETTStatusService:
             )
             response.raise_for_status()
             
+            # Debug: Log response for troubleshooting
+            print(f"[DEBUG] IETT API Response Status: {response.status_code}")
+            print(f"[DEBUG] Response length: {len(response.text)} chars")
+            if len(response.text) < 5000:
+                print(f"[DEBUG] Response preview: {response.text[:1000]}")
+            
             # Parse XML response
             root = ET.fromstring(response.text)
             
@@ -138,8 +144,11 @@ class IETTStatusService:
                 # Try without namespace
                 tables = root.findall('.//Table')
             
+            print(f"[DEBUG] Found {len(tables)} Table elements in response")
+            
             if not tables:
                 logger.debug(f"No announcements found in API response")
+                print(f"[DEBUG] No Table elements found for line {line_code}")
                 return []
             
             # Collect all alerts for this line
@@ -183,8 +192,10 @@ class IETTStatusService:
             
             if alerts:
                 logger.info(f"Found {len(alerts)} active alert(s) for line {line_code}")
+                print(f"[DEBUG] ✅ Returning {len(alerts)} alerts for line {line_code}")
             else:
                 logger.debug(f"No active alerts found for line {line_code}")
+                print(f"[DEBUG] ❌ No alerts matched for line {line_code} after filtering")
             
             return alerts
             
