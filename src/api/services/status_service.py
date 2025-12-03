@@ -134,15 +134,23 @@ class IETTStatusService:
             print(f"[DEBUG] IETT API Response Status: {response.status_code}")
             print(f"[DEBUG] Response length: {len(response.text)} chars")
             
+            # Debug: Show XML structure
+            if len(response.text) < 2000:
+                print(f"[DEBUG] Raw XML preview:\n{response.text[:1000]}")
+            else:
+                print(f"[DEBUG] Raw XML first 500 chars:\n{response.text[:500]}")
+            
             # NUCLEAR OPTION: Strip all XML namespaces to avoid namespace hell
             # This removes xmlns="" declarations that confuse ElementTree
             xml_text = response.text
             xml_text = re.sub(r' xmlns="[^"]+"', '', xml_text)
             
-            print(f"[DEBUG] Stripped namespaces, parsing XML...")
+            print(f"[DEBUG] After namespace strip (first 500 chars):\n{xml_text[:500]}")
+            print(f"[DEBUG] Parsing XML...")
             
             # Parse cleaned XML
             root = ET.fromstring(xml_text)
+            print(f"[DEBUG] Root tag: {root.tag}")
             
             # Now find Table elements without namespace issues
             tables = root.findall('.//Table')
