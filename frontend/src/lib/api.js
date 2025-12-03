@@ -151,4 +151,19 @@ export const getLineMetadata = async (lineName) => {
   }
 };
 
+/**
+ * Gets line operational status (alerts + operation hours).
+ * @param {string} lineCode
+ * @returns {Promise<{status: string, message: string|null, severity: string|null, next_service_time: string|null}>}
+ */
+export const getLineStatus = async (lineCode) => {
+  try {
+    const response = await apiClient.get(`/lines/${encodeURIComponent(lineCode)}/status`);
+    return response.data;
+  } catch (error) {
+    console.error('Error getting line status:', error);
+    return { status: 'ACTIVE', message: null, severity: null, next_service_time: null };
+  }
+};
+
 export { apiClient };

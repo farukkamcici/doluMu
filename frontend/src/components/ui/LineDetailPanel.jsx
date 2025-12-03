@@ -13,14 +13,16 @@ import {
   Users, 
   Star,
   Minimize2,
-  RotateCcw
+  RotateCcw,
+  Moon
 } from 'lucide-react';
 import TimeSlider from './TimeSlider';
 import CrowdChart from './CrowdChart';
 import ScheduleWidget from '../line-detail/ScheduleWidget';
 import ScheduleModal from '../line-detail/ScheduleModal';
+import StatusBanner from './StatusBanner';
 import { cn } from '@/lib/utils';
-import { getForecast } from '@/lib/api';
+import { getForecast, getLineStatus } from '@/lib/api';
 import { getTransportType } from '@/lib/transportTypes';
 import { useGetTransportLabel } from '@/hooks/useGetTransportLabel';
 
@@ -59,6 +61,7 @@ export default function LineDetailPanel() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [isMinimized, setIsMinimized] = useState(false);
+  const [lineStatus, setLineStatus] = useState(null);
   
   useEffect(() => {
     if (isPanelOpen && isFavoritesPage) {
@@ -83,16 +86,20 @@ export default function LineDetailPanel() {
       
       const targetDate = new Date();
       
-      getForecast(selectedLine.id, targetDate)
-        .then(data => {
-          setForecastData(data);
+      Promise.all([
+        getForecast(selectedLine.id, targetDate),
+        getLineStatus(selectedLine.id)
+      ])
+        .then(([forecastData, statusData]) => {
+          setForecastData(forecastData);
+          setLineStatus(statusData);
           setError(null);
         })
         .catch(err => {
           const errorMessage = err.message || "Could not fetch forecast. Please try again later.";
           setError(errorMessage);
           setForecastData([]);
-          console.error('Forecast fetch error:', err);
+          console.error('Data fetch error:', err);
         })
         .finally(() => {
           setLoading(false);
@@ -100,6 +107,7 @@ export default function LineDetailPanel() {
     } else {
       setForecastData([]);
       setError(null);
+      setLineStatus(null);
     }
   }, [isPanelOpen, selectedLine]);
 
@@ -460,6 +468,11 @@ export default function LineDetailPanel() {
                 {/* Card Layout */}
                 <div className="p-4 space-y-3">
                   
+                  {/* Status Banner */}
+                  {lineStatus && lineStatus.status !== 'ACTIVE' && (
+                    <StatusBanner status={lineStatus} />
+                  )}
+                  
                   {/* Cards Grid - Desktop: Side by Side, Mobile: Stacked */}
                   <div className={cn(
                     "grid gap-3",
@@ -594,24 +607,38 @@ export default function LineDetailPanel() {
                         onShowFullSchedule={() => setIsScheduleModalOpen(true)}
                         compact={true}
                         limit={isDesktop ? 5 : 3}
+                        transportType={transportType}
                       />
                     </div>
                   </div>
 
                   {/* Card 3: 24h Chart */}
-                  <div className="rounded-xl bg-background border border-white/5 overflow-hidden">
+                  <div className={cn(
+                    "rounded-xl bg-background border border-white/5 overflow-hidden relative",
+                    lineStatus?.status === 'OUT_OF_SERVICE' && "opacity-60"
+                  )}>
                     <div className="px-3 py-2 border-b border-white/5">
                       <p className="text-xs font-medium text-gray-400">
                         {t('forecast24h')}
                       </p>
                     </div>
-                    <div className="px-3 pb-3 pt-2 h-44">
+                    <div className="px-3 pb-3 pt-2 h-44 relative">
                       {loading ? (
                         <div className="h-full flex items-center justify-center">
                           <Loader className="animate-spin text-primary" size={20} />
                         </div>
                       ) : (
-                        <CrowdChart data={forecastData} />
+                        <>
+                          <CrowdChart data={forecastData} />
+                          {lineStatus?.status === 'OUT_OF_SERVICE' && (
+                            <div className="absolute inset-0 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm">
+                              <div className="text-center">
+                                <Moon size={24} className="mx-auto mb-2 text-slate-400" />
+                                <p className="text-xs font-semibold text-gray-300">{t('serviceEnded')}</p>
+                              </div>
+                            </div>
+                          )}
+                        </>
                       )}
                     </div>
                   </div>

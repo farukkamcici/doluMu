@@ -1,10 +1,10 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
-import { Clock, Loader, Calendar, ChevronRight } from 'lucide-react';
+import { Clock, Loader, Calendar, ChevronRight, TrainFront, Ship, Info } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-export default function ScheduleWidget({ lineCode, direction, onShowFullSchedule, compact = false, limit = 3 }) {
+export default function ScheduleWidget({ lineCode, direction, onShowFullSchedule, compact = false, limit = 3, transportType = null }) {
   const t = useTranslations('schedule');
   const [schedule, setSchedule] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -12,8 +12,19 @@ export default function ScheduleWidget({ lineCode, direction, onShowFullSchedule
 
   useEffect(() => {
     if (!lineCode) return;
+    
+    // Debug: Log transport type
+    console.log('[ScheduleWidget] Line:', lineCode, 'TransportType:', transportType);
+    
+    // Only fetch schedule for Bus and Metrobus (transport_type_id: 1)
+    const isBusOrMetrobus = !transportType || transportType.id === 1;
+    if (!isBusOrMetrobus) {
+      console.log('[ScheduleWidget] Skipping API call for non-bus line');
+      setLoading(false);
+      return;
+    }
 
-    const fetchSchedule = async () => {
+    const fetchSchedule = async () =>{
       setLoading(true);
       setError(null);
       try {
@@ -30,7 +41,7 @@ export default function ScheduleWidget({ lineCode, direction, onShowFullSchedule
     };
 
     fetchSchedule();
-  }, [lineCode]);
+  }, [lineCode, transportType]);
 
   const getUpcomingDepartures = (times) => {
     if (!times || times.length === 0) return [];
@@ -58,6 +69,54 @@ export default function ScheduleWidget({ lineCode, direction, onShowFullSchedule
       )}>
         <div className="flex items-center justify-center py-4">
           <Loader className="animate-spin text-primary" size={16} />
+        </div>
+      </div>
+    );
+  }
+
+  // Metro: Show frequency info card
+  if (transportType && transportType.id === 2) {
+    return (
+      <div className={cn(
+        "rounded-xl bg-slate-800/50 border border-white/5",
+        compact ? "p-2.5 h-full flex flex-col" : "p-4"
+      )}>
+        <div className="flex items-center gap-2 mb-2">
+          <TrainFront size={14} className="text-purple-400" />
+          <h3 className="text-xs font-medium text-gray-300">{t('plannedTrips')}</h3>
+        </div>
+        <div className="flex-1 flex flex-col justify-center space-y-2">
+          <div className="flex items-start gap-2 px-2 py-2 rounded-lg bg-purple-500/10 border border-purple-500/20">
+            <Info size={12} className="text-purple-400 mt-0.5 shrink-0" />
+            <div>
+              <p className="text-xs font-semibold text-purple-300">Sefer Sıklığı: 3-8 dk</p>
+              <p className="text-[10px] text-gray-400 mt-1">Canlı takip verisi bu hat tipi için henüz aktif değil.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Ferry: Show pier info card
+  if (transportType && transportType.id === 3) {
+    return (
+      <div className={cn(
+        "rounded-xl bg-slate-800/50 border border-white/5",
+        compact ? "p-2.5 h-full flex flex-col" : "p-4"
+      )}>
+        <div className="flex items-center gap-2 mb-2">
+          <Ship size={14} className="text-cyan-400" />
+          <h3 className="text-xs font-medium text-gray-300">{t('plannedTrips')}</h3>
+        </div>
+        <div className="flex-1 flex flex-col justify-center space-y-2">
+          <div className="flex items-start gap-2 px-2 py-2 rounded-lg bg-cyan-500/10 border border-cyan-500/20">
+            <Info size={12} className="text-cyan-400 mt-0.5 shrink-0" />
+            <div>
+              <p className="text-xs font-semibold text-cyan-300">Tarife için iskeleye danışınız</p>
+              <p className="text-[10px] text-gray-400 mt-1">Vapur seferleri hava koşullarına göre değişiklik gösterebilir.</p>
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -145,7 +204,7 @@ export default function ScheduleWidget({ lineCode, direction, onShowFullSchedule
                     {trip.timeStr}
                   </span>
                   <span className="text-[9px] text-gray-500 mt-0.5 truncate">
-                    {trip.diff < 60 ? `${trip.diff}${t('minutes')}` : `${Math.floor(trip.diff / 60)}h${trip.diff % 60}m`}
+                    {trip.diff < 60 ? `${trip.diff} ${t('minutes')}` : `${Math.floor(trip.diff / 60)}h ${trip.diff % 60}m`}
                   </span>
                 </div>
               ))}

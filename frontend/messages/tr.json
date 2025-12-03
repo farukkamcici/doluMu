@@ -34,6 +34,7 @@
     "changeDirection": "Yön değiştir",
     "addToFavorites": "Favorilere ekle",
     "removeFromFavorites": "Favorilerden çıkar",
+    "serviceEnded": "Sefer saatleri dışında",
     "crowdLevels": {
       "Low": "Düşük Yoğunluk",
       "Medium": "Orta Yoğunluk",
@@ -155,5 +156,11 @@
     "error": "Hata",
     "retry": "Tekrar Dene",
     "istanbul": "İstanbul"
+  },
+  "status": {
+    "nextService": "İlk sefer",
+    "outOfService": "Hat şu an hizmet vermemektedir",
+    "alert": "Uyarı",
+    "disruption": "Aksama"
   }
 }

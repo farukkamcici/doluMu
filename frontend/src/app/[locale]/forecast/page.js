@@ -5,8 +5,8 @@ import { useRouter } from 'next/navigation';
 import BottomNav from '@/components/ui/BottomNav';
 import LineDetailPanel from '@/components/ui/LineDetailPanel';
 import useAppStore from '@/store/useAppStore';
-import { Star, TrendingUp, MapPin, Loader } from 'lucide-react';
-import { getLineMetadata, getForecast } from '@/lib/api';
+import { Star, TrendingUp, MapPin, Loader, AlertTriangle } from 'lucide-react';
+import { getLineMetadata, getForecast, getLineStatus } from '@/lib/api';
 import { getTransportType } from '@/lib/transportTypes';
 import { useGetTransportLabel } from '@/hooks/useGetTransportLabel';
 import { cn } from '@/lib/utils';
@@ -24,15 +24,21 @@ function FavoriteLineCard({ lineId }) {
   const { setSelectedLine } = useAppStore();
   const [metadata, setMetadata] = useState(null);
   const [currentStatus, setCurrentStatus] = useState(null);
+  const [lineStatus, setLineStatus] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const meta = await getLineMetadata(lineId);
-        setMetadata(meta);
+        const [meta, forecastData, statusData] = await Promise.all([
+          getLineMetadata(lineId),
+          getForecast(lineId, new Date()),
+          getLineStatus(lineId)
+        ]);
         
-        const forecastData = await getForecast(lineId, new Date());
+        setMetadata(meta);
+        setLineStatus(statusData);
+        
         const currentHour = new Date().getHours();
         const current = forecastData.find(f => f.hour === currentHour);
         setCurrentStatus(current);
@@ -78,8 +84,22 @@ function FavoriteLineCard({ lineId }) {
   return (
     <button
       onClick={handleCardClick}
-      className="w-full flex flex-col gap-3 rounded-xl bg-surface p-4 border border-white/5 hover:bg-white/5 transition-colors text-left"
+      className={cn(
+        "w-full flex flex-col gap-3 rounded-xl bg-surface p-4 border border-white/5 hover:bg-white/5 transition-all text-left relative",
+        lineStatus?.status === 'OUT_OF_SERVICE' && "opacity-70"
+      )}
     >
+      {lineStatus?.status === 'WARNING' && (
+        <div className="absolute -top-1 -right-1">
+          <div className="relative">
+            <div className="absolute inset-0 bg-red-500 rounded-full animate-ping opacity-75"></div>
+            <div className="relative flex items-center justify-center w-6 h-6 bg-red-500 rounded-full border-2 border-background">
+              <AlertTriangle size={12} className="text-white" />
+            </div>
+          </div>
+        </div>
+      )}
+      
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-2 flex-wrap">
           <span className="rounded-lg bg-primary px-3 py-1.5 text-sm font-bold text-white">

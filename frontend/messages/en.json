@@ -34,6 +34,7 @@
     "changeDirection": "Change direction",
     "addToFavorites": "Add to favorites",
     "removeFromFavorites": "Remove from favorites",
+    "serviceEnded": "Outside service hours",
     "crowdLevels": {
       "Low": "Low Density",
       "Medium": "Medium Density",
@@ -155,5 +156,11 @@
     "error": "Error",
     "retry": "Retry",
     "istanbul": "Istanbul"
+  },
+  "status": {
+    "nextService": "Next service",
+    "outOfService": "Line is currently out of service",
+    "alert": "Alert",
+    "disruption": "Disruption"
   }
 }

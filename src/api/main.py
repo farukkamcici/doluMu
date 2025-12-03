@@ -4,7 +4,7 @@ from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 from .db import SessionLocal
-from .routers import admin, forecast, lines, nowcast, reports, schedule
+from .routers import admin, forecast, lines, nowcast, reports, schedule, status
 from .services.store import FeatureStore
 from .services.route_service import route_service
 from .utils.init_db import init_db
@@ -84,6 +84,7 @@ app.include_router(lines.router, prefix="/api")
 app.include_router(nowcast.router, prefix="/api")
 app.include_router(reports.router, prefix="/api")
 app.include_router(schedule.router, prefix="/api")
+app.include_router(status.router, prefix="/api")
 
 @app.get("/")
 def read_root():
