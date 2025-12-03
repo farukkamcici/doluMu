@@ -13,8 +13,17 @@ const useAppStore = create(
       selectedDirection: 'G',
       showRoute: false,
       
-      setSelectedLine: (line) => set({ selectedLine: line, isPanelOpen: true }),
-      closePanel: () => set({ isPanelOpen: false, selectedLine: null, showRoute: false }),
+      setSelectedLine: (line) => set({ 
+        selectedLine: line, 
+        isPanelOpen: true,
+        selectedHour: new Date().getHours() // Panel açıldığında şu anki saate ayarla
+      }),
+      closePanel: () => set({ 
+        isPanelOpen: false, 
+        selectedLine: null, 
+        showRoute: false,
+        selectedHour: new Date().getHours() // Panel kapandığında resetle
+      }),
       setSelectedHour: (hour) => set({ selectedHour: hour }),
       setUserLocation: (location) => set({ userLocation: location }),
       setAlertMessage: (message) => set({ alertMessage: message }),

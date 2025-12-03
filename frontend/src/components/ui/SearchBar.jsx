@@ -71,9 +71,8 @@ export default function SearchBar() {
       <div className="flex items-center gap-2 rounded-xl border border-white/10 bg-surface/90 px-3 h-12 shadow-lg backdrop-blur-md">
          <Search className="h-4 w-4 text-secondary shrink-0" />
          <input 
-           type="text" 
-           inputMode="numeric"
-           pattern="[0-9]*"
+           type="text"
+           inputMode="tel"
            value={query}
            onChange={(e) => setQuery(e.target.value)}
            placeholder={t('placeholder')} 
