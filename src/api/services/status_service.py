@@ -104,7 +104,28 @@ class IETTStatusService:
         
         return None
     
-    def _fetch_alerts(self, line_code: str) -> List[str]:
+    def _extract_time_string(self, time_str: str) -> str:
+        """
+        Extract just the HH:MM time from GUNCELLEME_SAATI field.
+        
+        Args:
+            time_str: Time string from API (e.g., "Kayit Saati: 04:09")
+            
+        Returns:
+            Formatted time string (e.g., "04:09") or empty string if parsing fails
+        """
+        try:
+            # Use regex to extract HH:MM pattern
+            match = re.search(r'(\d{1,2}):(\d{2})', time_str)
+            if match:
+                hour = match.group(1).zfill(2)  # Pad with zero if needed
+                minute = match.group(2)
+                return f"{hour}:{minute}"
+        except Exception:
+            pass
+        return ""
+    
+    def _fetch_alerts(self, line_code: str) -> List[Dict]:
         """
         Fetch disruption alerts from IETT API.
         
@@ -119,7 +140,7 @@ class IETTStatusService:
             line_code: Line code to check for alerts (e.g., "10", "10B")
             
         Returns:
-            List of alert message texts (empty list if no active alerts)
+            List of alert objects with text, time, and type fields
         """
         try:
             soap_body = self.SOAP_ENVELOPE_TEMPLATE
@@ -131,28 +152,20 @@ class IETTStatusService:
             )
             response.raise_for_status()
             
-            print(f"[DEBUG] IETT API Response Status: {response.status_code}")
-            print(f"[DEBUG] Response length: {len(response.text)} chars")
-            
             # Extract JSON string from XML using regex
-            # Pattern: <GetDuyurular_jsonResult>JSON_HERE</GetDuyurular_jsonResult>
             json_match = re.search(r'<GetDuyurular_jsonResult>(.*?)</GetDuyurular_jsonResult>', 
                                    response.text, 
                                    re.DOTALL)
             
             if not json_match:
-                print(f"[ERROR] Could not find GetDuyurular_jsonResult in response")
+                logger.warning(f"Could not find GetDuyurular_jsonResult in IETT API response")
                 return []
             
             json_string = json_match.group(1).strip()
-            print(f"[DEBUG] Extracted JSON string length: {len(json_string)} chars")
-            
-            # Parse JSON array
             alerts_data = json.loads(json_string)
-            print(f"[DEBUG] Parsed {len(alerts_data)} total alerts from JSON")
             
             if not isinstance(alerts_data, list):
-                print(f"[ERROR] Expected JSON array, got {type(alerts_data)}")
+                logger.error(f"Expected JSON array from IETT API, got {type(alerts_data)}")
                 return []
             
             # Collect all alerts for this line
@@ -160,15 +173,12 @@ class IETTStatusService:
             now = datetime.now()
             cutoff_time = now - timedelta(hours=24)
             
-            # Debug: Show first few line codes
-            sample_codes = [item.get('HATKODU', 'N/A') for item in alerts_data[:10]]
-            print(f"[DEBUG] Sample HATKODUs: {sample_codes}")
-            
             for item in alerts_data:
                 # Extract fields
                 hat_code = item.get('HATKODU', '').strip()
                 mesaj_text = item.get('MESAJ', '').strip()
                 update_time_str = item.get('GUNCELLEME_SAATI', '')
+                tip = item.get('TIP', '').strip()
                 
                 # Exact match on HATKODU (case-insensitive)
                 if hat_code.upper() == line_code.upper() and mesaj_text:
@@ -177,31 +187,30 @@ class IETTStatusService:
                         update_time = self._parse_update_time(update_time_str)
                         
                         if update_time and update_time < cutoff_time:
-                            print(f"[DEBUG] Skipping old alert for line {line_code}: {update_time}")
                             continue
                     
-                    alerts.append(mesaj_text)
-                    print(f"[DEBUG] ✅ Alert matched for {line_code}: {mesaj_text[:60]}...")
+                    # Extract time string for display
+                    time_str = self._extract_time_string(update_time_str) if update_time_str else ""
+                    
+                    alerts.append({
+                        "text": mesaj_text,
+                        "time": time_str,
+                        "type": tip
+                    })
             
             if alerts:
-                print(f"[DEBUG] ✅ Returning {len(alerts)} alert(s) for line {line_code}")
                 logger.info(f"Found {len(alerts)} active alert(s) for line {line_code}")
-            else:
-                print(f"[DEBUG] ❌ No alerts matched for line {line_code}")
             
             return alerts
             
         except requests.exceptions.RequestException as e:
             logger.error(f"Failed to fetch alerts for line {line_code}: {e}")
-            print(f"[ERROR] Request failed: {e}")
             return []
         except json.JSONDecodeError as e:
             logger.error(f"JSON parsing error for alerts: {e}")
-            print(f"[ERROR] JSON parse failed: {e}")
             return []
         except Exception as e:
             logger.error(f"Unexpected error fetching alerts: {e}")
-            print(f"[ERROR] Unexpected error: {e}")
             return []
     
     def _parse_time(self, time_str: str) -> Optional[time]:
@@ -303,12 +312,12 @@ class IETTStatusService:
         logger.info(f"Fetching status for line {line_code}")
         
         # Step 1: Check for alerts
-        alert_messages = self._fetch_alerts(line_code)
+        alert_objects = self._fetch_alerts(line_code)
         
-        if alert_messages:
+        if alert_objects:
             result = {
                 "status": LineStatus.WARNING,
-                "messages": alert_messages,
+                "alerts": alert_objects,
                 "next_service_time": None
             }
             _status_cache[line_code] = result
@@ -323,7 +332,7 @@ class IETTStatusService:
             
             result = {
                 "status": LineStatus.OUT_OF_SERVICE,
-                "messages": [message],
+                "alerts": [{"text": message, "time": "", "type": ""}],
                 "next_service_time": next_time
             }
             _status_cache[line_code] = result
@@ -332,7 +341,7 @@ class IETTStatusService:
         # Step 3: All clear - line is active
         result = {
             "status": LineStatus.ACTIVE,
-            "messages": [],
+            "alerts": [],
             "next_service_time": None
         }
         _status_cache[line_code] = result

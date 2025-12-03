@@ -475,7 +475,7 @@ export default function LineDetailPanel() {
                     <StatusBanner 
                       status={lineStatus} 
                       onClick={() => {
-                        if (lineStatus.messages && lineStatus.messages.length > 1) {
+                        if (lineStatus.alerts && lineStatus.alerts.length > 1) {
                           setIsAlertsModalOpen(true);
                           vibrate(5);
                         }
@@ -683,7 +683,7 @@ export default function LineDetailPanel() {
       <AlertsModal 
         isOpen={isAlertsModalOpen}
         onClose={() => setIsAlertsModalOpen(false)}
-        messages={lineStatus?.messages || []}
+        messages={lineStatus?.alerts || []}
         lineCode={selectedLine.id}
       />
     </>

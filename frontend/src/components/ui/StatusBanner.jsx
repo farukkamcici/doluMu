@@ -5,12 +5,12 @@ import { useTranslations } from 'next-intl';
 
 const STATUS_CONFIG = {
   WARNING: {
-    bgColor: 'bg-red-500/10',
-    borderColor: 'border-red-500/30',
-    textColor: 'text-red-400',
+    bgColor: 'bg-amber-500/10',
+    borderColor: 'border-amber-500/20',
+    textColor: 'text-amber-200',
     icon: AlertTriangle,
-    iconColor: 'text-red-500',
-    animate: true
+    iconColor: 'text-amber-500',
+    iconAnimate: true
   },
   OUT_OF_SERVICE: {
     bgColor: 'bg-slate-700/30',
@@ -18,7 +18,7 @@ const STATUS_CONFIG = {
     textColor: 'text-gray-300',
     icon: Moon,
     iconColor: 'text-slate-400',
-    animate: false
+    iconAnimate: false
   },
   ACTIVE: null
 };
@@ -26,7 +26,7 @@ const STATUS_CONFIG = {
 export default function StatusBanner({ status, className, onClick }) {
   const t = useTranslations('status');
 
-  if (!status || status.status === 'ACTIVE' || !status.messages || status.messages.length === 0) {
+  if (!status || status.status === 'ACTIVE' || !status.alerts || status.alerts.length === 0) {
     return null;
   }
 
@@ -34,10 +34,10 @@ export default function StatusBanner({ status, className, onClick }) {
   if (!config) return null;
 
   const Icon = config.icon;
-  const hasMultipleMessages = status.messages.length > 1;
-  const displayMessage = status.messages.join(' • ');
+  const hasMultipleAlerts = status.alerts.length > 1;
+  const displayMessage = status.alerts.map(a => a.text).join(' • ');
   const isLongMessage = displayMessage.length > 80;
-  const isClickable = hasMultipleMessages && onClick;
+  const isClickable = hasMultipleAlerts && onClick;
 
   return (
     <div
@@ -45,19 +45,24 @@ export default function StatusBanner({ status, className, onClick }) {
         'rounded-lg border px-3 py-2 flex items-start gap-2',
         config.bgColor,
         config.borderColor,
-        config.animate && 'animate-pulse',
         isClickable && 'cursor-pointer hover:bg-opacity-80 transition-all',
         className
       )}
       onClick={isClickable ? onClick : undefined}
     >
-      <Icon size={16} className={cn('shrink-0 mt-0.5', config.iconColor)} />
+      <Icon size={16} className={cn('shrink-0 mt-0.5', config.iconColor, config.iconAnimate && 'animate-pulse')} />
       <div className="flex-1 min-w-0">
         {isLongMessage ? (
-          <div className="overflow-hidden">
-            <p className={cn('text-xs font-medium whitespace-nowrap animate-marquee', config.textColor)}>
-              {displayMessage}
-            </p>
+          <div className="overflow-hidden relative">
+            <div className="flex animate-scroll">
+              <p className={cn('text-xs font-medium whitespace-nowrap', config.textColor)}>
+                {displayMessage}
+              </p>
+              <span className={cn('text-xs font-medium whitespace-nowrap mx-4', config.textColor)}>|</span>
+              <p className={cn('text-xs font-medium whitespace-nowrap', config.textColor)}>
+                {displayMessage}
+              </p>
+            </div>
           </div>
         ) : (
           <p className={cn('text-xs font-medium', config.textColor)}>
@@ -70,9 +75,9 @@ export default function StatusBanner({ status, className, onClick }) {
               {t('nextService')}: {status.next_service_time}
             </p>
           )}
-          {hasMultipleMessages && (
+          {hasMultipleAlerts && (
             <p className="text-[10px] font-semibold text-gray-400 flex items-center gap-1">
-              ({status.messages.length} {t('alerts')})
+              ({status.alerts.length} {t('alerts')})
               {isClickable && <ChevronRight size={12} />}
             </p>
           )}

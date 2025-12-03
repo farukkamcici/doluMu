@@ -19,10 +19,17 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
+class AlertModel(BaseModel):
+    """Model for a single alert."""
+    text: str
+    time: str
+    type: str
+
+
 class LineStatusResponse(BaseModel):
     """Response model for line status."""
     status: str
-    messages: List[str]
+    alerts: List[AlertModel]
     next_service_time: str | None
     
     model_config = {
@@ -30,20 +37,28 @@ class LineStatusResponse(BaseModel):
             "examples": [
                 {
                     "status": "ACTIVE",
-                    "messages": [],
+                    "alerts": [],
                     "next_service_time": None
                 },
                 {
                     "status": "WARNING",
-                    "messages": [
-                        "BOSTANCI PERONLAR dan Saat 10:40 de hareket etmesi planlanan seferimiz çesitli nedenlerle yapilamayacaktir.",
-                        "BOSTANCI PERONLAR dan Saat 11:36 de hareket etmesi planlanan seferimiz çesitli nedenlerle yapilamayacaktir."
+                    "alerts": [
+                        {
+                            "text": "BOSTANCI PERONLAR dan Saat 10:40 de hareket etmesi planlanan seferimiz çesitli nedenlerle yapilamayacaktir.",
+                            "time": "04:09",
+                            "type": "Sefer"
+                        },
+                        {
+                            "text": "BOSTANCI PERONLAR dan Saat 11:36 de hareket etmesi planlanan seferimiz çesitli nedenlerle yapilamayacaktir.",
+                            "time": "04:09",
+                            "type": "Sefer"
+                        }
                     ],
                     "next_service_time": None
                 },
                 {
                     "status": "OUT_OF_SERVICE",
-                    "messages": ["Hat şu an hizmet vermemektedir. İlk sefer: 06:00"],
+                    "alerts": [{"text": "Hat şu an hizmet vermemektedir. İlk sefer: 06:00", "time": "", "type": ""}],
                     "next_service_time": "06:00"
                 }
             ]
@@ -87,7 +102,7 @@ async def get_line_status(
         
         return LineStatusResponse(
             status=status_info["status"],
-            messages=status_info["messages"],
+            alerts=status_info["alerts"],
             next_service_time=status_info["next_service_time"]
         )
         

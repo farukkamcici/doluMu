@@ -1,5 +1,5 @@
 'use client';
-import { X, AlertTriangle } from 'lucide-react';
+import { X, AlertTriangle, Clock } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { cn } from '@/lib/utils';
 
@@ -25,8 +25,8 @@ export default function AlertsModal({ isOpen, onClose, messages, lineCode }) {
           {/* Header */}
           <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
             <div className="flex items-center gap-3">
-              <div className="flex items-center justify-center w-10 h-10 rounded-full bg-red-500/20">
-                <AlertTriangle size={20} className="text-red-400" />
+              <div className="flex items-center justify-center w-10 h-10 rounded-full bg-amber-500/20">
+                <AlertTriangle size={20} className="text-amber-400" />
               </div>
               <div>
                 <h2 className="text-lg font-bold text-white">{t('alerts')}</h2>
@@ -43,22 +43,34 @@ export default function AlertsModal({ isOpen, onClose, messages, lineCode }) {
             </button>
           </div>
 
-          {/* Content */}
-          <div className="overflow-y-auto max-h-[calc(80vh-5rem)] p-6 space-y-3">
-            {messages.map((message, index) => (
+          {/* Content - Custom Scrollbar */}
+          <div className="overflow-y-auto max-h-[calc(80vh-5rem)] p-6 space-y-3 scrollbar-thin scrollbar-thumb-amber-500/30 scrollbar-track-slate-800/50 hover:scrollbar-thumb-amber-500/50">
+            {messages.map((alert, index) => (
               <div
                 key={index}
-                className={cn(
-                  "p-4 rounded-lg border bg-red-500/5 border-red-500/20"
-                )}
+                className="p-4 rounded-lg border bg-amber-500/5 border-amber-500/20"
               >
                 <div className="flex items-start gap-3">
-                  <div className="flex items-center justify-center w-6 h-6 rounded-full bg-red-500/20 shrink-0 mt-0.5">
-                    <span className="text-xs font-bold text-red-400">{index + 1}</span>
+                  <div className="flex items-center justify-center w-6 h-6 rounded-full bg-amber-500/20 shrink-0 mt-0.5">
+                    <span className="text-xs font-bold text-amber-400">{index + 1}</span>
                   </div>
-                  <p className="text-sm text-gray-200 leading-relaxed flex-1">
-                    {message}
-                  </p>
+                  <div className="flex-1">
+                    <p className="text-sm text-gray-200 leading-relaxed">
+                      {alert.text}
+                    </p>
+                    {alert.time && (
+                      <div className="flex items-center gap-1.5 mt-2 text-xs text-gray-400">
+                        <Clock size={12} />
+                        <span>{alert.time}</span>
+                        {alert.type && (
+                          <>
+                            <span className="mx-1">•</span>
+                            <span>{alert.type}</span>
+                          </>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             ))}

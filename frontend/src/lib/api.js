@@ -154,7 +154,7 @@ export const getLineMetadata = async (lineName) => {
 /**
  * Gets line operational status (alerts + operation hours).
  * @param {string} lineCode
- * @returns {Promise<{status: string, messages: string[], next_service_time: string|null}>}
+ * @returns {Promise<{status: string, alerts: Array<{text: string, time: string, type: string}>, next_service_time: string|null}>}
  */
 export const getLineStatus = async (lineCode) => {
   try {
@@ -162,7 +162,7 @@ export const getLineStatus = async (lineCode) => {
     return response.data;
   } catch (error) {
     console.error('Error getting line status:', error);
-    return { status: 'ACTIVE', messages: [], next_service_time: null };
+    return { status: 'ACTIVE', alerts: [], next_service_time: null };
   }
 };
 
