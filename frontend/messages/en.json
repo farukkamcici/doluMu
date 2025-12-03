@@ -161,6 +161,10 @@
     "nextService": "Next service",
     "outOfService": "Line is currently out of service",
     "alert": "Alert",
-    "disruption": "Disruption"
+    "disruption": "Disruption",
+    "alerts": "Alerts",
+    "activeAlerts": "active alerts",
+    "lineCode": "Line",
+    "close": "Close"
   }
 }

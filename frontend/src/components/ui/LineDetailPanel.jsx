@@ -21,6 +21,7 @@ import CrowdChart from './CrowdChart';
 import ScheduleWidget from '../line-detail/ScheduleWidget';
 import ScheduleModal from '../line-detail/ScheduleModal';
 import StatusBanner from './StatusBanner';
+import AlertsModal from './AlertsModal';
 import { cn } from '@/lib/utils';
 import { getForecast, getLineStatus } from '@/lib/api';
 import { getTransportType } from '@/lib/transportTypes';
@@ -70,6 +71,7 @@ export default function LineDetailPanel() {
   }, [isPanelOpen, isFavoritesPage]);
   const [hasRouteData, setHasRouteData] = useState(false);
   const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
+  const [isAlertsModalOpen, setIsAlertsModalOpen] = useState(false);
   const [showCapacityTooltip, setShowCapacityTooltip] = useState(false);
   const [panelSize, setPanelSize] = useState({ width: 440, height: 520 });
   const resizeRef = useRef(null);
@@ -470,7 +472,15 @@ export default function LineDetailPanel() {
                   
                   {/* Status Banner */}
                   {lineStatus && lineStatus.status !== 'ACTIVE' && (
-                    <StatusBanner status={lineStatus} />
+                    <StatusBanner 
+                      status={lineStatus} 
+                      onClick={() => {
+                        if (lineStatus.messages && lineStatus.messages.length > 1) {
+                          setIsAlertsModalOpen(true);
+                          vibrate(5);
+                        }
+                      }}
+                    />
                   )}
                   
                   {/* Cards Grid - Desktop: Side by Side, Mobile: Stacked */}
@@ -668,6 +678,13 @@ export default function LineDetailPanel() {
         onClose={() => setIsScheduleModalOpen(false)}
         initialDirection={selectedDirection}
         directionInfo={directionInfo}
+      />
+      
+      <AlertsModal 
+        isOpen={isAlertsModalOpen}
+        onClose={() => setIsAlertsModalOpen(false)}
+        messages={lineStatus?.messages || []}
+        lineCode={selectedLine.id}
       />
     </>
   );

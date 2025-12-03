@@ -9,6 +9,7 @@ Date: 2025-12-03
 
 from fastapi import APIRouter, HTTPException, Path
 from pydantic import BaseModel
+from typing import List
 import logging
 
 from ..services.status_service import status_service
@@ -21,8 +22,7 @@ router = APIRouter()
 class LineStatusResponse(BaseModel):
     """Response model for line status."""
     status: str
-    message: str | None
-    severity: str | None
+    messages: List[str]
     next_service_time: str | None
     
     model_config = {
@@ -30,20 +30,20 @@ class LineStatusResponse(BaseModel):
             "examples": [
                 {
                     "status": "ACTIVE",
-                    "message": None,
-                    "severity": None,
+                    "messages": [],
                     "next_service_time": None
                 },
                 {
                     "status": "WARNING",
-                    "message": "Trafik kazası nedeniyle hat güzergahı değiştirilmiştir.",
-                    "severity": "high",
+                    "messages": [
+                        "BOSTANCI PERONLAR dan Saat 10:40 de hareket etmesi planlanan seferimiz çesitli nedenlerle yapilamayacaktir.",
+                        "BOSTANCI PERONLAR dan Saat 11:36 de hareket etmesi planlanan seferimiz çesitli nedenlerle yapilamayacaktir."
+                    ],
                     "next_service_time": None
                 },
                 {
                     "status": "OUT_OF_SERVICE",
-                    "message": "Hat şu an hizmet vermemektedir. İlk sefer: 06:00",
-                    "severity": "medium",
+                    "messages": ["Hat şu an hizmet vermemektedir. İlk sefer: 06:00"],
                     "next_service_time": "06:00"
                 }
             ]
@@ -87,8 +87,7 @@ async def get_line_status(
         
         return LineStatusResponse(
             status=status_info["status"],
-            message=status_info["message"],
-            severity=status_info["severity"],
+            messages=status_info["messages"],
             next_service_time=status_info["next_service_time"]
         )
         
