@@ -1,6 +1,111 @@
 # Project Logbook
 
-_Last updated: 2025-12-01_
+_Last updated: 2025-12-06_
+
+## Entry · 2025-12-06 18:00 (+03)
+
+### Commit
+- **Hash:** `6ff9740ac8f3b5d7fa1d3d9a01da0616dad86d0a`
+- **Message:** `feat(reports): add detailed Markdown reports and enhanced test metrics for v6`
+
+### Summary
+- Enhanced model evaluation reporting with volume-weighted accuracy metrics (NMAE, baseline comparisons) and human-readable Markdown generation for academic documentation.
+
+### Details
+- **New Metrics:** Added NMAE (Normalized MAE = MAE / Mean Volume) and volume-weighted accuracy (1 - NMAE) to quantify model performance relative to passenger volume scale.
+- **Baseline Comparison:** Implemented baseline NMAE calculation for lag-24h predictor to demonstrate improvement in relative error rates.
+- **Line-Level Analysis:** Enhanced worst-performing lines analysis to include mean passenger volume and line-specific NMAE, revealing that high MAE often correlates with high-volume lines.
+- **Markdown Reports:** Automated generation of `test_explanation_{version}.md` files with mathematical formulas, simulated examples, and contextual explanations suitable for thesis documentation.
+- **Console Output:** Updated test script to display new metrics in both absolute and percentage formats for quick performance assessment.
+
+### Notes
+- NMAE provides volume-normalized error rate (e.g., 15.9% for v6), making model performance interpretable across different line capacities.
+- Markdown reports include LaTeX-formatted formulas and comparative tables suitable for academic publications.
+- JSON output structure now includes `test_set_mean_volume`, `baseline_nmae_lag24`, and detailed line statistics with `{mae, mean_volume, nmae}` tuples.
+
+## Entry · 2025-12-05 15:30 (+03)
+
+### Commit
+- **Hash:** `83a5e0362732c40b61eb95a888164f5c143c3eb4`
+- **Message:** `feat(reports): introduce user report management system`
+
+### Summary
+- Implemented complete user feedback and bug reporting system with FastAPI backend, React frontend forms, and admin management interface for systematic issue tracking.
+
+### Details
+- **Backend API:** Created `/reports` endpoint ecosystem with POST (submit), GET (list with filters), GET /{id} (details), PATCH /{id}/status (admin update), and GET /summary (statistics).
+- **Database Schema:** Added `user_reports` table tracking report type (bug/feedback/feature), subject, description, email, status (pending/in_review/resolved/closed), priority, and timestamps.
+- **Frontend Submission:** Built `ReportForm` component with type selection, subject/description validation, optional email collection, and success/error feedback.
+- **Admin Interface:** Created `ReportsPanel` with filtering by status/type, pagination, priority badges, and status update controls.
+- **Statistics:** Implemented report summary endpoint providing counts by status and type for administrative oversight.
+
+### Notes
+- Enables systematic collection of user feedback for iterative platform improvements.
+- Admin filtering and priority management support efficient issue triage workflow.
+- Email field allows follow-up communication with users who opt in for feedback.
+
+## Entry · 2025-12-04 14:20 (+03)
+
+### Commit
+- **Hash:** `7a0f743ee96dc0538fbecf80cfab75545c9a7227`
+- **Message:** `feat(schedule): add schedule API, caching, and frontend integration`
+
+### Summary
+- Integrated real-time bus schedule data from IETT API with caching layer, enabling users to view departure times and service frequencies alongside crowding predictions.
+
+### Details
+- **API Integration:** Implemented `/lines/{line_code}/schedule` endpoint fetching timetables from IETT SOAP service with XML parsing and day-type filtering (weekday/weekend/holiday).
+- **Caching Strategy:** Added TTLCache (24-hour expiration) to minimize external API calls and improve response times for frequently queried lines.
+- **Schedule Display:** Created `ScheduleWidget` compact view showing next 3 departures with time formatting, and `ScheduleModal` full view with complete hourly/minutely schedules.
+- **Data Filtering:** Backend logic filters schedules by current day type using calendar dimension table to determine weekday/weekend/holiday status.
+- **Admin Tools:** Added `/admin/schedule/cache` endpoints for viewing cache statistics and clearing cached data.
+
+### Notes
+- Schedule integration complements crowding predictions by helping users plan departures around low-occupancy time windows.
+- SOAP/XML parsing handles IETT's legacy API format with robust error handling for malformed responses.
+- Cache invalidation strategy ensures schedule updates (route changes, seasonal adjustments) propagate within 24 hours.
+
+## Entry · 2025-12-03 16:45 (+03)
+
+### Commit
+- **Hash:** `0fccb5754afd0c6251819fd8662ca41b8413044b`
+- **Message:** `feat(status): add line status API and frontend integration`
+
+### Summary
+- Developed real-time line status monitoring system fetching disruption alerts from IETT API, with backend filtering logic and frontend alert display components.
+
+### Details
+- **Status Endpoint:** Created `/lines/{line_code}/status` API returning line operational status, active disruption alerts (filtered by timestamp and line code), and service hour metadata.
+- **Alert Filtering:** Implemented timestamp-based filtering to exclude outdated alerts, XML namespace stripping for reliable parsing, and `HATKODU` field matching for line-specific alerts.
+- **Frontend Components:** Built `StatusBanner` for compact alert display with animated scrolling text, and `AlertsModal` for detailed disruption information viewing.
+- **Caching:** Applied response caching (5-minute TTL) to balance real-time accuracy with API load reduction.
+- **Localization:** Added alert-related translation keys (`lineDetail.alerts`, `lineDetail.disruption`, `lineDetail.tapForDetails`) to support Turkish/English interfaces.
+
+### Notes
+- Alert integration enables proactive user awareness of service disruptions, accidents, or maintenance affecting crowding patterns.
+- XML parsing robustness critical due to IETT API's inconsistent namespace usage and field naming.
+- 5-minute cache window ensures users see recent updates without overwhelming IETT's infrastructure.
+
+## Entry · 2025-12-02 13:10 (+03)
+
+### Commit
+- **Hash:** `4c9a754b6e7c2333ba9892a28fb9aaf420807f5f`
+- **Message:** `feat(data-prep): add route analysis and variant processing scripts`
+
+### Summary
+- Developed geometry analysis and variant selection pipeline to identify optimal bus route polylines from IETT's multi-variant GeoJSON responses for accurate map rendering.
+
+### Details
+- **Topology Analysis:** Created `analyze_route_structure.py` diagnosing MultiLineString connectivity issues, segment reversals, and gap detection to identify rendering-ready geometries.
+- **Variant Comparison:** Built `analyze_variants.py` comparing route variants by length, segment count, and coordinate coverage to select canonical representations.
+- **Intelligent Selection:** Implemented `process_route_shapes.py` with weighted scoring algorithm evaluating: coordinate count (30%), segment continuity (25%), length consistency (20%), bounding box coverage (15%), and simplicity (10%).
+- **Quality Filters:** Added threshold-based filtering rejecting routes with <10 coordinates, segment count >100, or length ratio >3x median to exclude malformed geometries.
+- **Output:** Generated processed route shapes with single selected variant per line/direction, reducing frontend parsing complexity and map rendering overhead.
+
+### Notes
+- IETT API returns 3-8 variants per route due to different data collection methods (GPS traces, manual digitization, schedule-based paths).
+- Variant selection critical for consistent map visualization, preventing overlapping polylines or conflicting geometries.
+- Scoring algorithm prioritizes route completeness (full coverage) over simplicity (straight-line approximations).
 
 ## Entry · 2025-12-01 18:34 (+03)
 
