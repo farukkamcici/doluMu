@@ -273,8 +273,15 @@ class IETTStatusService:
             first_service = all_times[0]
             last_service = all_times[-1]
             
+            logger.debug(
+                f"Operation hours check for {line_code} direction {direction}: "
+                f"now={now.strftime('%H:%M')}, first={first_service.strftime('%H:%M')}, "
+                f"last={last_service.strftime('%H:%M')}, total_trips={len(all_times)}"
+            )
+            
             # Check if current time is within operating hours
             if first_service <= now <= last_service:
+                logger.info(f"Line {line_code} direction {direction} is IN SERVICE")
                 return {"in_operation": True, "next_service_time": None}
             else:
                 # Out of service - find next service time
@@ -282,9 +289,11 @@ class IETTStatusService:
                 if now < first_service:
                     # Before first service
                     next_service = first_service.strftime("%H:%M")
+                    logger.info(f"Line {line_code} direction {direction} OUT OF SERVICE - before first service")
                 else:
                     # After last service - next service is tomorrow's first service
                     next_service = first_service.strftime("%H:%M")
+                    logger.info(f"Line {line_code} direction {direction} OUT OF SERVICE - after last service")
                 
                 return {"in_operation": False, "next_service_time": next_service}
                 
@@ -310,51 +319,47 @@ class IETTStatusService:
                 "next_service_time": None
             }
         """
-        # Build cache key with direction if provided
-        cache_key = f"{line_code}:{direction}" if direction else line_code
-        
-        # Check cache first
-        if cache_key in _status_cache:
-            logger.debug(f"Cache hit for status: {cache_key}")
-            return _status_cache[cache_key]
-        
         logger.info(f"Fetching status for line {line_code}" + (f" direction {direction}" if direction else ""))
         
-        # Step 1: Check for alerts (alerts are not direction-specific)
-        alert_objects = self._fetch_alerts(line_code)
+        # Step 1: Check for alerts (with caching - alerts don't change frequently)
+        # Cache key for alerts only (direction-independent)
+        alerts_cache_key = f"alerts:{line_code}"
+        
+        if alerts_cache_key in _status_cache:
+            logger.debug(f"Cache hit for alerts: {line_code}")
+            alert_objects = _status_cache[alerts_cache_key]
+        else:
+            alert_objects = self._fetch_alerts(line_code)
+            _status_cache[alerts_cache_key] = alert_objects
         
         if alert_objects:
-            result = {
+            # Don't cache the final result - operation hours need fresh check
+            return {
                 "status": LineStatus.WARNING,
                 "alerts": alert_objects,
                 "next_service_time": None
             }
-            _status_cache[cache_key] = result
-            return result
         
-        # Step 2: Check operation hours (direction-aware)
+        # Step 2: Check operation hours (NO CACHING - needs to be real-time)
+        # Operation hours change every minute, so we always check fresh
         operation_info = self._check_operation_hours(line_code, direction)
         
         if not operation_info["in_operation"]:
             next_time = operation_info.get("next_service_time")
             message = f"Hat şu an hizmet vermemektedir. İlk sefer: {next_time}" if next_time else "Hat şu an hizmet vermemektedir."
             
-            result = {
+            return {
                 "status": LineStatus.OUT_OF_SERVICE,
                 "alerts": [{"text": message, "time": "", "type": ""}],
                 "next_service_time": next_time
             }
-            _status_cache[cache_key] = result
-            return result
         
         # Step 3: All clear - line is active
-        result = {
+        return {
             "status": LineStatus.ACTIVE,
             "alerts": [],
             "next_service_time": None
         }
-        _status_cache[cache_key] = result
-        return result
     
     def clear_cache(self, line_code: Optional[str] = None):
         """
