@@ -57,7 +57,9 @@
     "outbound": "Gidiş",
     "inbound": "Dönüş",
     "departureFrom": "Kalkış Durağı",
-    "direction": "Yönü"
+    "direction": "Yönü",
+    "firstDeparture": "İlk",
+    "lastDeparture": "Son"
   },
   "transportTypes": {
     "bus": "Otobüs",

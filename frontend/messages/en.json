@@ -57,7 +57,9 @@
     "outbound": "Outbound",
     "inbound": "Inbound",
     "departureFrom": "Departure Stop",
-    "direction": "Direction"
+    "direction": "Direction",
+    "firstDeparture": "First",
+    "lastDeparture": "Last"
   },
   "transportTypes": {
     "bus": "Bus",

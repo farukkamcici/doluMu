@@ -233,12 +233,14 @@ class IETTStatusService:
             logger.warning(f"Failed to parse time '{time_str}': {e}")
         return None
     
-    def _check_operation_hours(self, line_code: str) -> Dict:
+    def _check_operation_hours(self, line_code: str, direction: Optional[str] = None) -> Dict:
         """
         Check if line is currently in operation based on schedule.
         
         Args:
             line_code: Line code to check
+            direction: Optional direction ('G' or 'D'). If provided, checks only that direction.
+                      If None, checks all directions combined (legacy behavior).
             
         Returns:
             Dictionary with in_operation (bool) and next_service_time (str or None)
@@ -246,10 +248,12 @@ class IETTStatusService:
         try:
             schedule = schedule_service.get_schedule(line_code)
             
-            # Get all times from both directions
+            # Get times from specified direction(s)
             all_times = []
-            for direction in ['G', 'D']:
-                times = schedule.get(direction, [])
+            directions_to_check = [direction] if direction else ['G', 'D']
+            
+            for dir_code in directions_to_check:
+                times = schedule.get(dir_code, [])
                 for time_str in times:
                     parsed = self._parse_time(time_str)
                     if parsed:
@@ -289,12 +293,14 @@ class IETTStatusService:
             # On error, assume active
             return {"in_operation": True, "next_service_time": None}
     
-    def get_line_status(self, line_code: str) -> Dict:
+    def get_line_status(self, line_code: str, direction: Optional[str] = None) -> Dict:
         """
         Get comprehensive line status including alerts and operation hours.
         
         Args:
             line_code: Line code to check
+            direction: Optional direction ('G' or 'D'). If provided, checks operation hours
+                      for that specific direction only.
             
         Returns:
             Dictionary with status, messages (list), and metadata
@@ -304,14 +310,17 @@ class IETTStatusService:
                 "next_service_time": None
             }
         """
+        # Build cache key with direction if provided
+        cache_key = f"{line_code}:{direction}" if direction else line_code
+        
         # Check cache first
-        if line_code in _status_cache:
-            logger.debug(f"Cache hit for status: {line_code}")
-            return _status_cache[line_code]
+        if cache_key in _status_cache:
+            logger.debug(f"Cache hit for status: {cache_key}")
+            return _status_cache[cache_key]
         
-        logger.info(f"Fetching status for line {line_code}")
+        logger.info(f"Fetching status for line {line_code}" + (f" direction {direction}" if direction else ""))
         
-        # Step 1: Check for alerts
+        # Step 1: Check for alerts (alerts are not direction-specific)
         alert_objects = self._fetch_alerts(line_code)
         
         if alert_objects:
@@ -320,11 +329,11 @@ class IETTStatusService:
                 "alerts": alert_objects,
                 "next_service_time": None
             }
-            _status_cache[line_code] = result
+            _status_cache[cache_key] = result
             return result
         
-        # Step 2: Check operation hours
-        operation_info = self._check_operation_hours(line_code)
+        # Step 2: Check operation hours (direction-aware)
+        operation_info = self._check_operation_hours(line_code, direction)
         
         if not operation_info["in_operation"]:
             next_time = operation_info.get("next_service_time")
@@ -335,7 +344,7 @@ class IETTStatusService:
                 "alerts": [{"text": message, "time": "", "type": ""}],
                 "next_service_time": next_time
             }
-            _status_cache[line_code] = result
+            _status_cache[cache_key] = result
             return result
         
         # Step 3: All clear - line is active
@@ -344,7 +353,7 @@ class IETTStatusService:
             "alerts": [],
             "next_service_time": None
         }
-        _status_cache[line_code] = result
+        _status_cache[cache_key] = result
         return result
     
     def clear_cache(self, line_code: Optional[str] = None):

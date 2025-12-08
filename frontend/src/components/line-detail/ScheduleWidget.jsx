@@ -61,6 +61,14 @@ export default function ScheduleWidget({ lineCode, direction, onShowFullSchedule
     return futureTimes.slice(0, limit);
   };
 
+  const getFirstLastDepartures = (times) => {
+    if (!times || times.length === 0) return { first: null, last: null };
+    return {
+      first: times[0],
+      last: times[times.length - 1]
+    };
+  };
+
   if (loading) {
     return (
       <div className={cn(
@@ -139,6 +147,7 @@ export default function ScheduleWidget({ lineCode, direction, onShowFullSchedule
 
   const directionSchedule = schedule[direction] || [];
   const upcomingTrips = getUpcomingDepartures(directionSchedule);
+  const { first: firstDeparture, last: lastDeparture } = getFirstLastDepartures(directionSchedule);
 
   if (compact) {
     return (
@@ -153,6 +162,19 @@ export default function ScheduleWidget({ lineCode, direction, onShowFullSchedule
           </div>
           <ChevronRight size={11} className="text-gray-500" />
         </div>
+
+        {firstDeparture && lastDeparture && (
+          <div className="flex items-center justify-between mb-2 px-1">
+            <div className="flex items-center gap-1">
+              <span className="text-[9px] text-gray-500">{t('firstDeparture')}:</span>
+              <span className="text-[10px] font-bold text-emerald-400">{firstDeparture}</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <span className="text-[9px] text-gray-500">{t('lastDeparture')}:</span>
+              <span className="text-[10px] font-bold text-orange-400">{lastDeparture}</span>
+            </div>
+          </div>
+        )}
 
         {upcomingTrips.length === 0 ? (
           <div className="flex-1 flex items-center justify-center py-2">

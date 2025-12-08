@@ -154,11 +154,13 @@ export const getLineMetadata = async (lineName) => {
 /**
  * Gets line operational status (alerts + operation hours).
  * @param {string} lineCode
+ * @param {string} [direction] - Optional direction ('G' or 'D') for direction-specific operation hours
  * @returns {Promise<{status: string, alerts: Array<{text: string, time: string, type: string}>, next_service_time: string|null}>}
  */
-export const getLineStatus = async (lineCode) => {
+export const getLineStatus = async (lineCode, direction = null) => {
   try {
-    const response = await apiClient.get(`/lines/${encodeURIComponent(lineCode)}/status`);
+    const params = direction ? { direction } : {};
+    const response = await apiClient.get(`/lines/${encodeURIComponent(lineCode)}/status`, { params });
     return response.data;
   } catch (error) {
     console.error('Error getting line status:', error);

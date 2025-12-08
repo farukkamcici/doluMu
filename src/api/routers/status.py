@@ -80,6 +80,9 @@ class LineStatusResponse(BaseModel):
     - WARNING: Line has active alerts/disruptions
     - OUT_OF_SERVICE: Line is not currently operating (night hours)
     
+    Query parameters:
+    - direction: Optional. Filter operation hours by direction ('G' for Gidiş/Outbound, 'D' for Dönüş/Inbound)
+    
     Results are cached for 5 minutes for performance.
     """,
     tags=["Status"]
@@ -89,16 +92,20 @@ async def get_line_status(
         ...,
         description="Line code (e.g., '19', '15F', 'BN1')",
         examples=["19", "15F", "BN1"]
-    )
+    ),
+    direction: str | None = None
 ):
     """
     Get line operational status.
     
     Checks both IETT disruption alerts and operating hours to determine
     if the line is active, has warnings, or is out of service.
+    
+    If direction is specified, operation hours are checked for that specific
+    direction only (useful for lines with different schedules per direction).
     """
     try:
-        status_info = status_service.get_line_status(line_code)
+        status_info = status_service.get_line_status(line_code, direction)
         
         return LineStatusResponse(
             status=status_info["status"],

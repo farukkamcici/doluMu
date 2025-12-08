@@ -90,7 +90,7 @@ export default function LineDetailPanel() {
       
       Promise.all([
         getForecast(selectedLine.id, targetDate),
-        getLineStatus(selectedLine.id)
+        getLineStatus(selectedLine.id, selectedDirection)
       ])
         .then(([forecastData, statusData]) => {
           setForecastData(forecastData);
@@ -111,7 +111,7 @@ export default function LineDetailPanel() {
       setError(null);
       setLineStatus(null);
     }
-  }, [isPanelOpen, selectedLine]);
+  }, [isPanelOpen, selectedLine, selectedDirection]);
 
   useEffect(() => {
     if (!isDesktop && showCapacityTooltip) {
