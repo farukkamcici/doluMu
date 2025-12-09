@@ -1,0 +1,6552 @@
+{
+  "lines": {
+    "F1": {
+      "id": 4,
+      "name": "F1",
+      "description": "Taksim-Kabataş Füniküler Hattı",
+      "description_en": "Taksim - Kabatas Funicular Line",
+      "color": "#7c7358",
+      "first_time": "06:00",
+      "last_time": "00:00",
+      "is_active": true,
+      "stations": [
+        {
+          "id": 188,
+          "name": "TAKSIM",
+          "description": "Taksim",
+          "order": 1,
+          "coordinates": {
+            "lat": 41.0366994647,
+            "lng": 28.9868190279
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": true,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 14,
+              "name": "Taksim->Kabataş"
+            }
+          ]
+        },
+        {
+          "id": 187,
+          "name": "KABATAS",
+          "description": "Kabataş",
+          "order": 2,
+          "coordinates": {
+            "lat": 41.0338745666,
+            "lng": 28.9922350785
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": true,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 13,
+              "name": "Kabataş->Taksim"
+            }
+          ]
+        }
+      ]
+    },
+    "F4": {
+      "id": 20,
+      "name": "F4",
+      "description": "Boğaziçi Üniversitesi | Hisarüstü-Aşiyan Füniküler Hattı",
+      "description_en": "Bogazici University | Hisarustu-Asiyan Funicular Line",
+      "color": "#7c7358",
+      "first_time": "06:00",
+      "last_time": "00:00",
+      "is_active": true,
+      "stations": [
+        {
+          "id": 226,
+          "name": "RUMELI HISARUSTU",
+          "description": "Boğaziçi Ü./Hisarüstü",
+          "order": 1,
+          "coordinates": {
+            "lat": 41.08486726284434,
+            "lng": 29.051021003065568
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 73,
+              "name": "Rumeli Hisarüstü->Aşiyan"
+            }
+          ]
+        },
+        {
+          "id": 225,
+          "name": "ASIYAN",
+          "description": "Aşiyan",
+          "order": 2,
+          "coordinates": {
+            "lat": 41.0815736348652,
+            "lng": 29.05422416736053
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 72,
+              "name": "Aşiyan->Rumeli Hisarüstü"
+            }
+          ]
+        }
+      ]
+    },
+    "M1A": {
+      "id": 9,
+      "name": "M1A",
+      "description": "Yenikapı-Atatürk Havalimanı Metro Hattı",
+      "description_en": "Yenikapi-Ataturk Airport Metro Line",
+      "color": "#ee3124",
+      "first_time": "05:50",
+      "last_time": "00:00",
+      "is_active": true,
+      "stations": [
+        {
+          "id": 121,
+          "name": "YENIKAPI",
+          "description": "Yenikapı",
+          "order": 1,
+          "coordinates": {
+            "lat": 41.004755,
+            "lng": 28.952549
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 67,
+              "name": "Yenikapı->Atatürk Havalimanı"
+            }
+          ]
+        },
+        {
+          "id": 120,
+          "name": "AKSARAY",
+          "description": "Aksaray",
+          "order": 2,
+          "coordinates": {
+            "lat": 41.0120281897,
+            "lng": 28.9480625565
+          },
+          "accessibility": {
+            "elevator": true,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 66,
+              "name": "Atatürk Havalimanı->Yenikapı"
+            },
+            {
+              "id": 67,
+              "name": "Yenikapı->Atatürk Havalimanı"
+            }
+          ]
+        },
+        {
+          "id": 119,
+          "name": "EMNIYET",
+          "description": "Emniyet-Fatih",
+          "order": 3,
+          "coordinates": {
+            "lat": 41.0176115439,
+            "lng": 28.9395963977
+          },
+          "accessibility": {
+            "elevator": true,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 66,
+              "name": "Atatürk Havalimanı->Yenikapı"
+            },
+            {
+              "id": 67,
+              "name": "Yenikapı->Atatürk Havalimanı"
+            }
+          ]
+        },
+        {
+          "id": 118,
+          "name": "ULUBATLI",
+          "description": "Topkapı-Ulubatlı",
+          "order": 4,
+          "coordinates": {
+            "lat": 41.0240250582,
+            "lng": 28.9305034257
+          },
+          "accessibility": {
+            "elevator": true,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 66,
+              "name": "Atatürk Havalimanı->Yenikapı"
+            },
+            {
+              "id": 67,
+              "name": "Yenikapı->Atatürk Havalimanı"
+            }
+          ]
+        },
+        {
+          "id": 117,
+          "name": "BAYRAMPASA",
+          "description": "Bayrampaşa-Maltepe",
+          "order": 5,
+          "coordinates": {
+            "lat": 41.0340978572,
+            "lng": 28.920238689
+          },
+          "accessibility": {
+            "elevator": true,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 66,
+              "name": "Atatürk Havalimanı->Yenikapı"
+            },
+            {
+              "id": 67,
+              "name": "Yenikapı->Atatürk Havalimanı"
+            }
+          ]
+        },
+        {
+          "id": 116,
+          "name": "SAGMALCILAR",
+          "description": "Sağmalcılar",
+          "order": 6,
+          "coordinates": {
+            "lat": 41.0408544497,
+            "lng": 28.9072352877
+          },
+          "accessibility": {
+            "elevator": true,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 66,
+              "name": "Atatürk Havalimanı->Yenikapı"
+            },
+            {
+              "id": 67,
+              "name": "Yenikapı->Atatürk Havalimanı"
+            }
+          ]
+        },
+        {
+          "id": 115,
+          "name": "KOCATEPE",
+          "description": "Kocatepe",
+          "order": 7,
+          "coordinates": {
+            "lat": 41.0484928183,
+            "lng": 28.8953862076
+          },
+          "accessibility": {
+            "elevator": true,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 66,
+              "name": "Atatürk Havalimanı->Yenikapı"
+            },
+            {
+              "id": 67,
+              "name": "Yenikapı->Atatürk Havalimanı"
+            }
+          ]
+        },
+        {
+          "id": 203,
+          "name": "OTOGAR",
+          "description": "Otogar",
+          "order": 8,
+          "coordinates": {
+            "lat": 41.0401441651,
+            "lng": 28.8945600984
+          },
+          "accessibility": {
+            "elevator": true,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 66,
+              "name": "Atatürk Havalimanı->Yenikapı"
+            },
+            {
+              "id": 67,
+              "name": "Yenikapı->Atatürk Havalimanı"
+            }
+          ]
+        },
+        {
+          "id": 114,
+          "name": "TERAZIDERE",
+          "description": "Terazidere",
+          "order": 9,
+          "coordinates": {
+            "lat": 41.0303317032,
+            "lng": 28.8979522419
+          },
+          "accessibility": {
+            "elevator": true,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 66,
+              "name": "Atatürk Havalimanı->Yenikapı"
+            },
+            {
+              "id": 67,
+              "name": "Yenikapı->Atatürk Havalimanı"
+            }
+          ]
+        },
+        {
+          "id": 113,
+          "name": "DAVUTPASA",
+          "description": "Davutpaşa-YTÜ",
+          "order": 10,
+          "coordinates": {
+            "lat": 41.0206387059,
+            "lng": 28.9001417888
+          },
+          "accessibility": {
+            "elevator": true,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 66,
+              "name": "Atatürk Havalimanı->Yenikapı"
+            },
+            {
+              "id": 67,
+              "name": "Yenikapı->Atatürk Havalimanı"
+            }
+          ]
+        },
+        {
+          "id": 112,
+          "name": "MERTER",
+          "description": "Merter",
+          "order": 11,
+          "coordinates": {
+            "lat": 41.0076458753,
+            "lng": 28.8961771147
+          },
+          "accessibility": {
+            "elevator": true,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 66,
+              "name": "Atatürk Havalimanı->Yenikapı"
+            },
+            {
+              "id": 67,
+              "name": "Yenikapı->Atatürk Havalimanı"
+            }
+          ]
+        },
+        {
+          "id": 111,
+          "name": "ZEYTINBURNU",
+          "description": "Zeytinburnu",
+          "order": 12,
+          "coordinates": {
+            "lat": 41.0017008338,
+            "lng": 28.8896520683
+          },
+          "accessibility": {
+            "elevator": true,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 66,
+              "name": "Atatürk Havalimanı->Yenikapı"
+            },
+            {
+              "id": 67,
+              "name": "Yenikapı->Atatürk Havalimanı"
+            }
+          ]
+        },
+        {
+          "id": 110,
+          "name": "BAKIRKOY - INCIRLI",
+          "description": "Bakırköy-İncirli",
+          "order": 13,
+          "coordinates": {
+            "lat": 40.9966121333,
+            "lng": 28.8753997556
+          },
+          "accessibility": {
+            "elevator": true,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 66,
+              "name": "Atatürk Havalimanı->Yenikapı"
+            },
+            {
+              "id": 67,
+              "name": "Yenikapı->Atatürk Havalimanı"
+            }
+          ]
+        },
+        {
+          "id": 109,
+          "name": "BAHCELIEVLER",
+          "description": "Bahçelievler",
+          "order": 14,
+          "coordinates": {
+            "lat": 40.9953532384,
+            "lng": 28.8630661969
+          },
+          "accessibility": {
+            "elevator": true,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 66,
+              "name": "Atatürk Havalimanı->Yenikapı"
+            },
+            {
+              "id": 67,
+              "name": "Yenikapı->Atatürk Havalimanı"
+            }
+          ]
+        },
+        {
+          "id": 108,
+          "name": "ATAKOY",
+          "description": "Ataköy-Şirinevler",
+          "order": 15,
+          "coordinates": {
+            "lat": 40.9913500997,
+            "lng": 28.846082309
+          },
+          "accessibility": {
+            "elevator": true,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 66,
+              "name": "Atatürk Havalimanı->Yenikapı"
+            },
+            {
+              "id": 67,
+              "name": "Yenikapı->Atatürk Havalimanı"
+            }
+          ]
+        },
+        {
+          "id": 107,
+          "name": "YENIBOSNA",
+          "description": "Yenibosna",
+          "order": 16,
+          "coordinates": {
+            "lat": 40.9893149835,
+            "lng": 28.8367043004
+          },
+          "accessibility": {
+            "elevator": true,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 66,
+              "name": "Atatürk Havalimanı->Yenikapı"
+            },
+            {
+              "id": 67,
+              "name": "Yenikapı->Atatürk Havalimanı"
+            }
+          ]
+        },
+        {
+          "id": 106,
+          "name": "DTM - ISTANBUL FUAR MERKEZI",
+          "description": "DTM-İstanbul Fuar Merkezi",
+          "order": 17,
+          "coordinates": {
+            "lat": 40.9866455145,
+            "lng": 28.8285503243
+          },
+          "accessibility": {
+            "elevator": true,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 66,
+              "name": "Atatürk Havalimanı->Yenikapı"
+            },
+            {
+              "id": 67,
+              "name": "Yenikapı->Atatürk Havalimanı"
+            }
+          ]
+        },
+        {
+          "id": 105,
+          "name": "ATATURK HAVALIMANI",
+          "description": "Atatürk Havalimanı",
+          "order": 18,
+          "coordinates": {
+            "lat": 40.9795429431,
+            "lng": 28.8211244027
+          },
+          "accessibility": {
+            "elevator": true,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 66,
+              "name": "Atatürk Havalimanı->Yenikapı"
+            }
+          ]
+        }
+      ]
+    },
+    "M1B": {
+      "id": 10,
+      "name": "M1B",
+      "description": "Yenikapı-Kirazlı Metro Hattı",
+      "description_en": "Yenikapi-Kirazli Metro Line",
+      "color": "#ee3124",
+      "first_time": "06:00",
+      "last_time": "00:04",
+      "is_active": true,
+      "stations": [
+        {
+          "id": 210,
+          "name": "YENIKAPI",
+          "description": "Yenikapı",
+          "order": 1,
+          "coordinates": {
+            "lat": 41.004755,
+            "lng": 28.952549
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 31,
+              "name": "Yenikapı->Kirazlı"
+            }
+          ]
+        },
+        {
+          "id": 209,
+          "name": "AKSARAY",
+          "description": "Aksaray",
+          "order": 2,
+          "coordinates": {
+            "lat": 41.0120281897,
+            "lng": 28.9480625565
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 30,
+              "name": "Kirazlı->Yenikapı"
+            },
+            {
+              "id": 31,
+              "name": "Yenikapı->Kirazlı"
+            }
+          ]
+        },
+        {
+          "id": 208,
+          "name": "EMNIYET",
+          "description": "Emniyet-Fatih",
+          "order": 3,
+          "coordinates": {
+            "lat": 41.0176115439,
+            "lng": 28.9395963977
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 30,
+              "name": "Kirazlı->Yenikapı"
+            },
+            {
+              "id": 31,
+              "name": "Yenikapı->Kirazlı"
+            }
+          ]
+        },
+        {
+          "id": 207,
+          "name": "ULUBATLI",
+          "description": "Topkapı-Ulubatlı",
+          "order": 4,
+          "coordinates": {
+            "lat": 41.0240250582,
+            "lng": 28.9305034257
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 30,
+              "name": "Kirazlı->Yenikapı"
+            },
+            {
+              "id": 31,
+              "name": "Yenikapı->Kirazlı"
+            }
+          ]
+        },
+        {
+          "id": 206,
+          "name": "BAYRAMPASA",
+          "description": "Bayrampaşa-Maltepe",
+          "order": 5,
+          "coordinates": {
+            "lat": 41.0340978572,
+            "lng": 28.920238689
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 30,
+              "name": "Kirazlı->Yenikapı"
+            },
+            {
+              "id": 31,
+              "name": "Yenikapı->Kirazlı"
+            }
+          ]
+        },
+        {
+          "id": 205,
+          "name": "SAGMALCILAR",
+          "description": "Sağmalcılar",
+          "order": 6,
+          "coordinates": {
+            "lat": 41.0408544497,
+            "lng": 28.9072352877
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 30,
+              "name": "Kirazlı->Yenikapı"
+            },
+            {
+              "id": 31,
+              "name": "Yenikapı->Kirazlı"
+            }
+          ]
+        },
+        {
+          "id": 204,
+          "name": "KOCATEPE",
+          "description": "Kocatepe",
+          "order": 7,
+          "coordinates": {
+            "lat": 41.0484928183,
+            "lng": 28.8953862076
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 30,
+              "name": "Kirazlı->Yenikapı"
+            },
+            {
+              "id": 31,
+              "name": "Yenikapı->Kirazlı"
+            }
+          ]
+        },
+        {
+          "id": 211,
+          "name": "OTOGAR",
+          "description": "Otogar",
+          "order": 8,
+          "coordinates": {
+            "lat": 41.0401441651,
+            "lng": 28.8945600984
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 30,
+              "name": "Kirazlı->Yenikapı"
+            },
+            {
+              "id": 31,
+              "name": "Yenikapı->Kirazlı"
+            }
+          ]
+        },
+        {
+          "id": 51,
+          "name": "ESENLER",
+          "description": "Esenler",
+          "order": 9,
+          "coordinates": {
+            "lat": 41.037682433,
+            "lng": 28.8884222852
+          },
+          "accessibility": {
+            "elevator": true,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 30,
+              "name": "Kirazlı->Yenikapı"
+            },
+            {
+              "id": 31,
+              "name": "Yenikapı->Kirazlı"
+            }
+          ]
+        },
+        {
+          "id": 50,
+          "name": "MENDERES",
+          "description": "Menderes",
+          "order": 10,
+          "coordinates": {
+            "lat": 41.0427591002,
+            "lng": 28.8784878297
+          },
+          "accessibility": {
+            "elevator": true,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": true,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 30,
+              "name": "Kirazlı->Yenikapı"
+            },
+            {
+              "id": 31,
+              "name": "Yenikapı->Kirazlı"
+            }
+          ]
+        },
+        {
+          "id": 49,
+          "name": "UCYUZLU",
+          "description": "Üçyüzlü",
+          "order": 11,
+          "coordinates": {
+            "lat": 41.036721597,
+            "lng": 28.8706340581
+          },
+          "accessibility": {
+            "elevator": true,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": true,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 30,
+              "name": "Kirazlı->Yenikapı"
+            },
+            {
+              "id": 31,
+              "name": "Yenikapı->Kirazlı"
+            }
+          ]
+        },
+        {
+          "id": 48,
+          "name": "BAGCILAR MEYDAN",
+          "description": "Bağcılar Meydan",
+          "order": 12,
+          "coordinates": {
+            "lat": 41.0345164689,
+            "lng": 28.8561714937
+          },
+          "accessibility": {
+            "elevator": true,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 30,
+              "name": "Kirazlı->Yenikapı"
+            },
+            {
+              "id": 31,
+              "name": "Yenikapı->Kirazlı"
+            }
+          ]
+        },
+        {
+          "id": 47,
+          "name": "KIRAZLI",
+          "description": "Kirazlı-Bağcılar",
+          "order": 13,
+          "coordinates": {
+            "lat": 41.0322960516,
+            "lng": 28.8427689525
+          },
+          "accessibility": {
+            "elevator": true,
+            "escalator": false,
+            "wc": true,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 30,
+              "name": "Kirazlı->Yenikapı"
+            }
+          ]
+        }
+      ]
+    },
+    "M2": {
+      "id": 1,
+      "name": "M2",
+      "description": "Yenikapı-Seyrantepe-Hacıosman Metro Hattı",
+      "description_en": "Yenikapi-Seyrantepe-Haciosman Metro Line",
+      "color": "#009944",
+      "first_time": "05:57",
+      "last_time": "23:59",
+      "is_active": true,
+      "stations": [
+        {
+          "id": 20,
+          "name": "YENIKAPI",
+          "description": "Yenikapı",
+          "order": 1,
+          "coordinates": {
+            "lat": 41.0055971704,
+            "lng": 28.9513306172
+          },
+          "accessibility": {
+            "elevator": true,
+            "escalator": false,
+            "wc": true,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 34,
+              "name": "Yenikapı->Hacıosman"
+            }
+          ]
+        },
+        {
+          "id": 21,
+          "name": "VEZNECILER",
+          "description": "Vezneciler-İstanbul Ü.",
+          "order": 2,
+          "coordinates": {
+            "lat": 41.011475,
+            "lng": 28.960705
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": true,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 34,
+              "name": "Yenikapı->Hacıosman"
+            },
+            {
+              "id": 35,
+              "name": "Hacıosman->Yenikapı"
+            }
+          ]
+        },
+        {
+          "id": 22,
+          "name": "HALIC",
+          "description": "Haliç",
+          "order": 3,
+          "coordinates": {
+            "lat": 41.0224366195,
+            "lng": 28.9664183343
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": true,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 34,
+              "name": "Yenikapı->Hacıosman"
+            },
+            {
+              "id": 35,
+              "name": "Hacıosman->Yenikapı"
+            }
+          ]
+        },
+        {
+          "id": 23,
+          "name": "SISHANE",
+          "description": "Şişhane",
+          "order": 4,
+          "coordinates": {
+            "lat": 41.028298,
+            "lng": 28.97285
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": true,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 34,
+              "name": "Yenikapı->Hacıosman"
+            },
+            {
+              "id": 35,
+              "name": "Hacıosman->Yenikapı"
+            }
+          ]
+        },
+        {
+          "id": 24,
+          "name": "TAKSIM",
+          "description": "Taksim",
+          "order": 5,
+          "coordinates": {
+            "lat": 41.038496,
+            "lng": 28.985783
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 34,
+              "name": "Yenikapı->Hacıosman"
+            },
+            {
+              "id": 35,
+              "name": "Hacıosman->Yenikapı"
+            }
+          ]
+        },
+        {
+          "id": 25,
+          "name": "OSMANBEY",
+          "description": "Osmanbey",
+          "order": 6,
+          "coordinates": {
+            "lat": 41.052955,
+            "lng": 28.987375
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": true,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 34,
+              "name": "Yenikapı->Hacıosman"
+            },
+            {
+              "id": 35,
+              "name": "Hacıosman->Yenikapı"
+            }
+          ]
+        },
+        {
+          "id": 26,
+          "name": "SISLI-MECIDIYEKOY",
+          "description": "Şişli-Mecidiyeköy",
+          "order": 7,
+          "coordinates": {
+            "lat": 41.0645069127,
+            "lng": 28.9926697578
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": true,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 34,
+              "name": "Yenikapı->Hacıosman"
+            },
+            {
+              "id": 35,
+              "name": "Hacıosman->Yenikapı"
+            }
+          ]
+        },
+        {
+          "id": 27,
+          "name": "GAYRETTEPE",
+          "description": "Gayrettepe",
+          "order": 8,
+          "coordinates": {
+            "lat": 41.0690012375,
+            "lng": 29.0109200808
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": true,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 34,
+              "name": "Yenikapı->Hacıosman"
+            },
+            {
+              "id": 35,
+              "name": "Hacıosman->Yenikapı"
+            }
+          ]
+        },
+        {
+          "id": 28,
+          "name": "LEVENT",
+          "description": "Levent",
+          "order": 9,
+          "coordinates": {
+            "lat": 41.0767734293,
+            "lng": 29.0136876237
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 34,
+              "name": "Yenikapı->Hacıosman"
+            },
+            {
+              "id": 35,
+              "name": "Hacıosman->Yenikapı"
+            }
+          ]
+        },
+        {
+          "id": 29,
+          "name": "4.LEVENT",
+          "description": "4.Levent",
+          "order": 10,
+          "coordinates": {
+            "lat": 41.0860080659,
+            "lng": 29.0070897722
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": true,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 34,
+              "name": "Yenikapı->Hacıosman"
+            },
+            {
+              "id": 35,
+              "name": "Hacıosman->Yenikapı"
+            }
+          ]
+        },
+        {
+          "id": 30,
+          "name": "SANAYI MAHALLESI",
+          "description": "Sanayi Mahallesi",
+          "order": 11,
+          "coordinates": {
+            "lat": 41.0943240181,
+            "lng": 29.0053380126
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": true,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 34,
+              "name": "Yenikapı->Hacıosman"
+            },
+            {
+              "id": 35,
+              "name": "Hacıosman->Yenikapı"
+            }
+          ]
+        },
+        {
+          "id": 32,
+          "name": "ITU-AYAZAGA",
+          "description": "İTÜ-Ayazağa",
+          "order": 13,
+          "coordinates": {
+            "lat": 41.108094796,
+            "lng": 29.0207947235
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": true,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 34,
+              "name": "Yenikapı->Hacıosman"
+            },
+            {
+              "id": 35,
+              "name": "Hacıosman->Yenikapı"
+            }
+          ]
+        },
+        {
+          "id": 33,
+          "name": "ATATURK OTO SANAYI",
+          "description": "Atatürk Oto Sanayi",
+          "order": 14,
+          "coordinates": {
+            "lat": 41.1182574386,
+            "lng": 29.0241897659
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": true,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 34,
+              "name": "Yenikapı->Hacıosman"
+            },
+            {
+              "id": 35,
+              "name": "Hacıosman->Yenikapı"
+            }
+          ]
+        },
+        {
+          "id": 34,
+          "name": "DARUSSAFAKA",
+          "description": "Darüşşafaka",
+          "order": 15,
+          "coordinates": {
+            "lat": 41.1295823098,
+            "lng": 29.0251244919
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": true,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 34,
+              "name": "Yenikapı->Hacıosman"
+            },
+            {
+              "id": 35,
+              "name": "Hacıosman->Yenikapı"
+            }
+          ]
+        },
+        {
+          "id": 35,
+          "name": "HACIOSMAN",
+          "description": "Hacıosman",
+          "order": 16,
+          "coordinates": {
+            "lat": 41.1397745691,
+            "lng": 29.0304324362
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": true,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 35,
+              "name": "Hacıosman->Yenikapı"
+            }
+          ]
+        }
+      ]
+    },
+    "M3": {
+      "id": 2,
+      "name": "M3",
+      "description": "Bakırköy-Kayaşehir Metro Hattı",
+      "description_en": "Bakirkoy-Kayasehir Metro Line",
+      "color": "#00a8e1",
+      "first_time": "06:00",
+      "last_time": "00:00",
+      "is_active": true,
+      "stations": [
+        {
+          "id": 252,
+          "name": "BAKIRKOY SAHIL",
+          "description": "Bakırköy Sahil",
+          "order": 1,
+          "coordinates": {
+            "lat": 40.97380907939043,
+            "lng": 28.86808953853861
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 90,
+              "name": "Bakırköy Sahil->Kayaşehir-Merkez"
+            }
+          ]
+        },
+        {
+          "id": 251,
+          "name": "OZGURLUK MEYDANI",
+          "description": "Özgürlük Meydanı",
+          "order": 2,
+          "coordinates": {
+            "lat": 40.98184836284361,
+            "lng": 28.873888809703004
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 90,
+              "name": "Bakırköy Sahil->Kayaşehir-Merkez"
+            },
+            {
+              "id": 91,
+              "name": "Kayaşehir-Merkez->Bakırköy Sahil"
+            }
+          ]
+        },
+        {
+          "id": 250,
+          "name": "INCIRLI",
+          "description": "İncirli",
+          "order": 3,
+          "coordinates": {
+            "lat": 40.99749718083783,
+            "lng": 28.875149165334438
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 90,
+              "name": "Bakırköy Sahil->Kayaşehir-Merkez"
+            },
+            {
+              "id": 91,
+              "name": "Kayaşehir-Merkez->Bakırköy Sahil"
+            }
+          ]
+        },
+        {
+          "id": 249,
+          "name": "HAZNEDAR",
+          "description": "Haznedar",
+          "order": 4,
+          "coordinates": {
+            "lat": 41.006429380800306,
+            "lng": 28.870525623196162
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 90,
+              "name": "Bakırköy Sahil->Kayaşehir-Merkez"
+            },
+            {
+              "id": 91,
+              "name": "Kayaşehir-Merkez->Bakırköy Sahil"
+            }
+          ]
+        },
+        {
+          "id": 248,
+          "name": "ILKYUVA",
+          "description": "İlkyuva",
+          "order": 5,
+          "coordinates": {
+            "lat": 41.0117525985906,
+            "lng": 28.865987182720854
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 90,
+              "name": "Bakırköy Sahil->Kayaşehir-Merkez"
+            },
+            {
+              "id": 91,
+              "name": "Kayaşehir-Merkez->Bakırköy Sahil"
+            }
+          ]
+        },
+        {
+          "id": 247,
+          "name": "YILDIZTEPE",
+          "description": "Yıldıztepe",
+          "order": 6,
+          "coordinates": {
+            "lat": 41.01977477131699,
+            "lng": 28.856716911557328
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 90,
+              "name": "Bakırköy Sahil->Kayaşehir-Merkez"
+            },
+            {
+              "id": 91,
+              "name": "Kayaşehir-Merkez->Bakırköy Sahil"
+            }
+          ]
+        },
+        {
+          "id": 246,
+          "name": "MOLLA GURANI",
+          "description": "Molla Gürani",
+          "order": 7,
+          "coordinates": {
+            "lat": 41.02551147580674,
+            "lng": 28.848112725049546
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 90,
+              "name": "Bakırköy Sahil->Kayaşehir-Merkez"
+            },
+            {
+              "id": 91,
+              "name": "Kayaşehir-Merkez->Bakırköy Sahil"
+            }
+          ]
+        },
+        {
+          "id": 44,
+          "name": "KIRAZLI",
+          "description": "Kirazlı-Bağcılar",
+          "order": 8,
+          "coordinates": {
+            "lat": 41.0322960516,
+            "lng": 28.8427689525
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": true,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 90,
+              "name": "Bakırköy Sahil->Kayaşehir-Merkez"
+            },
+            {
+              "id": 91,
+              "name": "Kayaşehir-Merkez->Bakırköy Sahil"
+            }
+          ]
+        },
+        {
+          "id": 43,
+          "name": "YENIMAHALLE",
+          "description": "Yenimahalle",
+          "order": 9,
+          "coordinates": {
+            "lat": 41.0403571945,
+            "lng": 28.8359378583
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": true,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 90,
+              "name": "Bakırköy Sahil->Kayaşehir-Merkez"
+            },
+            {
+              "id": 91,
+              "name": "Kayaşehir-Merkez->Bakırköy Sahil"
+            }
+          ]
+        },
+        {
+          "id": 42,
+          "name": "MAHMUTBEY",
+          "description": "Mahmutbey",
+          "order": 10,
+          "coordinates": {
+            "lat": 41.0548448863,
+            "lng": 28.8305244805
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": true,
+            "wc": true,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 90,
+              "name": "Bakırköy Sahil->Kayaşehir-Merkez"
+            },
+            {
+              "id": 91,
+              "name": "Kayaşehir-Merkez->Bakırköy Sahil"
+            }
+          ]
+        },
+        {
+          "id": 41,
+          "name": "ISTOC",
+          "description": "İSTOÇ",
+          "order": 11,
+          "coordinates": {
+            "lat": 41.0649996532,
+            "lng": 28.8259591715
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": true,
+            "wc": true,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 90,
+              "name": "Bakırköy Sahil->Kayaşehir-Merkez"
+            },
+            {
+              "id": 91,
+              "name": "Kayaşehir-Merkez->Bakırköy Sahil"
+            }
+          ]
+        },
+        {
+          "id": 40,
+          "name": "IKITELLI SANAYI",
+          "description": "İkitelli Sanayi",
+          "order": 12,
+          "coordinates": {
+            "lat": 41.0724333906,
+            "lng": 28.8023285305
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": true,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 90,
+              "name": "Bakırköy Sahil->Kayaşehir-Merkez"
+            },
+            {
+              "id": 91,
+              "name": "Kayaşehir-Merkez->Bakırköy Sahil"
+            }
+          ]
+        },
+        {
+          "id": 39,
+          "name": "TURGUT OZAL",
+          "description": "Turgut Özal",
+          "order": 13,
+          "coordinates": {
+            "lat": 41.0811852568,
+            "lng": 28.7974049311
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": true,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 90,
+              "name": "Bakırköy Sahil->Kayaşehir-Merkez"
+            },
+            {
+              "id": 91,
+              "name": "Kayaşehir-Merkez->Bakırköy Sahil"
+            }
+          ]
+        },
+        {
+          "id": 38,
+          "name": "SITELER",
+          "description": "Siteler",
+          "order": 14,
+          "coordinates": {
+            "lat": 41.0882027223,
+            "lng": 28.7965104065
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": true,
+            "wc": true,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 90,
+              "name": "Bakırköy Sahil->Kayaşehir-Merkez"
+            },
+            {
+              "id": 91,
+              "name": "Kayaşehir-Merkez->Bakırköy Sahil"
+            }
+          ]
+        },
+        {
+          "id": 37,
+          "name": "BASAK KONUTLARI",
+          "description": "Başak Konutları",
+          "order": 15,
+          "coordinates": {
+            "lat": 41.0976705948,
+            "lng": 28.7912824671
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": true,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 90,
+              "name": "Bakırköy Sahil->Kayaşehir-Merkez"
+            },
+            {
+              "id": 91,
+              "name": "Kayaşehir-Merkez->Bakırköy Sahil"
+            }
+          ]
+        },
+        {
+          "id": 36,
+          "name": "METROKENT",
+          "description": "Başakşehir-Metrokent",
+          "order": 16,
+          "coordinates": {
+            "lat": 41.1075899254,
+            "lng": 28.8014768347
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": true,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 90,
+              "name": "Bakırköy Sahil->Kayaşehir-Merkez"
+            },
+            {
+              "id": 91,
+              "name": "Kayaşehir-Merkez->Bakırköy Sahil"
+            }
+          ]
+        },
+        {
+          "id": 237,
+          "name": "ONURKENT",
+          "description": "Onurkent",
+          "order": 17,
+          "coordinates": {
+            "lat": 41.11350955222164,
+            "lng": 28.79034835203765
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 90,
+              "name": "Bakırköy Sahil->Kayaşehir-Merkez"
+            },
+            {
+              "id": 91,
+              "name": "Kayaşehir-Merkez->Bakırköy Sahil"
+            }
+          ]
+        },
+        {
+          "id": 238,
+          "name": "SEHIR HASTANESI",
+          "description": "Şehir Hastanesi",
+          "order": 18,
+          "coordinates": {
+            "lat": 41.103457237940475,
+            "lng": 28.777855352037243
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 90,
+              "name": "Bakırköy Sahil->Kayaşehir-Merkez"
+            },
+            {
+              "id": 91,
+              "name": "Kayaşehir-Merkez->Bakırköy Sahil"
+            }
+          ]
+        },
+        {
+          "id": 239,
+          "name": "TOPLU KONUTLAR",
+          "description": "Toplu Konutlar",
+          "order": 19,
+          "coordinates": {
+            "lat": 41.1076043981571,
+            "lng": 28.76788272505376
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 90,
+              "name": "Bakırköy Sahil->Kayaşehir-Merkez"
+            },
+            {
+              "id": 91,
+              "name": "Kayaşehir-Merkez->Bakırköy Sahil"
+            }
+          ]
+        },
+        {
+          "id": 240,
+          "name": "KAYASEHIR MERKEZ",
+          "description": "Kayaşehir Merkez",
+          "order": 20,
+          "coordinates": {
+            "lat": 41.12006437207407,
+            "lng": 28.766642996218255
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 91,
+              "name": "Kayaşehir-Merkez->Bakırköy Sahil"
+            }
+          ]
+        }
+      ]
+    },
+    "M4": {
+      "id": 3,
+      "name": "M4",
+      "description": "Kadıköy-Sabiha Gökçen Havalimanı Metro Hattı",
+      "description_en": "Kadikoy-Sabiha Gokcen Airport Metro Line",
+      "color": "#e91e76",
+      "first_time": "06:00",
+      "last_time": "23:59",
+      "is_active": true,
+      "stations": [
+        {
+          "id": 1,
+          "name": "KADIKOY",
+          "description": "Kadıköy",
+          "order": 1,
+          "coordinates": {
+            "lat": 40.990663811475805,
+            "lng": 29.02200761747134
+          },
+          "accessibility": {
+            "elevator": true,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": true
+          },
+          "directions": [
+            {
+              "id": 70,
+              "name": "Kadıköy->Sabiha Gökçen"
+            }
+          ]
+        },
+        {
+          "id": 2,
+          "name": "AYRILIK CESMESI",
+          "description": "Ayrılık Çeşmesi",
+          "order": 2,
+          "coordinates": {
+            "lat": 41.00020434433358,
+            "lng": 29.030153258203203
+          },
+          "accessibility": {
+            "elevator": true,
+            "escalator": false,
+            "wc": true,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 71,
+              "name": "Sabiha Gökçen->Kadıköy"
+            },
+            {
+              "id": 70,
+              "name": "Kadıköy->Sabiha Gökçen"
+            }
+          ]
+        },
+        {
+          "id": 3,
+          "name": "ACIBADEM",
+          "description": "Acıbadem",
+          "order": 3,
+          "coordinates": {
+            "lat": 41.002331976173814,
+            "lng": 29.044498290084867
+          },
+          "accessibility": {
+            "elevator": true,
+            "escalator": false,
+            "wc": true,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 71,
+              "name": "Sabiha Gökçen->Kadıköy"
+            },
+            {
+              "id": 70,
+              "name": "Kadıköy->Sabiha Gökçen"
+            }
+          ]
+        },
+        {
+          "id": 4,
+          "name": "UNALAN",
+          "description": "Ünalan",
+          "order": 4,
+          "coordinates": {
+            "lat": 40.997886812202864,
+            "lng": 29.061370874184917
+          },
+          "accessibility": {
+            "elevator": true,
+            "escalator": false,
+            "wc": true,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 71,
+              "name": "Sabiha Gökçen->Kadıköy"
+            },
+            {
+              "id": 70,
+              "name": "Kadıköy->Sabiha Gökçen"
+            }
+          ]
+        },
+        {
+          "id": 5,
+          "name": "GOZTEPE",
+          "description": "Göztepe",
+          "order": 5,
+          "coordinates": {
+            "lat": 40.9939284023244,
+            "lng": 29.070446236116393
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": true,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 71,
+              "name": "Sabiha Gökçen->Kadıköy"
+            },
+            {
+              "id": 70,
+              "name": "Kadıköy->Sabiha Gökçen"
+            }
+          ]
+        },
+        {
+          "id": 6,
+          "name": "YENISAHRA",
+          "description": "Yenisahra",
+          "order": 6,
+          "coordinates": {
+            "lat": 40.984973265772204,
+            "lng": 29.090125340335963
+          },
+          "accessibility": {
+            "elevator": true,
+            "escalator": false,
+            "wc": true,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 71,
+              "name": "Sabiha Gökçen->Kadıköy"
+            },
+            {
+              "id": 70,
+              "name": "Kadıköy->Sabiha Gökçen"
+            }
+          ]
+        },
+        {
+          "id": 7,
+          "name": "KOZYATAGI",
+          "description": "Pegasus-Kozyatağı",
+          "order": 7,
+          "coordinates": {
+            "lat": 40.9748528607554,
+            "lng": 29.099330474424526
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": true,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 71,
+              "name": "Sabiha Gökçen->Kadıköy"
+            },
+            {
+              "id": 70,
+              "name": "Kadıköy->Sabiha Gökçen"
+            }
+          ]
+        },
+        {
+          "id": 8,
+          "name": "BOSTANCI",
+          "description": "Bostancı",
+          "order": 8,
+          "coordinates": {
+            "lat": 40.96483843441404,
+            "lng": 29.104601888800143
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": true,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 71,
+              "name": "Sabiha Gökçen->Kadıköy"
+            },
+            {
+              "id": 70,
+              "name": "Kadıköy->Sabiha Gökçen"
+            }
+          ]
+        },
+        {
+          "id": 9,
+          "name": "KUCUKYALI",
+          "description": "Küçükyalı",
+          "order": 9,
+          "coordinates": {
+            "lat": 40.94848177811069,
+            "lng": 29.123705678871918
+          },
+          "accessibility": {
+            "elevator": true,
+            "escalator": false,
+            "wc": true,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 71,
+              "name": "Sabiha Gökçen->Kadıköy"
+            },
+            {
+              "id": 70,
+              "name": "Kadıköy->Sabiha Gökçen"
+            }
+          ]
+        },
+        {
+          "id": 10,
+          "name": "MALTEPE",
+          "description": "Maltepe",
+          "order": 10,
+          "coordinates": {
+            "lat": 40.93649417481334,
+            "lng": 29.13681462729192
+          },
+          "accessibility": {
+            "elevator": true,
+            "escalator": false,
+            "wc": true,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 71,
+              "name": "Sabiha Gökçen->Kadıköy"
+            },
+            {
+              "id": 70,
+              "name": "Kadıköy->Sabiha Gökçen"
+            }
+          ]
+        },
+        {
+          "id": 11,
+          "name": "HUZUREVI",
+          "description": "Huzurevi",
+          "order": 11,
+          "coordinates": {
+            "lat": 40.92996421985499,
+            "lng": 29.1469453905599
+          },
+          "accessibility": {
+            "elevator": true,
+            "escalator": false,
+            "wc": true,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 71,
+              "name": "Sabiha Gökçen->Kadıköy"
+            },
+            {
+              "id": 70,
+              "name": "Kadıköy->Sabiha Gökçen"
+            }
+          ]
+        },
+        {
+          "id": 12,
+          "name": "GULSUYU",
+          "description": "Gülsuyu",
+          "order": 12,
+          "coordinates": {
+            "lat": 40.92389300760361,
+            "lng": 29.156546529079005
+          },
+          "accessibility": {
+            "elevator": true,
+            "escalator": false,
+            "wc": true,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 71,
+              "name": "Sabiha Gökçen->Kadıköy"
+            },
+            {
+              "id": 70,
+              "name": "Kadıköy->Sabiha Gökçen"
+            }
+          ]
+        },
+        {
+          "id": 13,
+          "name": "ESENKENT",
+          "description": "Esenkent",
+          "order": 13,
+          "coordinates": {
+            "lat": 40.920594425063584,
+            "lng": 29.166297696250616
+          },
+          "accessibility": {
+            "elevator": true,
+            "escalator": false,
+            "wc": true,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 71,
+              "name": "Sabiha Gökçen->Kadıköy"
+            },
+            {
+              "id": 70,
+              "name": "Kadıköy->Sabiha Gökçen"
+            }
+          ]
+        },
+        {
+          "id": 14,
+          "name": "HASTANE - ADLIYE",
+          "description": "Hastane-Adliye",
+          "order": 14,
+          "coordinates": {
+            "lat": 40.916312335081564,
+            "lng": 29.178430843993343
+          },
+          "accessibility": {
+            "elevator": true,
+            "escalator": false,
+            "wc": true,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 71,
+              "name": "Sabiha Gökçen->Kadıköy"
+            },
+            {
+              "id": 70,
+              "name": "Kadıköy->Sabiha Gökçen"
+            }
+          ]
+        },
+        {
+          "id": 15,
+          "name": "SOGANLIK",
+          "description": "Soğanlık",
+          "order": 15,
+          "coordinates": {
+            "lat": 40.912789206970004,
+            "lng": 29.192839855288547
+          },
+          "accessibility": {
+            "elevator": true,
+            "escalator": false,
+            "wc": true,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 71,
+              "name": "Sabiha Gökçen->Kadıköy"
+            },
+            {
+              "id": 70,
+              "name": "Kadıköy->Sabiha Gökçen"
+            }
+          ]
+        },
+        {
+          "id": 16,
+          "name": "KARTAL",
+          "description": "Kartal",
+          "order": 16,
+          "coordinates": {
+            "lat": 40.90681782551962,
+            "lng": 29.211026353862238
+          },
+          "accessibility": {
+            "elevator": true,
+            "escalator": false,
+            "wc": true,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 71,
+              "name": "Sabiha Gökçen->Kadıköy"
+            },
+            {
+              "id": 70,
+              "name": "Kadıköy->Sabiha Gökçen"
+            }
+          ]
+        },
+        {
+          "id": 17,
+          "name": "YAKACIK - ADNAN KAHVECI",
+          "description": "Yakacık-Adnan Kahveci",
+          "order": 17,
+          "coordinates": {
+            "lat": 40.896729838850625,
+            "lng": 29.226960280320945
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": true,
+            "wc": true,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 71,
+              "name": "Sabiha Gökçen->Kadıköy"
+            },
+            {
+              "id": 70,
+              "name": "Kadıköy->Sabiha Gökçen"
+            }
+          ]
+        },
+        {
+          "id": 18,
+          "name": "PENDIK",
+          "description": "Pendik",
+          "order": 18,
+          "coordinates": {
+            "lat": 40.888385865460556,
+            "lng": 29.23816910887322
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": true,
+            "wc": true,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 71,
+              "name": "Sabiha Gökçen->Kadıköy"
+            },
+            {
+              "id": 70,
+              "name": "Kadıköy->Sabiha Gökçen"
+            }
+          ]
+        },
+        {
+          "id": 19,
+          "name": "TAVSANTEPE",
+          "description": "Tavşantepe",
+          "order": 19,
+          "coordinates": {
+            "lat": 40.88225595122738,
+            "lng": 29.248573155917992
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": true,
+            "wc": true,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 71,
+              "name": "Sabiha Gökçen->Kadıköy"
+            },
+            {
+              "id": 70,
+              "name": "Kadıköy->Sabiha Gökçen"
+            }
+          ]
+        },
+        {
+          "id": 221,
+          "name": "FEVZI CAKMAK",
+          "description": "Fevzi Çakmak-Hastane",
+          "order": 20,
+          "coordinates": {
+            "lat": 40.888913773148275,
+            "lng": 29.262377999300135
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 71,
+              "name": "Sabiha Gökçen->Kadıköy"
+            },
+            {
+              "id": 70,
+              "name": "Kadıköy->Sabiha Gökçen"
+            }
+          ]
+        },
+        {
+          "id": 222,
+          "name": "YAYALAR",
+          "description": "Yayalar-Şeyhli",
+          "order": 21,
+          "coordinates": {
+            "lat": 40.90415466320274,
+            "lng": 29.275928959686205
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 71,
+              "name": "Sabiha Gökçen->Kadıköy"
+            },
+            {
+              "id": 70,
+              "name": "Kadıköy->Sabiha Gökçen"
+            }
+          ]
+        },
+        {
+          "id": 223,
+          "name": "KURTKOY",
+          "description": "Kurtköy",
+          "order": 22,
+          "coordinates": {
+            "lat": 40.91061969898158,
+            "lng": 29.297057446459206
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 71,
+              "name": "Sabiha Gökçen->Kadıköy"
+            },
+            {
+              "id": 70,
+              "name": "Kadıköy->Sabiha Gökçen"
+            }
+          ]
+        },
+        {
+          "id": 224,
+          "name": "SABIHA GOKCEN",
+          "description": "Sabiha Gökçen Havalimanı",
+          "order": 23,
+          "coordinates": {
+            "lat": 40.90597411173135,
+            "lng": 29.310554150804887
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 71,
+              "name": "Sabiha Gökçen->Kadıköy"
+            }
+          ]
+        }
+      ]
+    },
+    "M5": {
+      "id": 5,
+      "name": "M5",
+      "description": "Üsküdar-Samandıra Metro Hattı",
+      "description_en": "Uskudar-Samandira Metro Line",
+      "color": "#683064",
+      "first_time": "06:00",
+      "last_time": "00:01",
+      "is_active": true,
+      "stations": [
+        {
+          "id": 122,
+          "name": "USKUDAR",
+          "description": "Üsküdar",
+          "order": 1,
+          "coordinates": {
+            "lat": 41.025618259645256,
+            "lng": 29.015061927581854
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": true,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 102,
+              "name": "Üsküdar->Samandıra"
+            }
+          ]
+        },
+        {
+          "id": 123,
+          "name": "FISTIKAGACI",
+          "description": "Fıstıkağacı",
+          "order": 2,
+          "coordinates": {
+            "lat": 41.028174185609586,
+            "lng": 29.028549998040898
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": true,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 103,
+              "name": "Samandıra->Üsküdar"
+            },
+            {
+              "id": 102,
+              "name": "Üsküdar->Samandıra"
+            }
+          ]
+        },
+        {
+          "id": 124,
+          "name": "BAGLARBASI",
+          "description": "Bağlarbaşı",
+          "order": 3,
+          "coordinates": {
+            "lat": 41.02148576285262,
+            "lng": 29.035391369205474
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": true,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 103,
+              "name": "Samandıra->Üsküdar"
+            },
+            {
+              "id": 102,
+              "name": "Üsküdar->Samandıra"
+            }
+          ]
+        },
+        {
+          "id": 125,
+          "name": "ALTUNIZADE",
+          "description": "Altunizade",
+          "order": 4,
+          "coordinates": {
+            "lat": 41.02256927368503,
+            "lng": 29.045163182699945
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": true,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 103,
+              "name": "Samandıra->Üsküdar"
+            },
+            {
+              "id": 102,
+              "name": "Üsküdar->Samandıra"
+            }
+          ]
+        },
+        {
+          "id": 126,
+          "name": "KISIKLI",
+          "description": "Kısıklı",
+          "order": 5,
+          "coordinates": {
+            "lat": 41.02223769603908,
+            "lng": 29.062589925029574
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 103,
+              "name": "Samandıra->Üsküdar"
+            },
+            {
+              "id": 102,
+              "name": "Üsküdar->Samandıra"
+            }
+          ]
+        },
+        {
+          "id": 127,
+          "name": "BULGURLU",
+          "description": "Bulgurlu",
+          "order": 6,
+          "coordinates": {
+            "lat": 41.016382220485276,
+            "lng": 29.07613191178137
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 103,
+              "name": "Samandıra->Üsküdar"
+            },
+            {
+              "id": 102,
+              "name": "Üsküdar->Samandıra"
+            }
+          ]
+        },
+        {
+          "id": 128,
+          "name": "UMRANIYE",
+          "description": "Ümraniye",
+          "order": 7,
+          "coordinates": {
+            "lat": 41.02475044117759,
+            "lng": 29.084914619850238
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": true,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 103,
+              "name": "Samandıra->Üsküdar"
+            },
+            {
+              "id": 102,
+              "name": "Üsküdar->Samandıra"
+            }
+          ]
+        },
+        {
+          "id": 129,
+          "name": "CARSI",
+          "description": "Çarşı",
+          "order": 8,
+          "coordinates": {
+            "lat": 41.025898812622515,
+            "lng": 29.097186268407956
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": true,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 103,
+              "name": "Samandıra->Üsküdar"
+            },
+            {
+              "id": 102,
+              "name": "Üsküdar->Samandıra"
+            }
+          ]
+        },
+        {
+          "id": 130,
+          "name": "YAMANEVLER",
+          "description": "Yamanevler",
+          "order": 9,
+          "coordinates": {
+            "lat": 41.02436045931574,
+            "lng": 29.10893285940382
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 103,
+              "name": "Samandıra->Üsküdar"
+            },
+            {
+              "id": 102,
+              "name": "Üsküdar->Samandıra"
+            }
+          ]
+        },
+        {
+          "id": 131,
+          "name": "CAKMAK",
+          "description": "Çakmak",
+          "order": 10,
+          "coordinates": {
+            "lat": 41.021651794492854,
+            "lng": 29.11831687527492
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 103,
+              "name": "Samandıra->Üsküdar"
+            },
+            {
+              "id": 102,
+              "name": "Üsküdar->Samandıra"
+            }
+          ]
+        },
+        {
+          "id": 132,
+          "name": "IHLAMURKUYU",
+          "description": "Ihlamurkuyu",
+          "order": 11,
+          "coordinates": {
+            "lat": 41.0193938740756,
+            "lng": 29.13128274037028
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": true,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 103,
+              "name": "Samandıra->Üsküdar"
+            },
+            {
+              "id": 102,
+              "name": "Üsküdar->Samandıra"
+            }
+          ]
+        },
+        {
+          "id": 133,
+          "name": "ALTINSEHIR",
+          "description": "Altınşehir",
+          "order": 12,
+          "coordinates": {
+            "lat": 41.01682949821649,
+            "lng": 29.138624552588546
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": true,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 103,
+              "name": "Samandıra->Üsküdar"
+            },
+            {
+              "id": 102,
+              "name": "Üsküdar->Samandıra"
+            }
+          ]
+        },
+        {
+          "id": 134,
+          "name": "IMAM HATIP LISESI",
+          "description": "İmam Hatip Lisesi",
+          "order": 13,
+          "coordinates": {
+            "lat": 41.016188074469916,
+            "lng": 29.15243635386462
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": true,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 103,
+              "name": "Samandıra->Üsküdar"
+            },
+            {
+              "id": 102,
+              "name": "Üsküdar->Samandıra"
+            }
+          ]
+        },
+        {
+          "id": 135,
+          "name": "DUDULLU",
+          "description": "Dudullu",
+          "order": 14,
+          "coordinates": {
+            "lat": 41.01544045560607,
+            "lng": 29.16244635386456
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": true,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 103,
+              "name": "Samandıra->Üsküdar"
+            },
+            {
+              "id": 102,
+              "name": "Üsküdar->Samandıra"
+            }
+          ]
+        },
+        {
+          "id": 136,
+          "name": "NECIP FAZIL",
+          "description": "Necip Fazıl",
+          "order": 15,
+          "coordinates": {
+            "lat": 41.01620878613601,
+            "lng": 29.17929437105173
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": true,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 103,
+              "name": "Samandıra->Üsküdar"
+            },
+            {
+              "id": 102,
+              "name": "Üsküdar->Samandıra"
+            }
+          ]
+        },
+        {
+          "id": 137,
+          "name": "CEKMEKOY-SANCAKTEPE",
+          "description": "Çekmeköy",
+          "order": 16,
+          "coordinates": {
+            "lat": 41.01456617003643,
+            "lng": 29.189447811535
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": true,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 103,
+              "name": "Samandıra->Üsküdar"
+            },
+            {
+              "id": 102,
+              "name": "Üsküdar->Samandıra"
+            }
+          ]
+        },
+        {
+          "id": 241,
+          "name": "MECLIS",
+          "description": "Meclis",
+          "order": 17,
+          "coordinates": {
+            "lat": 41.0097339184714,
+            "lng": 29.198827223504292
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 103,
+              "name": "Samandıra->Üsküdar"
+            },
+            {
+              "id": 102,
+              "name": "Üsküdar->Samandıra"
+            }
+          ]
+        },
+        {
+          "id": 242,
+          "name": "SARIGAZI",
+          "description": "Sarıgazi",
+          "order": 18,
+          "coordinates": {
+            "lat": 41.01031088932276,
+            "lng": 29.212121182720836
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 103,
+              "name": "Samandıra->Üsküdar"
+            },
+            {
+              "id": 102,
+              "name": "Üsküdar->Samandıra"
+            }
+          ]
+        },
+        {
+          "id": 244,
+          "name": "SANCAKTEPE",
+          "description": "Sancaktepe",
+          "order": 20,
+          "coordinates": {
+            "lat": 40.99133734652666,
+            "lng": 29.22925491155591
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 103,
+              "name": "Samandıra->Üsküdar"
+            },
+            {
+              "id": 102,
+              "name": "Üsküdar->Samandıra"
+            }
+          ]
+        },
+        {
+          "id": 245,
+          "name": "SAMANDIRA",
+          "description": "Samandıra Merkez",
+          "order": 21,
+          "coordinates": {
+            "lat": 40.983897557616025,
+            "lng": 29.231410725047297
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 103,
+              "name": "Samandıra->Üsküdar"
+            }
+          ]
+        }
+      ]
+    },
+    "M6": {
+      "id": 6,
+      "name": "M6",
+      "description": "Levent-Boğaziçi Ü. | Hisarüstü Metro Hattı",
+      "description_en": "Levent-Bogazici U. | Hisarustu Metro Line",
+      "color": "#caa977",
+      "first_time": "06:00",
+      "last_time": "23:59",
+      "is_active": true,
+      "stations": [
+        {
+          "id": 138,
+          "name": "LEVENT",
+          "description": "Levent",
+          "order": 1,
+          "coordinates": {
+            "lat": 41.075888,
+            "lng": 29.014142
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": true,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 15,
+              "name": "Levent->Hisarüstü-Boğaziçi Üniversitesi"
+            }
+          ]
+        },
+        {
+          "id": 139,
+          "name": "NISPETIYE",
+          "description": "Nispetiye",
+          "order": 2,
+          "coordinates": {
+            "lat": 41.077692,
+            "lng": 29.022356
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": true,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 15,
+              "name": "Levent->Hisarüstü-Boğaziçi Üniversitesi"
+            },
+            {
+              "id": 16,
+              "name": "Hisarüstü-Boğaziçi Üniversitesi->Levent"
+            }
+          ]
+        },
+        {
+          "id": 140,
+          "name": "ETILER",
+          "description": "Etiler",
+          "order": 3,
+          "coordinates": {
+            "lat": 41.082395,
+            "lng": 29.037593
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": true,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 15,
+              "name": "Levent->Hisarüstü-Boğaziçi Üniversitesi"
+            },
+            {
+              "id": 16,
+              "name": "Hisarüstü-Boğaziçi Üniversitesi->Levent"
+            }
+          ]
+        },
+        {
+          "id": 141,
+          "name": "HISARUSTU-BOGAZICI UNIVERSITESI",
+          "description": "Boğaziçi Ü.-Hisarüstü",
+          "order": 4,
+          "coordinates": {
+            "lat": 41.085278,
+            "lng": 29.045519
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": true,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 16,
+              "name": "Hisarüstü-Boğaziçi Üniversitesi->Levent"
+            }
+          ]
+        }
+      ]
+    },
+    "M7": {
+      "id": 7,
+      "name": "M7",
+      "description": "Mecidiyeköy-Mahmutbey Metro Hattı",
+      "description_en": "Mecidiyekoy-Mahmutbey Metro Line",
+      "color": "#f89aba",
+      "first_time": "06:00",
+      "last_time": "00:00",
+      "is_active": true,
+      "stations": [
+        {
+          "id": 146,
+          "name": "MECIDIYEKOY",
+          "description": "Mecidiyeköy",
+          "order": 5,
+          "coordinates": {
+            "lat": 41.0661411,
+            "lng": 28.9945802
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": true,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 42,
+              "name": "Mahmutbey Yönü"
+            }
+          ]
+        },
+        {
+          "id": 147,
+          "name": "CAGLAYAN",
+          "description": "Çağlayan",
+          "order": 6,
+          "coordinates": {
+            "lat": 41.07124,
+            "lng": 28.9797905
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": true,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 42,
+              "name": "Mahmutbey Yönü"
+            },
+            {
+              "id": 43,
+              "name": "Mecidiyeköy Yönü"
+            }
+          ]
+        },
+        {
+          "id": 148,
+          "name": "KAGITHANE",
+          "description": "Kağıthane",
+          "order": 7,
+          "coordinates": {
+            "lat": 41.0799698,
+            "lng": 28.9722495
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": true,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 42,
+              "name": "Mahmutbey Yönü"
+            },
+            {
+              "id": 43,
+              "name": "Mecidiyeköy Yönü"
+            }
+          ]
+        },
+        {
+          "id": 149,
+          "name": "NURTEPE",
+          "description": "Nurtepe",
+          "order": 8,
+          "coordinates": {
+            "lat": 41.0796403,
+            "lng": 28.9629489
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": true
+          },
+          "directions": [
+            {
+              "id": 42,
+              "name": "Mahmutbey Yönü"
+            },
+            {
+              "id": 43,
+              "name": "Mecidiyeköy Yönü"
+            }
+          ]
+        },
+        {
+          "id": 150,
+          "name": "ALIBEYKOY",
+          "description": "Alibeyköy",
+          "order": 9,
+          "coordinates": {
+            "lat": 41.0791702,
+            "lng": 28.9493602
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": true,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 42,
+              "name": "Mahmutbey Yönü"
+            },
+            {
+              "id": 43,
+              "name": "Mecidiyeköy Yönü"
+            }
+          ]
+        },
+        {
+          "id": 151,
+          "name": "CIRCIR",
+          "description": "Çırçır Mahallesi",
+          "order": 10,
+          "coordinates": {
+            "lat": 41.07985,
+            "lng": 28.93762
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": true,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 42,
+              "name": "Mahmutbey Yönü"
+            },
+            {
+              "id": 43,
+              "name": "Mecidiyeköy Yönü"
+            }
+          ]
+        },
+        {
+          "id": 152,
+          "name": "VEYSEL KARANI",
+          "description": "Veysel Karani-Akşemsettin",
+          "order": 11,
+          "coordinates": {
+            "lat": 41.0796898,
+            "lng": 28.9295594
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": true
+          },
+          "directions": [
+            {
+              "id": 42,
+              "name": "Mahmutbey Yönü"
+            },
+            {
+              "id": 43,
+              "name": "Mecidiyeköy Yönü"
+            }
+          ]
+        },
+        {
+          "id": 153,
+          "name": "YESILPINAR",
+          "description": "Yeşilpınar",
+          "order": 12,
+          "coordinates": {
+            "lat": 41.0799901,
+            "lng": 28.9352699
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": true
+          },
+          "directions": [
+            {
+              "id": 42,
+              "name": "Mahmutbey Yönü"
+            },
+            {
+              "id": 43,
+              "name": "Mecidiyeköy Yönü"
+            }
+          ]
+        },
+        {
+          "id": 154,
+          "name": "KAZIM KARABEKIR",
+          "description": "Kazım Karabekir",
+          "order": 13,
+          "coordinates": {
+            "lat": 41.0854599,
+            "lng": 28.9085497
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 42,
+              "name": "Mahmutbey Yönü"
+            },
+            {
+              "id": 43,
+              "name": "Mecidiyeköy Yönü"
+            }
+          ]
+        },
+        {
+          "id": 155,
+          "name": "YENIMAHALLE",
+          "description": "Yenimahalle",
+          "order": 14,
+          "coordinates": {
+            "lat": 41.0837182,
+            "lng": 28.8931096
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": true,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 42,
+              "name": "Mahmutbey Yönü"
+            },
+            {
+              "id": 43,
+              "name": "Mecidiyeköy Yönü"
+            }
+          ]
+        },
+        {
+          "id": 156,
+          "name": "KARADENIZ MAHALLESI",
+          "description": "Karadeniz Mahallesi",
+          "order": 15,
+          "coordinates": {
+            "lat": 41.0815994,
+            "lng": 28.8754204
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 42,
+              "name": "Mahmutbey Yönü"
+            },
+            {
+              "id": 43,
+              "name": "Mecidiyeköy Yönü"
+            }
+          ]
+        },
+        {
+          "id": 157,
+          "name": "TEKSTILKENT",
+          "description": "Tekstilkent-Giyimkent",
+          "order": 16,
+          "coordinates": {
+            "lat": 41.0712997,
+            "lng": 28.8668802
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 42,
+              "name": "Mahmutbey Yönü"
+            },
+            {
+              "id": 43,
+              "name": "Mecidiyeköy Yönü"
+            }
+          ]
+        },
+        {
+          "id": 158,
+          "name": "ORUCREIS",
+          "description": "Oruç Reis",
+          "order": 17,
+          "coordinates": {
+            "lat": 41.0633806,
+            "lng": 28.8554406
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 42,
+              "name": "Mahmutbey Yönü"
+            },
+            {
+              "id": 43,
+              "name": "Mecidiyeköy Yönü"
+            }
+          ]
+        },
+        {
+          "id": 159,
+          "name": "GOZTEPE",
+          "description": "Göztepe Mahallesi",
+          "order": 18,
+          "coordinates": {
+            "lat": 41.0563991,
+            "lng": 28.8499689
+          },
+          "accessibility": {
+            "elevator": true,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 42,
+              "name": "Mahmutbey Yönü"
+            },
+            {
+              "id": 43,
+              "name": "Mecidiyeköy Yönü"
+            }
+          ]
+        },
+        {
+          "id": 160,
+          "name": "MAHMUTBEY",
+          "description": "Mahmutbey",
+          "order": 19,
+          "coordinates": {
+            "lat": 41.054312,
+            "lng": 28.830612
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 43,
+              "name": "Mecidiyeköy Yönü"
+            }
+          ]
+        }
+      ]
+    },
+    "M8": {
+      "id": 8,
+      "name": "M8",
+      "description": "Bostancı-Parseller Metro Hattı",
+      "description_en": "Bostanci-Parseller Metro Line",
+      "color": "#447abe",
+      "first_time": "06:00",
+      "last_time": "00:00",
+      "is_active": true,
+      "stations": [
+        {
+          "id": 161,
+          "name": "BOSTANCI",
+          "description": "Bostancı",
+          "order": 1,
+          "coordinates": {
+            "lat": 40.95128998347687,
+            "lng": 29.097243057130374
+          },
+          "accessibility": {
+            "elevator": true,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 78,
+              "name": "Bostancı->Parseller"
+            }
+          ]
+        },
+        {
+          "id": 162,
+          "name": "EMIN ALI PASA",
+          "description": "Emin Ali Paşa",
+          "order": 2,
+          "coordinates": {
+            "lat": 40.96054884646437,
+            "lng": 29.09385026231631
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 78,
+              "name": "Bostancı->Parseller"
+            },
+            {
+              "id": 79,
+              "name": "Parseller ->Bostancı"
+            }
+          ]
+        },
+        {
+          "id": 163,
+          "name": "AYSE KADIN",
+          "description": "Ayşekadın",
+          "order": 3,
+          "coordinates": {
+            "lat": 40.966729619003274,
+            "lng": 29.0868577820603
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 78,
+              "name": "Bostancı->Parseller"
+            },
+            {
+              "id": 79,
+              "name": "Parseller ->Bostancı"
+            }
+          ]
+        },
+        {
+          "id": 164,
+          "name": "KOZYATAGI",
+          "description": "Kozyatağı",
+          "order": 4,
+          "coordinates": {
+            "lat": 40.97524724462983,
+            "lng": 29.098809408749805
+          },
+          "accessibility": {
+            "elevator": true,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 78,
+              "name": "Bostancı->Parseller"
+            },
+            {
+              "id": 79,
+              "name": "Parseller ->Bostancı"
+            }
+          ]
+        },
+        {
+          "id": 165,
+          "name": "KUCUKBAKKALKOY",
+          "description": "Küçükbakkalköy",
+          "order": 5,
+          "coordinates": {
+            "lat": 40.97913311692388,
+            "lng": 29.111999801732374
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 78,
+              "name": "Bostancı->Parseller"
+            },
+            {
+              "id": 79,
+              "name": "Parseller ->Bostancı"
+            }
+          ]
+        },
+        {
+          "id": 166,
+          "name": "ICERENKOY",
+          "description": "İçerenköy",
+          "order": 6,
+          "coordinates": {
+            "lat": 40.979123476347006,
+            "lng": 29.126665087038585
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 78,
+              "name": "Bostancı->Parseller"
+            },
+            {
+              "id": 79,
+              "name": "Parseller ->Bostancı"
+            }
+          ]
+        },
+        {
+          "id": 167,
+          "name": "KAYISDAGI",
+          "description": "Kayışdağı",
+          "order": 7,
+          "coordinates": {
+            "lat": 40.98552090314198,
+            "lng": 29.137286259239595
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 78,
+              "name": "Bostancı->Parseller"
+            },
+            {
+              "id": 79,
+              "name": "Parseller ->Bostancı"
+            }
+          ]
+        },
+        {
+          "id": 168,
+          "name": "MEVLANA",
+          "description": "Mevlana",
+          "order": 8,
+          "coordinates": {
+            "lat": 40.99236746200459,
+            "lng": 29.153558958239127
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 78,
+              "name": "Bostancı->Parseller"
+            },
+            {
+              "id": 79,
+              "name": "Parseller ->Bostancı"
+            }
+          ]
+        },
+        {
+          "id": 169,
+          "name": "IMES",
+          "description": "İMES",
+          "order": 9,
+          "coordinates": {
+            "lat": 40.99995161943781,
+            "lng": 29.156059357475755
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 78,
+              "name": "Bostancı->Parseller"
+            },
+            {
+              "id": 79,
+              "name": "Parseller ->Bostancı"
+            }
+          ]
+        },
+        {
+          "id": 170,
+          "name": "MODOKO-KEYAP",
+          "description": "MODOKO-KEYAP",
+          "order": 10,
+          "coordinates": {
+            "lat": 41.00761665286443,
+            "lng": 29.162182913381205
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 78,
+              "name": "Bostancı->Parseller"
+            },
+            {
+              "id": 79,
+              "name": "Parseller ->Bostancı"
+            }
+          ]
+        },
+        {
+          "id": 171,
+          "name": "DUDULLU",
+          "description": "Dudullu",
+          "order": 11,
+          "coordinates": {
+            "lat": 41.01556997960766,
+            "lng": 29.162499998040506
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 78,
+              "name": "Bostancı->Parseller"
+            },
+            {
+              "id": 79,
+              "name": "Parseller ->Bostancı"
+            }
+          ]
+        },
+        {
+          "id": 172,
+          "name": "HUZUR",
+          "description": "Huzur",
+          "order": 12,
+          "coordinates": {
+            "lat": 41.022498790602256,
+            "lng": 29.15945298159044
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 78,
+              "name": "Bostancı->Parseller"
+            },
+            {
+              "id": 79,
+              "name": "Parseller ->Bostancı"
+            }
+          ]
+        },
+        {
+          "id": 227,
+          "name": "PARSELLER",
+          "description": "Parseller",
+          "order": 13,
+          "coordinates": {
+            "lat": 41.03187863452558,
+            "lng": 29.152689072367757
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 79,
+              "name": "Parseller ->Bostancı"
+            }
+          ]
+        }
+      ]
+    },
+    "M9": {
+      "id": 17,
+      "name": "M9",
+      "description": "Ataköy-Olimpiyat Metro Hattı",
+      "description_en": "Atakoy-Olimpiyat Metro Line",
+      "color": "#f0e514",
+      "first_time": "06:00",
+      "last_time": "23:59",
+      "is_active": true,
+      "stations": [
+        {
+          "id": 236,
+          "name": "ATAKOY",
+          "description": "Ataköy",
+          "order": 1,
+          "coordinates": {
+            "lat": 40.979916,
+            "lng": 28.856218
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 107,
+              "name": "Ataköy->Olimpiyat"
+            }
+          ]
+        },
+        {
+          "id": 235,
+          "name": "YENIBOSNA",
+          "description": "Yenibosna",
+          "order": 2,
+          "coordinates": {
+            "lat": 40.989473,
+            "lng": 28.837963
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 107,
+              "name": "Ataköy->Olimpiyat"
+            },
+            {
+              "id": 106,
+              "name": "Olimpiyat->Ataköy"
+            }
+          ]
+        },
+        {
+          "id": 234,
+          "name": "COBANCESME",
+          "description": "Çobançeşme",
+          "order": 3,
+          "coordinates": {
+            "lat": 40.999713,
+            "lng": 28.822589
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 107,
+              "name": "Ataköy->Olimpiyat"
+            },
+            {
+              "id": 106,
+              "name": "Olimpiyat->Ataköy"
+            }
+          ]
+        },
+        {
+          "id": 233,
+          "name": "29 EKIM-CUMHURIYET",
+          "description": "29 Ekim Cumhuriyet",
+          "order": 4,
+          "coordinates": {
+            "lat": 41.006215,
+            "lng": 28.818603
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 107,
+              "name": "Ataköy->Olimpiyat"
+            },
+            {
+              "id": 106,
+              "name": "Olimpiyat->Ataköy"
+            }
+          ]
+        },
+        {
+          "id": 232,
+          "name": "DOGU SANAYI",
+          "description": "Doğu Sanayi",
+          "order": 5,
+          "coordinates": {
+            "lat": 41.014893,
+            "lng": 28.817986
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 107,
+              "name": "Ataköy->Olimpiyat"
+            },
+            {
+              "id": 106,
+              "name": "Olimpiyat->Ataköy"
+            }
+          ]
+        },
+        {
+          "id": 231,
+          "name": "MIMAR SINAN",
+          "description": "Mimar Sinan",
+          "order": 6,
+          "coordinates": {
+            "lat": 41.025085,
+            "lng": 28.816549
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 107,
+              "name": "Ataköy->Olimpiyat"
+            },
+            {
+              "id": 106,
+              "name": "Olimpiyat->Ataköy"
+            }
+          ]
+        },
+        {
+          "id": 230,
+          "name": "15 TEMMUZ",
+          "description": "15 Temmuz",
+          "order": 7,
+          "coordinates": {
+            "lat": 41.036864,
+            "lng": 28.814156
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 107,
+              "name": "Ataköy->Olimpiyat"
+            },
+            {
+              "id": 106,
+              "name": "Olimpiyat->Ataköy"
+            }
+          ]
+        },
+        {
+          "id": 229,
+          "name": "HALKALI CAD.",
+          "description": "Halkalı Caddesi",
+          "order": 8,
+          "coordinates": {
+            "lat": 41.04552704030184,
+            "lng": 28.80633957331045
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 107,
+              "name": "Ataköy->Olimpiyat"
+            },
+            {
+              "id": 106,
+              "name": "Olimpiyat->Ataköy"
+            }
+          ]
+        },
+        {
+          "id": 228,
+          "name": "ATATURK MAH.",
+          "description": "Atatürk Mahallesi",
+          "order": 9,
+          "coordinates": {
+            "lat": 41.05288544691126,
+            "lng": 28.79864644035015
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 107,
+              "name": "Ataköy->Olimpiyat"
+            },
+            {
+              "id": 106,
+              "name": "Olimpiyat->Ataköy"
+            }
+          ]
+        },
+        {
+          "id": 216,
+          "name": "BAHARIYE",
+          "description": "Bahariye",
+          "order": 10,
+          "coordinates": {
+            "lat": 41.058692228126105,
+            "lng": 28.79921854037114
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": true,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 107,
+              "name": "Ataköy->Olimpiyat"
+            },
+            {
+              "id": 106,
+              "name": "Olimpiyat->Ataköy"
+            }
+          ]
+        },
+        {
+          "id": 215,
+          "name": "MASKO",
+          "description": "MASKO",
+          "order": 11,
+          "coordinates": {
+            "lat": 41.064346478553354,
+            "lng": 28.804145099888043
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": true,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 107,
+              "name": "Ataköy->Olimpiyat"
+            },
+            {
+              "id": 106,
+              "name": "Olimpiyat->Ataköy"
+            }
+          ]
+        },
+        {
+          "id": 214,
+          "name": "IKITELLI SANAYI",
+          "description": "İkitelli Sanayi",
+          "order": 12,
+          "coordinates": {
+            "lat": 41.071592188454204,
+            "lng": 28.80359489619547
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 107,
+              "name": "Ataköy->Olimpiyat"
+            },
+            {
+              "id": 106,
+              "name": "Olimpiyat->Ataköy"
+            }
+          ]
+        },
+        {
+          "id": 213,
+          "name": "ZIYA GOKALP MAHALLE",
+          "description": "Ziya Gökalp Mahallesi",
+          "order": 13,
+          "coordinates": {
+            "lat": 41.07468683895818,
+            "lng": 28.786425453865895
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 107,
+              "name": "Ataköy->Olimpiyat"
+            },
+            {
+              "id": 106,
+              "name": "Olimpiyat->Ataköy"
+            }
+          ]
+        },
+        {
+          "id": 212,
+          "name": "OLIMPIYAT",
+          "description": "Olimpiyat",
+          "order": 14,
+          "coordinates": {
+            "lat": 41.07978582261958,
+            "lng": 28.768494442218014
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 106,
+              "name": "Olimpiyat->Ataköy"
+            }
+          ]
+        }
+      ]
+    },
+    "T1": {
+      "id": 11,
+      "name": "T1",
+      "description": "Kabataş-Bağcılar Tramvay Hattı",
+      "description_en": "Kabatas-Bagcilar Tram Line",
+      "color": "#004f7d",
+      "first_time": "06:00",
+      "last_time": "23:36",
+      "is_active": true,
+      "stations": [
+        {
+          "id": 82,
+          "name": "KABATAS",
+          "description": "Kabataş",
+          "order": 1,
+          "coordinates": {
+            "lat": 41.034195,
+            "lng": 28.992712
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 22,
+              "name": "Kabataş->Bağcılar"
+            }
+          ]
+        },
+        {
+          "id": 81,
+          "name": "FINDIKLI",
+          "description": "Fındıklı-Mimar Sinan Ü.",
+          "order": 2,
+          "coordinates": {
+            "lat": 41.0314551495,
+            "lng": 28.9894378694
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 21,
+              "name": "Bağcılar->Kabataş"
+            },
+            {
+              "id": 22,
+              "name": "Kabataş->Bağcılar"
+            }
+          ]
+        },
+        {
+          "id": 80,
+          "name": "TOPHANE",
+          "description": "Tophane",
+          "order": 3,
+          "coordinates": {
+            "lat": 41.026992487,
+            "lng": 28.9808626704
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 21,
+              "name": "Bağcılar->Kabataş"
+            },
+            {
+              "id": 22,
+              "name": "Kabataş->Bağcılar"
+            }
+          ]
+        },
+        {
+          "id": 79,
+          "name": "KARAKOY",
+          "description": "Karaköy",
+          "order": 4,
+          "coordinates": {
+            "lat": 41.0221165813,
+            "lng": 28.9746840227
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 21,
+              "name": "Bağcılar->Kabataş"
+            },
+            {
+              "id": 22,
+              "name": "Kabataş->Bağcılar"
+            }
+          ]
+        },
+        {
+          "id": 78,
+          "name": "EMINONU",
+          "description": "Eminönü",
+          "order": 5,
+          "coordinates": {
+            "lat": 41.0174770208,
+            "lng": 28.9732097738
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 21,
+              "name": "Bağcılar->Kabataş"
+            },
+            {
+              "id": 22,
+              "name": "Kabataş->Bağcılar"
+            }
+          ]
+        },
+        {
+          "id": 77,
+          "name": "SIRKECI",
+          "description": "Sirkeci",
+          "order": 6,
+          "coordinates": {
+            "lat": 41.0151806347,
+            "lng": 28.9758901555
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 21,
+              "name": "Bağcılar->Kabataş"
+            },
+            {
+              "id": 22,
+              "name": "Kabataş->Bağcılar"
+            }
+          ]
+        },
+        {
+          "id": 76,
+          "name": "GULHANE",
+          "description": "Gülhane",
+          "order": 7,
+          "coordinates": {
+            "lat": 41.0121648083,
+            "lng": 28.978420569
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 21,
+              "name": "Bağcılar->Kabataş"
+            },
+            {
+              "id": 22,
+              "name": "Kabataş->Bağcılar"
+            }
+          ]
+        },
+        {
+          "id": 75,
+          "name": "SULTANAHMET",
+          "description": "Sultanahmet",
+          "order": 8,
+          "coordinates": {
+            "lat": 41.0080890263,
+            "lng": 28.9755834871
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 21,
+              "name": "Bağcılar->Kabataş"
+            },
+            {
+              "id": 22,
+              "name": "Kabataş->Bağcılar"
+            }
+          ]
+        },
+        {
+          "id": 74,
+          "name": "CEMBERLITAS",
+          "description": "Çemberlitaş",
+          "order": 9,
+          "coordinates": {
+            "lat": 41.0084369787,
+            "lng": 28.9711260369
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 21,
+              "name": "Bağcılar->Kabataş"
+            },
+            {
+              "id": 22,
+              "name": "Kabataş->Bağcılar"
+            }
+          ]
+        },
+        {
+          "id": 73,
+          "name": "BEYAZIT",
+          "description": "Beyazıt-Kapalıçarşı",
+          "order": 10,
+          "coordinates": {
+            "lat": 41.0090689647,
+            "lng": 28.9666944396
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 21,
+              "name": "Bağcılar->Kabataş"
+            },
+            {
+              "id": 22,
+              "name": "Kabataş->Bağcılar"
+            }
+          ]
+        },
+        {
+          "id": 72,
+          "name": "LALELI",
+          "description": "Laleli-İstanbul Ü.",
+          "order": 11,
+          "coordinates": {
+            "lat": 41.0095870715,
+            "lng": 28.9597865368
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 21,
+              "name": "Bağcılar->Kabataş"
+            },
+            {
+              "id": 22,
+              "name": "Kabataş->Bağcılar"
+            }
+          ]
+        },
+        {
+          "id": 71,
+          "name": "AKSARAY",
+          "description": "Aksaray",
+          "order": 12,
+          "coordinates": {
+            "lat": 41.0095939384,
+            "lng": 28.9538598842
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 21,
+              "name": "Bağcılar->Kabataş"
+            },
+            {
+              "id": 22,
+              "name": "Kabataş->Bağcılar"
+            }
+          ]
+        },
+        {
+          "id": 70,
+          "name": "YUSUFPASA",
+          "description": "Yusufpaşa",
+          "order": 13,
+          "coordinates": {
+            "lat": 41.0099988102,
+            "lng": 28.9471169908
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 21,
+              "name": "Bağcılar->Kabataş"
+            },
+            {
+              "id": 22,
+              "name": "Kabataş->Bağcılar"
+            }
+          ]
+        },
+        {
+          "id": 69,
+          "name": "HASEKI",
+          "description": "Haseki",
+          "order": 14,
+          "coordinates": {
+            "lat": 41.0107098606,
+            "lng": 28.9442927851
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 21,
+              "name": "Bağcılar->Kabataş"
+            },
+            {
+              "id": 22,
+              "name": "Kabataş->Bağcılar"
+            }
+          ]
+        },
+        {
+          "id": 68,
+          "name": "FINDIKZADE",
+          "description": "Fındıkzade",
+          "order": 15,
+          "coordinates": {
+            "lat": 41.0117062059472,
+            "lng": 28.940655673320745
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 21,
+              "name": "Bağcılar->Kabataş"
+            },
+            {
+              "id": 22,
+              "name": "Kabataş->Bağcılar"
+            }
+          ]
+        },
+        {
+          "id": 67,
+          "name": "CAPA-SEHREMINI",
+          "description": "Çapa-Şehremini",
+          "order": 16,
+          "coordinates": {
+            "lat": 41.0158833289,
+            "lng": 28.9320271861
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 21,
+              "name": "Bağcılar->Kabataş"
+            },
+            {
+              "id": 22,
+              "name": "Kabataş->Bağcılar"
+            }
+          ]
+        },
+        {
+          "id": 66,
+          "name": "PAZARTEKKE",
+          "description": "Pazartekke",
+          "order": 17,
+          "coordinates": {
+            "lat": 41.0182661997,
+            "lng": 28.9271526286
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 21,
+              "name": "Bağcılar->Kabataş"
+            },
+            {
+              "id": 22,
+              "name": "Kabataş->Bağcılar"
+            }
+          ]
+        },
+        {
+          "id": 65,
+          "name": "TOPKAPI",
+          "description": "Topkapı",
+          "order": 18,
+          "coordinates": {
+            "lat": 41.0192295429,
+            "lng": 28.9194470285
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": true,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 21,
+              "name": "Bağcılar->Kabataş"
+            },
+            {
+              "id": 22,
+              "name": "Kabataş->Bağcılar"
+            }
+          ]
+        },
+        {
+          "id": 64,
+          "name": "CEVIZLIBAG",
+          "description": "Cevizlibağ-AÖY",
+          "order": 19,
+          "coordinates": {
+            "lat": 41.0159557944,
+            "lng": 28.9115738934
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 21,
+              "name": "Bağcılar->Kabataş"
+            },
+            {
+              "id": 22,
+              "name": "Kabataş->Bağcılar"
+            }
+          ]
+        },
+        {
+          "id": 63,
+          "name": "MERKEZEFENDI",
+          "description": "Merkezefendi",
+          "order": 20,
+          "coordinates": {
+            "lat": 41.0103922551,
+            "lng": 28.9095014291
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 21,
+              "name": "Bağcılar->Kabataş"
+            },
+            {
+              "id": 22,
+              "name": "Kabataş->Bağcılar"
+            }
+          ]
+        },
+        {
+          "id": 62,
+          "name": "AKSEMSETTIN",
+          "description": "Seyitnizam-Akşemsettin",
+          "order": 21,
+          "coordinates": {
+            "lat": 41.0042150705,
+            "lng": 28.9075130061
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 21,
+              "name": "Bağcılar->Kabataş"
+            },
+            {
+              "id": 22,
+              "name": "Kabataş->Bağcılar"
+            }
+          ]
+        },
+        {
+          "id": 61,
+          "name": "MITHATPASA",
+          "description": "Mithatpaşa",
+          "order": 22,
+          "coordinates": {
+            "lat": 41.003492938,
+            "lng": 28.9014562172
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 21,
+              "name": "Bağcılar->Kabataş"
+            },
+            {
+              "id": 22,
+              "name": "Kabataş->Bağcılar"
+            }
+          ]
+        },
+        {
+          "id": 60,
+          "name": "ZEYTINBURNU",
+          "description": "Zeytinburnu",
+          "order": 23,
+          "coordinates": {
+            "lat": 41.0014853458,
+            "lng": 28.8902920022
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 21,
+              "name": "Bağcılar->Kabataş"
+            },
+            {
+              "id": 22,
+              "name": "Kabataş->Bağcılar"
+            }
+          ]
+        },
+        {
+          "id": 59,
+          "name": "MEHMETAKIF",
+          "description": "Mehmet Akif",
+          "order": 24,
+          "coordinates": {
+            "lat": 41.00580192,
+            "lng": 28.8816767755
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 21,
+              "name": "Bağcılar->Kabataş"
+            },
+            {
+              "id": 22,
+              "name": "Kabataş->Bağcılar"
+            }
+          ]
+        },
+        {
+          "id": 58,
+          "name": "MERTER TEKSTIL MERKEZI",
+          "description": "Merter Tekstil Merkezi",
+          "order": 25,
+          "coordinates": {
+            "lat": 41.0115593225,
+            "lng": 28.8807549715
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 21,
+              "name": "Bağcılar->Kabataş"
+            },
+            {
+              "id": 22,
+              "name": "Kabataş->Bağcılar"
+            }
+          ]
+        },
+        {
+          "id": 57,
+          "name": "GUNGOREN",
+          "description": "Güngören",
+          "order": 26,
+          "coordinates": {
+            "lat": 41.0152104262,
+            "lng": 28.8775090458
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 21,
+              "name": "Bağcılar->Kabataş"
+            },
+            {
+              "id": 22,
+              "name": "Kabataş->Bağcılar"
+            }
+          ]
+        },
+        {
+          "id": 56,
+          "name": "AKINCILAR",
+          "description": "Akıncılar",
+          "order": 27,
+          "coordinates": {
+            "lat": 41.0173366346,
+            "lng": 28.8710305731
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 21,
+              "name": "Bağcılar->Kabataş"
+            },
+            {
+              "id": 22,
+              "name": "Kabataş->Bağcılar"
+            }
+          ]
+        },
+        {
+          "id": 55,
+          "name": "SOGANLI",
+          "description": "Soğanlı",
+          "order": 28,
+          "coordinates": {
+            "lat": 41.0209689646,
+            "lng": 28.8670797269
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 21,
+              "name": "Bağcılar->Kabataş"
+            },
+            {
+              "id": 22,
+              "name": "Kabataş->Bağcılar"
+            }
+          ]
+        },
+        {
+          "id": 54,
+          "name": "YAVUZSELIM",
+          "description": "Yavuzselim",
+          "order": 29,
+          "coordinates": {
+            "lat": 41.0238219843,
+            "lng": 28.863651758
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 21,
+              "name": "Bağcılar->Kabataş"
+            },
+            {
+              "id": 22,
+              "name": "Kabataş->Bağcılar"
+            }
+          ]
+        },
+        {
+          "id": 53,
+          "name": "GUNESTEPE",
+          "description": "Güneştepe",
+          "order": 30,
+          "coordinates": {
+            "lat": 41.0289950489,
+            "lng": 28.860949736
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 21,
+              "name": "Bağcılar->Kabataş"
+            },
+            {
+              "id": 22,
+              "name": "Kabataş->Bağcılar"
+            }
+          ]
+        },
+        {
+          "id": 52,
+          "name": "BAGCILAR",
+          "description": "Bağcılar",
+          "order": 31,
+          "coordinates": {
+            "lat": 41.0330863118,
+            "lng": 28.860647218
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 21,
+              "name": "Bağcılar->Kabataş"
+            }
+          ]
+        }
+      ]
+    },
+    "T3": {
+      "id": 12,
+      "name": "T3",
+      "description": "Kadıköy-Moda Tramvay Hattı",
+      "description_en": "Kadikoy-Moda Tram Line",
+      "color": "#a86528",
+      "first_time": "07:10",
+      "last_time": "21:00",
+      "is_active": true,
+      "stations": [
+        {
+          "id": 198,
+          "name": "KADIKOY IDO",
+          "description": "Kadıköy İDO",
+          "order": 1,
+          "coordinates": {
+            "lat": 40.989273,
+            "lng": 29.020977
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 23,
+              "name": "İskele Cami->Kadıköy İDO"
+            }
+          ]
+        },
+        {
+          "id": 189,
+          "name": "ISKELE CAMII",
+          "description": "İskele Camii",
+          "order": 2,
+          "coordinates": {
+            "lat": 40.989941,
+            "lng": 29.022135
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 23,
+              "name": "İskele Cami->Kadıköy İDO"
+            }
+          ]
+        },
+        {
+          "id": 190,
+          "name": "CARSI",
+          "description": "Çarşı",
+          "order": 3,
+          "coordinates": {
+            "lat": 40.991075,
+            "lng": 29.025428
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 23,
+              "name": "İskele Cami->Kadıköy İDO"
+            }
+          ]
+        },
+        {
+          "id": 191,
+          "name": "ALTIYOL",
+          "description": "Altıyol",
+          "order": 4,
+          "coordinates": {
+            "lat": 40.99003,
+            "lng": 29.029066
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 23,
+              "name": "İskele Cami->Kadıköy İDO"
+            }
+          ]
+        },
+        {
+          "id": 192,
+          "name": "BAHARIYE",
+          "description": "Bahariye",
+          "order": 5,
+          "coordinates": {
+            "lat": 40.987932,
+            "lng": 29.028593
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 23,
+              "name": "İskele Cami->Kadıköy İDO"
+            }
+          ]
+        },
+        {
+          "id": 193,
+          "name": "KILISE",
+          "description": "Kilise",
+          "order": 6,
+          "coordinates": {
+            "lat": 40.986078,
+            "lng": 29.027885
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 23,
+              "name": "İskele Cami->Kadıköy İDO"
+            }
+          ]
+        },
+        {
+          "id": 194,
+          "name": "MODA ILKOKULU",
+          "description": "Moda İlkokulu",
+          "order": 7,
+          "coordinates": {
+            "lat": 40.98411,
+            "lng": 29.026652
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 23,
+              "name": "İskele Cami->Kadıköy İDO"
+            }
+          ]
+        },
+        {
+          "id": 195,
+          "name": "MODA",
+          "description": "Moda",
+          "order": 8,
+          "coordinates": {
+            "lat": 40.983932,
+            "lng": 29.024892
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 23,
+              "name": "İskele Cami->Kadıköy İDO"
+            }
+          ]
+        },
+        {
+          "id": 218,
+          "name": "RIZAPASA",
+          "description": "Rızapaşa",
+          "order": 9,
+          "coordinates": {
+            "lat": 40.984465405285626,
+            "lng": 29.023221050093916
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 23,
+              "name": "İskele Cami->Kadıköy İDO"
+            }
+          ]
+        },
+        {
+          "id": 196,
+          "name": "MUHURDAR",
+          "description": "Mühürdar",
+          "order": 10,
+          "coordinates": {
+            "lat": 40.985098,
+            "lng": 29.021598
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 23,
+              "name": "İskele Cami->Kadıköy İDO"
+            }
+          ]
+        },
+        {
+          "id": 197,
+          "name": "DAMGA SOKAK",
+          "description": "Damga Sokak",
+          "order": 11,
+          "coordinates": {
+            "lat": 40.987945,
+            "lng": 29.021009
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 23,
+              "name": "İskele Cami->Kadıköy İDO"
+            }
+          ]
+        }
+      ]
+    },
+    "T4": {
+      "id": 13,
+      "name": "T4",
+      "description": "Topkapı-Mescid-i Selam Tramvay Hattı",
+      "description_en": "Topkapi-Mescid-i Selam Tram Line",
+      "color": "#f47e46",
+      "first_time": "06:00",
+      "last_time": "23:59",
+      "is_active": true,
+      "stations": [
+        {
+          "id": 104,
+          "name": "TOPKAPI",
+          "description": "Topkapı",
+          "order": 1,
+          "coordinates": {
+            "lat": 41.0192295429,
+            "lng": 28.9194470285
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 18,
+              "name": "Topkapı->Mescid-i Selam"
+            }
+          ]
+        },
+        {
+          "id": 103,
+          "name": "FETIHKAPI",
+          "description": "Fetihkapı",
+          "order": 2,
+          "coordinates": {
+            "lat": 41.021825006,
+            "lng": 28.9253344699
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 17,
+              "name": "Mescid-i Selam->Topkapı"
+            },
+            {
+              "id": 18,
+              "name": "Topkapı->Mescid-i Selam"
+            }
+          ]
+        },
+        {
+          "id": 102,
+          "name": "VATAN",
+          "description": "Vatan",
+          "order": 3,
+          "coordinates": {
+            "lat": 41.0256946675,
+            "lng": 28.9293559649
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": true,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 17,
+              "name": "Mescid-i Selam->Topkapı"
+            },
+            {
+              "id": 18,
+              "name": "Topkapı->Mescid-i Selam"
+            }
+          ]
+        },
+        {
+          "id": 101,
+          "name": "EDIRNEKAPI",
+          "description": "Edirnekapı",
+          "order": 4,
+          "coordinates": {
+            "lat": 41.0314409253,
+            "lng": 28.9339710061
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": true,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 17,
+              "name": "Mescid-i Selam->Topkapı"
+            },
+            {
+              "id": 18,
+              "name": "Topkapı->Mescid-i Selam"
+            }
+          ]
+        },
+        {
+          "id": 100,
+          "name": "SEHITLIK",
+          "description": "Şehitlik",
+          "order": 5,
+          "coordinates": {
+            "lat": 41.0341823475,
+            "lng": 28.9282530221
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 17,
+              "name": "Mescid-i Selam->Topkapı"
+            },
+            {
+              "id": 18,
+              "name": "Topkapı->Mescid-i Selam"
+            }
+          ]
+        },
+        {
+          "id": 99,
+          "name": "DEMIRKAPI",
+          "description": "Demirkapı",
+          "order": 6,
+          "coordinates": {
+            "lat": 41.0369881849,
+            "lng": 28.923366509
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 17,
+              "name": "Mescid-i Selam->Topkapı"
+            },
+            {
+              "id": 18,
+              "name": "Topkapı->Mescid-i Selam"
+            }
+          ]
+        },
+        {
+          "id": 98,
+          "name": "TOPCULAR",
+          "description": "Topçular",
+          "order": 7,
+          "coordinates": {
+            "lat": 41.041546,
+            "lng": 28.919608
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": true,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 17,
+              "name": "Mescid-i Selam->Topkapı"
+            },
+            {
+              "id": 18,
+              "name": "Topkapı->Mescid-i Selam"
+            }
+          ]
+        },
+        {
+          "id": 97,
+          "name": "RAMI",
+          "description": "Rami",
+          "order": 8,
+          "coordinates": {
+            "lat": 41.046518,
+            "lng": 28.915598
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": true,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 17,
+              "name": "Mescid-i Selam->Topkapı"
+            },
+            {
+              "id": 18,
+              "name": "Topkapı->Mescid-i Selam"
+            }
+          ]
+        },
+        {
+          "id": 96,
+          "name": "ULUYOL BEREC",
+          "description": "Uluyol Bereç",
+          "order": 9,
+          "coordinates": {
+            "lat": 41.0541381814,
+            "lng": 28.9102461379
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": true,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 17,
+              "name": "Mescid-i Selam->Topkapı"
+            },
+            {
+              "id": 18,
+              "name": "Topkapı->Mescid-i Selam"
+            }
+          ]
+        },
+        {
+          "id": 95,
+          "name": "SAGMALCILAR",
+          "description": "Sağmalcılar",
+          "order": 10,
+          "coordinates": {
+            "lat": 41.0572818121,
+            "lng": 28.9069357644
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 17,
+              "name": "Mescid-i Selam->Topkapı"
+            },
+            {
+              "id": 18,
+              "name": "Topkapı->Mescid-i Selam"
+            }
+          ]
+        },
+        {
+          "id": 94,
+          "name": "BOSNA CUKURCESME",
+          "description": "Bosna Çukurçeşme",
+          "order": 11,
+          "coordinates": {
+            "lat": 41.061832,
+            "lng": 28.902093
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 17,
+              "name": "Mescid-i Selam->Topkapı"
+            },
+            {
+              "id": 18,
+              "name": "Topkapı->Mescid-i Selam"
+            }
+          ]
+        },
+        {
+          "id": 93,
+          "name": "ALI FUAT BASGIL",
+          "description": "Ali Fuat Başgil",
+          "order": 12,
+          "coordinates": {
+            "lat": 41.068493,
+            "lng": 28.895601
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": true,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 17,
+              "name": "Mescid-i Selam->Topkapı"
+            },
+            {
+              "id": 18,
+              "name": "Topkapı->Mescid-i Selam"
+            }
+          ]
+        },
+        {
+          "id": 92,
+          "name": "TASKOPRU",
+          "description": "Taşköprü",
+          "order": 13,
+          "coordinates": {
+            "lat": 41.0726579715,
+            "lng": 28.8876475166
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": true,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 17,
+              "name": "Mescid-i Selam->Topkapı"
+            },
+            {
+              "id": 18,
+              "name": "Topkapı->Mescid-i Selam"
+            }
+          ]
+        },
+        {
+          "id": 91,
+          "name": "KARADENIZ",
+          "description": "Karadeniz",
+          "order": 14,
+          "coordinates": {
+            "lat": 41.0752992311,
+            "lng": 28.8822357296
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": true,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 17,
+              "name": "Mescid-i Selam->Topkapı"
+            },
+            {
+              "id": 18,
+              "name": "Topkapı->Mescid-i Selam"
+            }
+          ]
+        },
+        {
+          "id": 90,
+          "name": "KIPTAS-VENEZIA",
+          "description": "Kiptaş-Venezia",
+          "order": 15,
+          "coordinates": {
+            "lat": 41.07985707357942,
+            "lng": 28.875993057122308
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 17,
+              "name": "Mescid-i Selam->Topkapı"
+            },
+            {
+              "id": 18,
+              "name": "Topkapı->Mescid-i Selam"
+            }
+          ]
+        },
+        {
+          "id": 89,
+          "name": "CUMHURIYET MAHALLESI",
+          "description": "Cumhuriyet Mahallesi",
+          "order": 16,
+          "coordinates": {
+            "lat": 41.0837494209,
+            "lng": 28.8723589675
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 17,
+              "name": "Mescid-i Selam->Topkapı"
+            },
+            {
+              "id": 18,
+              "name": "Topkapı->Mescid-i Selam"
+            }
+          ]
+        },
+        {
+          "id": 88,
+          "name": "50. YIL BASTABYA",
+          "description": "50.Yıl-Baştabya",
+          "order": 17,
+          "coordinates": {
+            "lat": 41.08781,
+            "lng": 28.866925
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 17,
+              "name": "Mescid-i Selam->Topkapı"
+            },
+            {
+              "id": 18,
+              "name": "Topkapı->Mescid-i Selam"
+            }
+          ]
+        },
+        {
+          "id": 87,
+          "name": "HACI SUKRU",
+          "description": "Hacı Şükrü",
+          "order": 18,
+          "coordinates": {
+            "lat": 41.0929087651,
+            "lng": 28.8640033599
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 17,
+              "name": "Mescid-i Selam->Topkapı"
+            },
+            {
+              "id": 18,
+              "name": "Topkapı->Mescid-i Selam"
+            }
+          ]
+        },
+        {
+          "id": 86,
+          "name": "YENIMAHALLE",
+          "description": "Yenimahalle",
+          "order": 19,
+          "coordinates": {
+            "lat": 41.0998289018,
+            "lng": 28.8629734333
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 17,
+              "name": "Mescid-i Selam->Topkapı"
+            },
+            {
+              "id": 18,
+              "name": "Topkapı->Mescid-i Selam"
+            }
+          ]
+        },
+        {
+          "id": 85,
+          "name": "SULTANCIFTLIGI",
+          "description": "Sultançiftliği",
+          "order": 20,
+          "coordinates": {
+            "lat": 41.1061320011,
+            "lng": 28.8606445832
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 17,
+              "name": "Mescid-i Selam->Topkapı"
+            },
+            {
+              "id": 18,
+              "name": "Topkapı->Mescid-i Selam"
+            }
+          ]
+        },
+        {
+          "id": 84,
+          "name": "CEBECI",
+          "description": "Cebeci",
+          "order": 21,
+          "coordinates": {
+            "lat": 41.1119217418,
+            "lng": 28.8578071487
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 17,
+              "name": "Mescid-i Selam->Topkapı"
+            },
+            {
+              "id": 18,
+              "name": "Topkapı->Mescid-i Selam"
+            }
+          ]
+        },
+        {
+          "id": 83,
+          "name": "MESCID-I SELAM",
+          "description": "Mescid-i Selam",
+          "order": 22,
+          "coordinates": {
+            "lat": 41.116218,
+            "lng": 28.851229
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 17,
+              "name": "Mescid-i Selam->Topkapı"
+            }
+          ]
+        }
+      ]
+    },
+    "T5": {
+      "id": 14,
+      "name": "T5",
+      "description": "Eminönü-Alibeyköy Tramvay Hattı",
+      "description_en": "Eminonu-Alibeykoy Tram Line",
+      "color": "#7c72b3",
+      "first_time": "06:00",
+      "last_time": "00:00",
+      "is_active": true,
+      "stations": [
+        {
+          "id": 173,
+          "name": "EMINONU",
+          "description": "Eminönü",
+          "order": 1,
+          "coordinates": {
+            "lat": 41.01833251289325,
+            "lng": 28.970220633282402
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 86,
+              "name": "Eminönü->Alibeyköy Cep Otogarı"
+            }
+          ]
+        },
+        {
+          "id": 174,
+          "name": "KUCUKPAZAR",
+          "description": "Küçükpazar",
+          "order": 2,
+          "coordinates": {
+            "lat": 41.0211067072648,
+            "lng": 28.96307565267346
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 86,
+              "name": "Eminönü->Alibeyköy Cep Otogarı"
+            },
+            {
+              "id": 87,
+              "name": "Alibeyköy Cep Otogarı->Eminönü"
+            }
+          ]
+        },
+        {
+          "id": 175,
+          "name": "CIBALI",
+          "description": "Cibali",
+          "order": 3,
+          "coordinates": {
+            "lat": 41.024336,
+            "lng": 28.960265
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 86,
+              "name": "Eminönü->Alibeyköy Cep Otogarı"
+            },
+            {
+              "id": 87,
+              "name": "Alibeyköy Cep Otogarı->Eminönü"
+            }
+          ]
+        },
+        {
+          "id": 176,
+          "name": "FENER",
+          "description": "Fener",
+          "order": 4,
+          "coordinates": {
+            "lat": 41.028663,
+            "lng": 28.954462
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 86,
+              "name": "Eminönü->Alibeyköy Cep Otogarı"
+            },
+            {
+              "id": 87,
+              "name": "Alibeyköy Cep Otogarı->Eminönü"
+            }
+          ]
+        },
+        {
+          "id": 177,
+          "name": "BALAT",
+          "description": "Balat",
+          "order": 5,
+          "coordinates": {
+            "lat": 41.034098,
+            "lng": 28.948012
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 86,
+              "name": "Eminönü->Alibeyköy Cep Otogarı"
+            },
+            {
+              "id": 87,
+              "name": "Alibeyköy Cep Otogarı->Eminönü"
+            }
+          ]
+        },
+        {
+          "id": 178,
+          "name": "AYVANSARAY",
+          "description": "Ayvansaray",
+          "order": 6,
+          "coordinates": {
+            "lat": 41.039607,
+            "lng": 28.943916
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 86,
+              "name": "Eminönü->Alibeyköy Cep Otogarı"
+            },
+            {
+              "id": 87,
+              "name": "Alibeyköy Cep Otogarı->Eminönü"
+            }
+          ]
+        },
+        {
+          "id": 179,
+          "name": "FESHANE",
+          "description": "Feshane",
+          "order": 7,
+          "coordinates": {
+            "lat": 41.045456,
+            "lng": 28.937978
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 86,
+              "name": "Eminönü->Alibeyköy Cep Otogarı"
+            },
+            {
+              "id": 87,
+              "name": "Alibeyköy Cep Otogarı->Eminönü"
+            }
+          ]
+        },
+        {
+          "id": 180,
+          "name": "EYUPSULTAN TELEFERIK",
+          "description": "Eyüpsultan Teleferik",
+          "order": 8,
+          "coordinates": {
+            "lat": 41.050482,
+            "lng": 28.935202
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 86,
+              "name": "Eminönü->Alibeyköy Cep Otogarı"
+            },
+            {
+              "id": 87,
+              "name": "Alibeyköy Cep Otogarı->Eminönü"
+            }
+          ]
+        },
+        {
+          "id": 181,
+          "name": "EYUPSULTAN DEVLET HASTANESI",
+          "description": "Eyüpsultan Devlet Hastanesi",
+          "order": 9,
+          "coordinates": {
+            "lat": 41.056765,
+            "lng": 28.941212
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 86,
+              "name": "Eminönü->Alibeyköy Cep Otogarı"
+            },
+            {
+              "id": 87,
+              "name": "Alibeyköy Cep Otogarı->Eminönü"
+            }
+          ]
+        },
+        {
+          "id": 182,
+          "name": "SILAHTARAGA MAHALLESI",
+          "description": "Silahtarağa Mahallesi",
+          "order": 10,
+          "coordinates": {
+            "lat": 41.064775,
+            "lng": 28.942874
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 86,
+              "name": "Eminönü->Alibeyköy Cep Otogarı"
+            },
+            {
+              "id": 87,
+              "name": "Alibeyköy Cep Otogarı->Eminönü"
+            }
+          ]
+        },
+        {
+          "id": 183,
+          "name": "UNIVERSITE",
+          "description": "Üniversite",
+          "order": 11,
+          "coordinates": {
+            "lat": 41.069833,
+            "lng": 28.942865
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 86,
+              "name": "Eminönü->Alibeyköy Cep Otogarı"
+            },
+            {
+              "id": 87,
+              "name": "Alibeyköy Cep Otogarı->Eminönü"
+            }
+          ]
+        },
+        {
+          "id": 184,
+          "name": "ALIBEYKOY MERKEZ",
+          "description": "Alibeyköy Merkez",
+          "order": 12,
+          "coordinates": {
+            "lat": 41.07381,
+            "lng": 28.946063
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 86,
+              "name": "Eminönü->Alibeyköy Cep Otogarı"
+            },
+            {
+              "id": 87,
+              "name": "Alibeyköy Cep Otogarı->Eminönü"
+            }
+          ]
+        },
+        {
+          "id": 185,
+          "name": "ALIBEYKOY METRO ISTASYONU",
+          "description": "Alibeyköy Metro",
+          "order": 13,
+          "coordinates": {
+            "lat": 41.07848,
+            "lng": 28.949459
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 86,
+              "name": "Eminönü->Alibeyköy Cep Otogarı"
+            },
+            {
+              "id": 87,
+              "name": "Alibeyköy Cep Otogarı->Eminönü"
+            }
+          ]
+        },
+        {
+          "id": 186,
+          "name": "ALIBEYKOY CEP OTOGARI",
+          "description": "Alibeyköy Cep Otogarı",
+          "order": 14,
+          "coordinates": {
+            "lat": 41.086915,
+            "lng": 28.943988
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 87,
+              "name": "Alibeyköy Cep Otogarı->Eminönü"
+            }
+          ]
+        }
+      ]
+    },
+    "TF1": {
+      "id": 15,
+      "name": "TF1",
+      "description": "Maçka-Taşkışla Teleferik Hattı",
+      "description_en": "Macka-Taskisla Aerial Cable Car Line",
+      "color": "#68bcb0",
+      "first_time": "08:00",
+      "last_time": "20:00",
+      "is_active": true,
+      "stations": [
+        {
+          "id": 199,
+          "name": "MACKA",
+          "description": "Maçka",
+          "order": 1,
+          "coordinates": {
+            "lat": 41.0446506053,
+            "lng": 28.9936254852
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 46,
+              "name": "Maçka->Taşkışla"
+            }
+          ]
+        },
+        {
+          "id": 200,
+          "name": "TASKISLA",
+          "description": "Taşkışla",
+          "order": 2,
+          "coordinates": {
+            "lat": 41.04367845791161,
+            "lng": 28.99034291338203
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": true,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 47,
+              "name": "Taşkışla->Maçka"
+            }
+          ]
+        }
+      ]
+    },
+    "TF2": {
+      "id": 16,
+      "name": "TF2",
+      "description": "Eyüp-Piyer Loti Teleferik Hattı",
+      "description_en": "Eyup-Piyer Loti Aerial Cable Car Line",
+      "color": "#68bcb0",
+      "first_time": "08:00",
+      "last_time": "23:00",
+      "is_active": true,
+      "stations": [
+        {
+          "id": 201,
+          "name": "EYUP",
+          "description": "Eyüp",
+          "order": 1,
+          "coordinates": {
+            "lat": 41.0505432043,
+            "lng": 28.9339131846
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": true,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 44,
+              "name": "Eyüp->Piyerloti"
+            }
+          ]
+        },
+        {
+          "id": 202,
+          "name": "PIYERLOTI",
+          "description": "Piyer Loti",
+          "order": 2,
+          "coordinates": {
+            "lat": 41.054193241,
+            "lng": 28.9327417801
+          },
+          "accessibility": {
+            "elevator": false,
+            "escalator": false,
+            "wc": false,
+            "babyRoom": false,
+            "masjid": false
+          },
+          "directions": [
+            {
+              "id": 45,
+              "name": "Piyerloti->Eyüp"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "metadata": {
+    "generated_at": "2025-12-09T15:56:16.188477+00:00",
+    "total_lines": 18,
+    "total_stations": 244
+  }
+}

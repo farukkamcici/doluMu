@@ -3,10 +3,12 @@ import { MapContainer, TileLayer, Marker, Polyline, CircleMarker, Tooltip, useMa
 import 'leaflet/dist/leaflet.css';
 import useAppStore from '@/store/useAppStore';
 import LocateButton from '@/components/ui/LocateButton';
+import MetroLayer from '@/components/map/MetroLayer';
 import { divIcon } from 'leaflet';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { useEffect, useMemo, useState } from 'react';
 import useRoutePolyline from '@/hooks/useRoutePolyline';
+import { getTransportType } from '@/lib/transportTypes';
 
 const CENTER = [41.0082, 28.9784]; // Istanbul coordinates
 
@@ -36,13 +38,21 @@ function MapController({ routeCoordinates }) {
 }
 
 export default function MapView() {
-  const { userLocation, selectedLine, selectedDirection, showRoute } = useAppStore();
+  const { userLocation, selectedLine, selectedDirection, showRoute, setSelectedLine, openPanel } = useAppStore();
   const { getPolyline, getRouteStops } = useRoutePolyline();
   const [routeCoordinates, setRouteCoordinates] = useState([]);
+  
+  // Determine if selected line is metro
+  const isMetroLine = useMemo(() => {
+    if (!selectedLine?.id) return false;
+    const lineCode = typeof selectedLine.id === 'string' ? selectedLine.id : '';
+    return /^[MFT]/.test(lineCode);
+  }, [selectedLine]);
 
   useEffect(() => {
     let isActive = true;
-    if (showRoute && selectedLine) {
+    // Only fetch bus route polylines if not metro
+    if (showRoute && selectedLine && !isMetroLine) {
       const fetchPolyline = async () => {
         const polyline = await getPolyline(selectedLine.id, selectedDirection);
         if (isActive) {
@@ -50,19 +60,29 @@ export default function MapView() {
         }
       };
       fetchPolyline();
+    } else {
+      setRouteCoordinates([]);
     }
 
     return () => {
       isActive = false;
       setRouteCoordinates([]);
     };
-  }, [showRoute, selectedLine, selectedDirection, getPolyline]);
+  }, [showRoute, selectedLine, selectedDirection, getPolyline, isMetroLine]);
 
   const routeStops = useMemo(() => {
-    return showRoute && selectedLine 
+    // Only show bus route stops if not metro (metro uses MetroLayer)
+    return showRoute && selectedLine && !isMetroLine
       ? getRouteStops(selectedLine.id, selectedDirection) 
       : [];
-  }, [showRoute, selectedLine, selectedDirection, getRouteStops]);
+  }, [showRoute, selectedLine, selectedDirection, getRouteStops, isMetroLine]);
+
+  // Handler for metro station clicks
+  const handleMetroStationClick = (station, lineName) => {
+    console.log('Metro station clicked:', station, lineName);
+    // TODO: Show station detail panel or popup
+    // Could integrate with existing LineDetailPanel or create new component
+  };
 
   return (
     <MapContainer
@@ -84,7 +104,16 @@ export default function MapView() {
         </Marker>
       )}
 
-      {routeCoordinates.length > 0 && (
+      {/* Metro layer - shows when metro line is selected */}
+      {showRoute && isMetroLine && selectedLine && (
+        <MetroLayer
+          selectedLineCode={selectedLine.id}
+          onStationClick={handleMetroStationClick}
+        />
+      )}
+
+      {/* Bus route polylines - shows when bus line is selected */}
+      {routeCoordinates.length > 0 && !isMetroLine && (
         <>
           <Polyline 
             positions={routeCoordinates} 
