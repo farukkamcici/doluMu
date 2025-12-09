@@ -179,22 +179,6 @@ export const getMetroSchedule = async (stationId, directionId, dateTime = new Da
 };
 
 /**
- * Get metro network status with alerts.
- * Cached 5 minutes at backend.
- * 
- * @returns {Promise<{lines: Object, fetched_at: string}>}
- */
-export const getMetroNetworkStatus = async () => {
-  try {
-    const response = await metroClient.get('/metro/status');
-    return response.data;
-  } catch (error) {
-    console.error('Error fetching metro network status:', error);
-    throw new Error('Failed to fetch metro status');
-  }
-};
-
-/**
  * Get travel duration between stations.
  * Cached 24 hours at backend.
  * 

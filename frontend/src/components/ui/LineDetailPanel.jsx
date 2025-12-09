@@ -26,7 +26,6 @@ import { cn } from '@/lib/utils';
 import { getForecast, getLineStatus } from '@/lib/api';
 import { getTransportType } from '@/lib/transportTypes';
 import { useGetTransportLabel } from '@/hooks/useGetTransportLabel';
-import useMetroAlerts from '@/hooks/useMetroAlerts';
 
 const crowdLevelConfig = {
   "Low": { color: "text-emerald-400", progressColor: "bg-emerald-500", badge: "bg-emerald-500/20 border-emerald-500/30" },
@@ -64,11 +63,6 @@ export default function LineDetailPanel() {
   const [error, setError] = useState(null);
   const [isMinimized, setIsMinimized] = useState(false);
   const [lineStatus, setLineStatus] = useState(null);
-  
-  // Metro alerts hook
-  const { getLineAlerts, hasAlerts: hasMetroAlerts } = useMetroAlerts({
-    enabled: !!(selectedLine && /^[MFT]/.test(selectedLine.id))
-  });
   
   // Detect if selected line is metro
   const isMetroLine = selectedLine && /^[MFT]/.test(selectedLine.id);
@@ -488,32 +482,8 @@ export default function LineDetailPanel() {
                 {/* Card Layout */}
                 <div className="p-4 space-y-3">
                   
-                  {/* Status Banner */}
-                  {/* For Metro: Show metro alerts, For Bus: Show line status */}
-                  {isMetroLine ? (
-                    hasMetroAlerts(selectedLine.id) && (
-                      <StatusBanner 
-                        status={{
-                          status: 'WARNING',
-                          alerts: getLineAlerts(selectedLine.id).map(a => ({
-                            text: a.Message || a.Title,
-                            time: a.PublishDate ? new Date(a.PublishDate).toLocaleString('tr-TR', { 
-                              hour: '2-digit', 
-                              minute: '2-digit' 
-                            }) : '',
-                            type: a.Priority || 'Alert'
-                          }))
-                        }}
-                        onClick={() => {
-                          const alerts = getLineAlerts(selectedLine.id);
-                          if (alerts && alerts.length > 0) {
-                            setIsAlertsModalOpen(true);
-                          }
-                        }}
-                        className="mb-2"
-                      />
-                    )
-                  ) : (
+                  {/* Status Banner - Only for Bus lines */}
+                  {!isMetroLine && (
                     lineStatus && lineStatus.status !== 'ACTIVE' && (
                       <StatusBanner 
                         status={lineStatus} 
@@ -719,24 +689,15 @@ export default function LineDetailPanel() {
         directionInfo={directionInfo}
       />
       
-      <AlertsModal 
-        isOpen={isAlertsModalOpen}
-        onClose={() => setIsAlertsModalOpen(false)}
-        messages={isMetroLine 
-          ? getLineAlerts(selectedLine.id).map(a => ({
-              text: a.Message || a.Title,
-              time: a.PublishDate ? new Date(a.PublishDate).toLocaleString('tr-TR', { 
-                hour: '2-digit', 
-                minute: '2-digit',
-                day: '2-digit',
-                month: '2-digit'
-              }) : '',
-              type: a.Priority || 'Alert'
-            }))
-          : (lineStatus?.alerts || [])
-        }
-        lineCode={selectedLine.id}
-      />
+      {/* AlertsModal - Only for Bus lines */}
+      {!isMetroLine && (
+        <AlertsModal 
+          isOpen={isAlertsModalOpen}
+          onClose={() => setIsAlertsModalOpen(false)}
+          messages={lineStatus?.alerts || []}
+          lineCode={selectedLine.id}
+        />
+      )}
     </>
   );
 }

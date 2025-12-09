@@ -6,7 +6,6 @@ All endpoints proxy Metro Istanbul API with intelligent caching.
 
 Endpoints:
     POST /metro/schedule - Live train arrivals (60s cache)
-    GET /metro/status - Network status + alerts (5min cache)
     POST /metro/duration - Travel time between stations (24h cache)
 
 Architecture:
@@ -28,11 +27,6 @@ from typing import List, Dict, Optional
 from ..schemas import (
     TimeTableRequest,
     TimeTableResponse,
-    AnnouncementRequest,
-    ServiceStatusResponse,
-    AnnouncementResponse,
-    NetworkStatusResponse,
-    NetworkStatusLine,
     StationDistanceResponse
 )
 from ..services.metro_service import metro_service
@@ -54,9 +48,6 @@ session.headers.update({
 # Cache Configuration
 # Schedule: 60 seconds (real-time data)
 _schedule_cache = TTLCache(maxsize=500, ttl=60)
-
-# Network Status: 5 minutes (status changes infrequently)
-_status_cache = TTLCache(maxsize=50, ttl=300)
 
 # Travel Duration: 24 hours (static infrastructure data)
 _duration_cache = TTLCache(maxsize=1000, ttl=86400)
@@ -301,112 +292,7 @@ async def get_train_schedule(request: TimeTableRequest = Body(...)):
 
 
 # ============================================================================
-# ENDPOINT 2: NETWORK STATUS (GET /metro/status)
-# ============================================================================
-
-@router.get(
-    "/status",
-    response_model=NetworkStatusResponse,
-    summary="Get Metro Network Status",
-    description="""
-    Aggregated network status combining operational status and service alerts.
-    
-    **Combines two upstream calls:**
-    1. GET /GetServiceStatuses - Line operational status
-    2. POST /GetAnnouncementsByLine - Service alerts (Turkish)
-    
-    **Caching:** 5 minutes TTL
-    
-    **Returns:** Unified status object with alerts per line
-    """
-)
-async def get_network_status():
-    """
-    Get complete metro network status with alerts.
-    
-    Aggregates operational status and announcements into a single response.
-    
-    Returns:
-        NetworkStatusResponse with per-line status and alerts
-        
-    Raises:
-        HTTPException 500: Metro API error
-    """
-    cache_key = "network_status"
-    
-    # Check cache
-    if cache_key in _status_cache:
-        logger.debug("Cache hit for network status")
-        return _status_cache[cache_key]
-    
-    logger.info("Fetching metro network status")
-    
-    try:
-        # Parallel fetch: service statuses and announcements
-        status_response = session.get(
-            f"{METRO_API_BASE}/GetServiceStatuses",
-            timeout=10
-        )
-        status_response.raise_for_status()
-        status_data = status_response.json()
-        
-        # Get announcements for each line (Turkish language)
-        line_codes = ["M1", "M2", "M3", "M1A", "M1B", "M4", "M5", "M6", "M7", "M8", "M9", "TF1", "TF2"]
-        all_announcements = {}
-        
-        for line_code in line_codes:
-            try:
-                ann_response = session.post(
-                    f"{METRO_API_BASE}/GetAnnouncementsByLine",
-                    json={"Language": "TR", "Line": line_code},
-                    timeout=5
-                )
-                if ann_response.status_code == 200:
-                    ann_data = ann_response.json()
-                    if ann_data.get('Success'):
-                        all_announcements[line_code] = ann_data.get('Data', [])
-            except Exception as e:
-                logger.warning(f"Failed to fetch announcements for {line_code}: {e}")
-                all_announcements[line_code] = []
-        
-        # Build aggregated response
-        if not status_data.get('Success'):
-            raise HTTPException(status_code=500, detail="Failed to fetch service status")
-        
-        statuses = status_data.get('Data', [])
-        
-        # Aggregate by line
-        network_status = {
-            "lines": {},
-            "fetched_at": datetime.utcnow()
-        }
-        
-        for status in statuses:
-            line_code = status.get('LineCode', 'UNKNOWN')
-            
-            network_status["lines"][line_code] = {
-                "line_code": line_code,
-                "line_name": status.get('LineName', line_code),
-                "status": status.get('Status', 'UNKNOWN'),
-                "alerts": all_announcements.get(line_code, []),
-                "last_updated": datetime.utcnow()
-            }
-        
-        # Cache result
-        _status_cache[cache_key] = network_status
-        
-        return network_status
-        
-    except requests.exceptions.RequestException as e:
-        logger.error(f"Failed to fetch network status: {e}")
-        raise HTTPException(
-            status_code=500,
-            detail="Failed to fetch metro network status"
-        )
-
-
-# ============================================================================
-# ENDPOINT 3: TRAVEL DURATION (POST /metro/duration)
+# ENDPOINT 2: TRAVEL DURATION (POST /metro/duration)
 # ============================================================================
 
 @router.post(
@@ -516,11 +402,6 @@ async def clear_metro_cache(cache_type: Optional[str] = None):
         _schedule_cache.clear()
         cleared.append(f"schedule ({count} entries)")
     
-    if cache_type in [None, 'status']:
-        count = len(_status_cache)
-        _status_cache.clear()
-        cleared.append(f"status ({count} entries)")
-    
     if cache_type in [None, 'duration']:
         count = len(_duration_cache)
         _duration_cache.clear()
@@ -552,11 +433,6 @@ async def get_cache_stats():
             "size": len(_schedule_cache),
             "max_size": _schedule_cache.maxsize,
             "ttl_seconds": _schedule_cache.ttl
-        },
-        "status": {
-            "size": len(_status_cache),
-            "max_size": _status_cache.maxsize,
-            "ttl_seconds": _status_cache.ttl
         },
         "duration": {
             "size": len(_duration_cache),
