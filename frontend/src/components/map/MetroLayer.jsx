@@ -12,7 +12,7 @@
  */
 
 'use client';
-import { Polyline, CircleMarker, Popup, Marker, useMap } from 'react-leaflet';
+import { Polyline, CircleMarker, Tooltip, useMap } from 'react-leaflet';
 import { useEffect, useMemo, useState } from 'react';
 import { divIcon } from 'leaflet';
 import { renderToStaticMarkup } from 'react-dom/server';
@@ -54,13 +54,19 @@ const createMetroStationIcon = (color, isTerminus = false) => {
 /**
  * MetroStationMarker - Individual station marker with popup
  */
-function MetroStationMarker({ station, lineColor, lineName, isStart, isEnd, onStationClick }) {
+function MetroStationMarker({ station, lineColor, lineName, isStart, isEnd, onStationClick, onStationHover }) {
   const isTerminus = isStart || isEnd;
   const icon = useMemo(() => createMetroStationIcon(lineColor, isTerminus), [lineColor, isTerminus]);
 
   const handleClick = () => {
     if (onStationClick) {
       onStationClick(station, lineName);
+    }
+  };
+
+  const handleHover = () => {
+    if (onStationHover) {
+      onStationHover(station, lineName);
     }
   };
 
@@ -75,57 +81,15 @@ function MetroStationMarker({ station, lineColor, lineName, isStart, isEnd, onSt
         weight: 2
       }}
       eventHandlers={{
-        click: handleClick
+        click: handleClick,
+        mouseover: handleHover
       }}
     >
-      <Popup>
-        <div className="text-sm">
-          <div className="font-bold text-gray-900 dark:text-gray-100">
-            {station.description || station.name}
-          </div>
-          <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">
-            {lineName} - {isStart ? 'Start' : isEnd ? 'End' : `Stop ${station.order}`}
-          </div>
-          
-          {/* Accessibility badges */}
-          {station.accessibility && (
-            <div className="flex gap-1 mt-2 flex-wrap">
-              {station.accessibility.elevator && (
-                <span className="text-xs px-2 py-0.5 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded">
-                  🛗 Elevator
-                </span>
-              )}
-              {station.accessibility.escalator && (
-                <span className="text-xs px-2 py-0.5 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded">
-                  🎢 Escalator
-                </span>
-              )}
-              {station.accessibility.wc && (
-                <span className="text-xs px-2 py-0.5 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 rounded">
-                  🚻 WC
-                </span>
-              )}
-              {station.accessibility.masjid && (
-                <span className="text-xs px-2 py-0.5 bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 rounded">
-                  🕌 Masjid
-                </span>
-              )}
-            </div>
-          )}
-
-          {/* Directions */}
-          {station.directions && station.directions.length > 0 && (
-            <div className="mt-2 text-xs">
-              <div className="font-semibold text-gray-700 dark:text-gray-300">Directions:</div>
-              {station.directions.map(dir => (
-                <div key={dir.id} className="text-gray-600 dark:text-gray-400">
-                  → {dir.name}
-                </div>
-              ))}
-            </div>
-          )}
+      <Tooltip direction="top" offset={[0, -5]} opacity={0.9} permanent={false} sticky>
+        <div className="text-xs font-semibold text-gray-100">
+          {station.description || station.name}
         </div>
-      </Popup>
+      </Tooltip>
     </CircleMarker>
   );
 }
@@ -133,15 +97,25 @@ function MetroStationMarker({ station, lineColor, lineName, isStart, isEnd, onSt
 /**
  * MetroLineLayer - Renders a single metro line
  */
-function MetroLineLayer({ lineCode, lineData, onStationClick }) {
-  const coordinates = useMemo(() => {
-    const stations = [...lineData.stations].sort((a, b) => a.order - b.order);
-    return stations.map(s => [s.coordinates.lat, s.coordinates.lng]);
-  }, [lineData.stations]);
-
+function MetroLineLayer({ lineCode, lineData, stationsOverride = [], onStationClick, onStationHover }) {
   const sortedStations = useMemo(() => {
-    return [...lineData.stations].sort((a, b) => a.order - b.order);
-  }, [lineData.stations]);
+    if (stationsOverride.length > 0) {
+      return [...stationsOverride].sort((a, b) => a.order - b.order);
+    }
+    return [...(lineData?.stations || [])].sort((a, b) => a.order - b.order);
+  }, [lineData?.stations, stationsOverride]);
+
+  const coordinates = useMemo(() => {
+    return sortedStations
+      .map((station) => {
+        const coords = station.coordinates || {};
+        const lat = typeof coords.lat === 'string' ? parseFloat(coords.lat) : coords.lat;
+        const lng = typeof coords.lng === 'string' ? parseFloat(coords.lng) : coords.lng;
+        if (!lat || !lng) return null;
+        return [lat, lng];
+      })
+      .filter(Boolean);
+  }, [sortedStations]);
 
   const color = lineData.color || '#3b82f6';
 
@@ -173,6 +147,7 @@ function MetroLineLayer({ lineCode, lineData, onStationClick }) {
             isStart={isStart}
             isEnd={isEnd}
             onStationClick={onStationClick}
+            onStationHover={onStationHover}
           />
         );
       })}
@@ -183,7 +158,7 @@ function MetroLineLayer({ lineCode, lineData, onStationClick }) {
 /**
  * MetroLayer - Main component
  */
-export default function MetroLayer({ showAllLines = false, selectedLineCode = null, onStationClick }) {
+export default function MetroLayer({ showAllLines = false, selectedLineCode = null, stationsOverride = [], onStationClick, onStationHover }) {
   const { topology, loading, error, getLine, getLines } = useMetroTopology();
   const { selectedLine } = useAppStore();
   const map = useMap();
@@ -220,8 +195,17 @@ export default function MetroLayer({ showAllLines = false, selectedLineCode = nu
   useEffect(() => {
     if (linesToRender.length === 1 && map) {
       const lineData = linesToRender[0].data;
-      const coordinates = lineData.stations.map(s => [s.coordinates.lat, s.coordinates.lng]);
-      
+      const sourceStations = stationsOverride.length > 0 ? stationsOverride : lineData.stations;
+      const coordinates = sourceStations.map(s => {
+        const coords = s.coordinates || {};
+        const lat = typeof coords.lat === 'string' ? parseFloat(coords.lat) : coords.lat;
+        const lng = typeof coords.lng === 'string' ? parseFloat(coords.lng) : coords.lng;
+        if (!lat || !lng) {
+          return null;
+        }
+        return [lat, lng];
+      }).filter(Boolean);
+
       if (coordinates.length > 0) {
         try {
           map.fitBounds(coordinates, { padding: [50, 50] });
@@ -230,7 +214,7 @@ export default function MetroLayer({ showAllLines = false, selectedLineCode = nu
         }
       }
     }
-  }, [linesToRender, map]);
+  }, [linesToRender, map, stationsOverride]);
 
   if (loading) {
     return null;
@@ -252,7 +236,9 @@ export default function MetroLayer({ showAllLines = false, selectedLineCode = nu
           key={code}
           lineCode={code}
           lineData={data}
+          stationsOverride={code === selectedLineCode ? stationsOverride : []}
           onStationClick={onStationClick}
+          onStationHover={onStationHover}
         />
       ))}
     </>

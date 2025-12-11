@@ -112,6 +112,27 @@ export const getMetroLine = async (lineCode) => {
 };
 
 /**
+ * Get ordered stations for a metro line (live data from Metro Istanbul).
+ * Includes accessibility flags and direction metadata.
+ *
+ * @param {string} lineCode - Line code (e.g., "M1A")
+ * @returns {Promise<{line_code: string, line_id: number, stations: MetroStation[]}>}
+ */
+export const getMetroStations = async (lineCode) => {
+  if (!lineCode) {
+    throw new Error('Line code is required');
+  }
+
+  try {
+    const response = await metroClient.get(`/metro/lines/${lineCode}/stations`);
+    return response.data;
+  } catch (error) {
+    console.error(`Error fetching metro stations for ${lineCode}:`, error);
+    throw new Error('Failed to load metro stations');
+  }
+};
+
+/**
  * Get line coordinates for map polyline.
  * 
  * @param {string} lineCode - Line code

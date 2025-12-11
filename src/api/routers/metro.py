@@ -29,7 +29,11 @@ from ..schemas import (
     TimeTableResponse,
     MetroScheduleResponse,
     TrainArrival,
-    StationDistanceResponse
+    StationDistanceResponse,
+    MetroLineStationsResponse,
+    MetroStationAccessibility,
+    MetroStationCoordinates,
+    MetroStationInfo
 )
 from ..services.metro_service import metro_service
 
@@ -53,6 +57,9 @@ _schedule_cache = TTLCache(maxsize=500, ttl=60)
 
 # Travel Duration: 24 hours (static infrastructure data)
 _duration_cache = TTLCache(maxsize=1000, ttl=86400)
+
+# Station listings: 1 hour (semi-static data)
+_station_cache = TTLCache(maxsize=200, ttl=3600)
 
 
 # ============================================================================
@@ -167,6 +174,81 @@ async def get_line_coordinates(line_code: str):
         )
     
     return {"line_code": line_code, "coordinates": coordinates}
+
+
+@router.get(
+    "/lines/{line_code}/stations",
+    summary="Get ordered station list for a metro line",
+    response_model=MetroLineStationsResponse,
+    description="""
+    Fetches live station data for a metro line directly from Metro Istanbul's `GetStationById` endpoint.
+    Returns ordered stations with coordinates, accessibility flags, and direction metadata.
+    Results are cached for 1 hour per line.
+    """
+)
+async def get_line_stations_live(line_code: str):
+    line_data = metro_service.get_line(line_code)
+    if not line_data:
+        raise HTTPException(status_code=404, detail=f"Metro line '{line_code}' not found")
+
+    line_id = line_data.get('id')
+    cache_key = line_id
+
+    if line_id in _station_cache:
+        return _station_cache[line_id]
+
+    url = f"{METRO_API_BASE}/GetStationById/{line_id}"
+    try:
+        response = session.get(url, timeout=10)
+        response.raise_for_status()
+        payload = response.json()
+    except requests.RequestException as exc:
+        logger.error(f"Metro station fetch failed for {line_code}: {exc}")
+        raise HTTPException(status_code=502, detail="Failed to fetch metro stations from Metro Istanbul API")
+
+    if not payload.get('Success'):
+        logger.error(f"Metro station payload unsuccessful for {line_code}: {payload.get('Error')}")
+        raise HTTPException(status_code=502, detail="Metro Istanbul API returned an error for stations request")
+
+    topology_stations = {s.get('id'): s for s in metro_service.get_stations(line_code)}
+
+    stations: List[MetroStationInfo] = []
+    for station in sorted(payload.get('Data', []), key=lambda s: s.get('Order', 0)):
+        detail = station.get('DetailInfo') or {}
+        try:
+            lat = float(detail.get('Latitude'))
+            lng = float(detail.get('Longitude'))
+        except (TypeError, ValueError):
+            lat = None
+            lng = None
+
+        topo_station = topology_stations.get(station.get('Id'))
+        station_info = MetroStationInfo(
+            id=station.get('Id'),
+            name=station.get('Name'),
+            description=station.get('Description'),
+            order=station.get('Order', 0),
+            functional_code=station.get('FunctionalCode'),
+            coordinates=MetroStationCoordinates(lat=lat or 0.0, lng=lng or 0.0),
+            accessibility=MetroStationAccessibility(
+                elevator_count=int(detail.get('Lift') or 0),
+                escalator_count=int(detail.get('Escolator') or 0),
+                has_baby_room=bool(detail.get('BabyRoom')),
+                has_wc=bool(detail.get('WC')),
+                has_masjid=bool(detail.get('Masjid'))
+            ),
+            directions=topo_station.get('directions') if topo_station else None
+        )
+        stations.append(station_info)
+
+    response_payload = MetroLineStationsResponse(
+        line_code=line_code,
+        line_id=line_id,
+        stations=stations
+    )
+
+    _station_cache[cache_key] = response_payload
+    return response_payload
 
 
 @router.get(

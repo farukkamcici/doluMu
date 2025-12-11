@@ -1,5 +1,5 @@
 from pydantic import BaseModel, EmailStr, Field
-from typing import Optional
+from typing import Optional, List
 from datetime import datetime
 from enum import Enum
 
@@ -198,6 +198,38 @@ class TrainArrival(BaseModel):
 class TimeTableResponse(MetroAPIResponse):
     """Response for GetTimeTable (transformed for frontend compatibility)."""
     Data: Optional[list[TrainArrival]] = None
+
+
+class MetroStationAccessibility(BaseModel):
+    """Normalized accessibility flags for frontend."""
+    elevator_count: int = 0
+    escalator_count: int = 0
+    has_baby_room: bool = False
+    has_wc: bool = False
+    has_masjid: bool = False
+
+
+class MetroStationCoordinates(BaseModel):
+    lat: float
+    lng: float
+
+
+class MetroStationInfo(BaseModel):
+    id: int
+    name: str
+    description: Optional[str] = None
+    order: int
+    functional_code: Optional[str] = None
+    coordinates: MetroStationCoordinates
+    accessibility: MetroStationAccessibility
+    directions: Optional[List[dict]] = None
+
+
+class MetroLineStationsResponse(BaseModel):
+    """Backend response for station list requests."""
+    line_code: str
+    line_id: int
+    stations: List[MetroStationInfo]
 
 
 class StationDistance(BaseModel):

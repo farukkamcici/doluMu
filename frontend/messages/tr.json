@@ -70,6 +70,20 @@
     "noLiveGPS": "Not: Planlanan sefer saatlerine göre tahminidir",
     "metroScheduleDisclaimer": "Metro İstanbul API verilerine dayalı planlı sefer saatleri (canlı GPS takibi değil)"
   },
+  "metroStation": {
+    "order": "{order}. durak",
+    "orderLabel": "{order}. durak",
+    "functionalCode": "Fonksiyon Kodu",
+    "amenities": "Olanaklar",
+    "noAmenities": "Olanak bilgisi yok",
+    "elevator": "{count} asansör",
+    "escalator": "{count} yürüyen merdiven",
+    "wc": "WC",
+    "babyRoom": "Bebek bakım odası",
+    "masjid": "Mescit",
+    "directions": "Yönler",
+    "close": "Kapat"
+  },
   "transportTypes": {
     "bus": "Otobüs",
     "metro": "Metro",

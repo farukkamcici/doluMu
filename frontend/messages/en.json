@@ -70,6 +70,20 @@
     "noLiveGPS": "Note: Based on planned schedule",
     "metroScheduleDisclaimer": "Planned schedule from Metro Istanbul API (not live GPS tracking)"
   },
+  "metroStation": {
+    "order": "Stop #{order}",
+    "orderLabel": "Stop {order}",
+    "functionalCode": "Functional Code",
+    "amenities": "Amenities",
+    "noAmenities": "No amenities listed",
+    "elevator": "{count} elevator(s)",
+    "escalator": "{count} escalator(s)",
+    "wc": "Restroom",
+    "babyRoom": "Baby room",
+    "masjid": "Prayer room",
+    "directions": "Directions",
+    "close": "Close"
+  },
   "transportTypes": {
     "bus": "Bus",
     "metro": "Metro",
