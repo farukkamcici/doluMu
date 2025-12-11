@@ -212,32 +212,35 @@ async def search_stations(q: str):
 
 @router.post(
     "/schedule",
-    response_model=TimeTableResponse,
-    summary="Get Live Train Arrivals",
+    summary="Get Metro Train Schedule",
     description="""
-    Fetches planned train departures and converts them to estimated arrivals.
+    Fetches full day schedule or upcoming trains based on request.
     
     **Required from Frontend:**
     - BoardingStationId: Get from metro_topology.json
     - DirectionId: Get from metro_topology.json (station.directions)
+    - DateTime: Optional - if not provided, returns full day schedule (raw format)
     
-    **Caching:** 60 seconds TTL (schedule data)
+    **Caching:** 60 seconds TTL for upcoming trains, 24h for full schedule
     
     **Upstream API:** POST /GetTimeTable
     
-    **Note:** IBB API returns planned departure times, not live GPS. 
-    Backend calculates "RemainingMinutes" based on current time.
+    **Response Modes:**
+    - With DateTime: Returns transformed upcoming trains (TimeTableResponse)
+    - Without DateTime: Returns raw full day schedule (MetroScheduleResponse)
     """
 )
 async def get_train_schedule(request: TimeTableRequest = Body(...)):
     """
-    Get train departure schedule and convert to arrival estimates.
+    Get train departure schedule.
+    
+    Returns full day raw schedule (for widget display) or upcoming trains (for live tracking).
     
     Args:
-        request: TimeTableRequest with StationId, DirectionId, DateTime
+        request: TimeTableRequest with StationId, DirectionId, optional DateTime
         
     Returns:
-        List of upcoming trains with estimated arrival times
+        Raw schedule with all times OR transformed upcoming trains
         
     Raises:
         HTTPException 404: Station/direction not found
@@ -254,7 +257,7 @@ async def get_train_schedule(request: TimeTableRequest = Body(...)):
     logger.info(f"Fetching schedule for station {request.BoardingStationId}, direction {request.DirectionId}")
     
     try:
-        # Prepare request payload (remove DateTime - API doesn't need it)
+        # Prepare request payload (always omit DateTime to get full schedule)
         payload = {
             "BoardingStationId": request.BoardingStationId,
             "DirectionId": request.DirectionId
@@ -277,12 +280,10 @@ async def get_train_schedule(request: TimeTableRequest = Body(...)):
                 detail=f"Metro API error: {error_msg}"
             )
         
-        # Transform response to frontend-compatible format
-        transformed_data = _transform_schedule_response(raw_data)
-        
-        # Cache and return transformed data
-        _schedule_cache[cache_key] = transformed_data
-        return transformed_data
+        # Return RAW schedule (contains all day times)
+        # Frontend will handle transformation for display
+        _schedule_cache[cache_key] = raw_data
+        return raw_data
         
     except requests.exceptions.Timeout:
         logger.error("Metro API timeout")

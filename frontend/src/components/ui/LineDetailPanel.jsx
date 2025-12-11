@@ -20,12 +20,15 @@ import CrowdChart from './CrowdChart';
 import ScheduleWidget from '../line-detail/ScheduleWidget';
 import MetroScheduleWidget from '../line-detail/MetroScheduleWidget';
 import ScheduleModal from '../line-detail/ScheduleModal';
+import MetroScheduleModal from '../line-detail/MetroScheduleModal';
 import StatusBanner from './StatusBanner';
 import AlertsModal from './AlertsModal';
 import { cn } from '@/lib/utils';
 import { getForecast, getLineStatus } from '@/lib/api';
 import { getTransportType } from '@/lib/transportTypes';
 import { useGetTransportLabel } from '@/hooks/useGetTransportLabel';
+import useMetroTopology from '@/hooks/useMetroTopology';
+import { ChevronDown } from 'lucide-react';
 
 const crowdLevelConfig = {
   "Low": { color: "text-emerald-400", progressColor: "bg-emerald-500", badge: "bg-emerald-500/20 border-emerald-500/30" },
@@ -78,6 +81,25 @@ export default function LineDetailPanel() {
   const [showCapacityTooltip, setShowCapacityTooltip] = useState(false);
   const [panelSize, setPanelSize] = useState({ width: 440, height: 520 });
   const resizeRef = useRef(null);
+  
+  // Metro-specific state
+  const { getLine } = useMetroTopology();
+  const metroLine = isMetroLine ? getLine(selectedLine?.id) : null;
+  const metroStations = metroLine?.stations?.sort((a, b) => a.order - b.order) || [];
+  const [selectedMetroStationId, setSelectedMetroStationId] = useState(metroStations[0]?.id);
+  const [selectedMetroDirectionId, setSelectedMetroDirectionId] = useState(metroStations[0]?.directions?.[0]?.id);
+  
+  // Update metro station/direction when line changes
+  useEffect(() => {
+    if (isMetroLine && metroStations.length > 0) {
+      const firstStation = metroStations[0];
+      setSelectedMetroStationId(firstStation.id);
+      setSelectedMetroDirectionId(firstStation.directions?.[0]?.id);
+    }
+  }, [isMetroLine, selectedLine]);
+  
+  const currentMetroStation = metroStations.find(s => s.id === selectedMetroStationId);
+  const metroDirections = currentMetroStation?.directions || [];
   const panelRef = useRef(null);
   const initialPositionSet = useRef(false);
   const INITIAL_PANEL_SIZE = { width: 440, height: 520 };
@@ -439,36 +461,84 @@ export default function LineDetailPanel() {
                 </div>
               </div>
 
-              {/* Direction Tabs (Segmented Control) */}
-              {availableDirections.length > 1 && (
+              {/* Direction/Station Selectors */}
+              {isMetroLine ? (
+                // Metro: Station and Direction Select Menus
                 <div className="px-4 pb-2">
-                  <div className="flex gap-1 p-0.5 bg-background rounded-lg">
-                    {availableDirections.map(dir => {
-                      const info = directionInfo[dir];
-                      const label = info?.label || (dir === 'G' ? t('schedule.outbound') : dir === 'D' ? t('schedule.inbound') : dir);
-                      const isLongLabel = label.length > 20;
-                      
-                      return (
-                        <button
-                          key={dir}
-                          onClick={() => {
-                            handleDirectionChange(dir);
-                          }}
-                          className={cn(
-                            "flex-1 py-1.5 px-2 rounded-md font-medium transition-all touch-manipulation h-8 truncate min-w-0",
-                            isLongLabel && !isDesktop ? "text-[10px]" : "text-xs",
-                            selectedDirection === dir
-                              ? "bg-primary text-white shadow-sm"
-                              : "text-gray-400 hover:text-gray-200 hover:bg-white/5"
-                          )}
-                          title={label}
-                        >
-                          {label}
-                        </button>
-                      );
-                    })}
+                  <div className="grid grid-cols-2 gap-2">
+                    {/* Station Selector */}
+                    <div className="relative">
+                      <select
+                        value={selectedMetroStationId || ''}
+                        onChange={(e) => {
+                          const newStationId = parseInt(e.target.value);
+                          setSelectedMetroStationId(newStationId);
+                          const newStation = metroStations.find(s => s.id === newStationId);
+                          if (newStation?.directions?.[0]) {
+                            setSelectedMetroDirectionId(newStation.directions[0].id);
+                          }
+                        }}
+                        className="w-full appearance-none bg-slate-700/50 border border-white/10 rounded-lg px-3 py-2 pr-8 text-xs text-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500/50 cursor-pointer"
+                      >
+                        {metroStations.map((station) => (
+                          <option key={station.id} value={station.id}>
+                            {station.description || station.name}
+                          </option>
+                        ))}
+                      </select>
+                      <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
+                    </div>
+
+                    {/* Direction Selector */}
+                    <div className="relative">
+                      <select
+                        value={selectedMetroDirectionId || ''}
+                        onChange={(e) => setSelectedMetroDirectionId(parseInt(e.target.value))}
+                        className="w-full appearance-none bg-slate-700/50 border border-white/10 rounded-lg px-3 py-2 pr-8 text-xs text-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500/50 cursor-pointer"
+                        disabled={metroDirections.length === 0}
+                      >
+                        {metroDirections.map((direction) => (
+                          <option key={direction.id} value={direction.id}>
+                            {direction.name}
+                          </option>
+                        ))}
+                      </select>
+                      <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
+                    </div>
                   </div>
                 </div>
+              ) : (
+                // Bus: Direction Tabs (Segmented Control)
+                availableDirections.length > 1 && (
+                  <div className="px-4 pb-2">
+                    <div className="flex gap-1 p-0.5 bg-background rounded-lg">
+                      {availableDirections.map(dir => {
+                        const info = directionInfo[dir];
+                        const label = info?.label || (dir === 'G' ? t('schedule.outbound') : dir === 'D' ? t('schedule.inbound') : dir);
+                        const isLongLabel = label.length > 20;
+                        
+                        return (
+                          <button
+                            key={dir}
+                            onClick={() => {
+                              handleDirectionChange(dir);
+                            }}
+                            className={cn(
+                              "flex-1 py-1.5 px-2 rounded-md font-medium transition-all touch-manipulation h-8 truncate min-w-0",
+                              isLongLabel && !isDesktop ? "text-[10px]" : "text-xs",
+                              selectedDirection === dir
+                                ? "bg-primary text-white shadow-sm"
+                                : "text-gray-400 hover:text-gray-200 hover:bg-white/5"
+                            )}
+                            title={label}
+                          >
+                            {label}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )
               )}
             </div>
 
@@ -625,8 +695,11 @@ export default function LineDetailPanel() {
                       {isMetroLine ? (
                         <MetroScheduleWidget 
                           lineCode={selectedLine.id}
+                          stationId={selectedMetroStationId}
+                          directionId={selectedMetroDirectionId}
                           compact={true}
                           limit={isDesktop ? 5 : 3}
+                          onShowFullSchedule={() => setIsScheduleModalOpen(true)}
                         />
                       ) : (
                         <ScheduleWidget 
@@ -680,13 +753,24 @@ export default function LineDetailPanel() {
         </motion.div>
       </motion.div>
 
-      <ScheduleModal 
-        lineCode={selectedLine.id}
-        isOpen={isScheduleModalOpen}
-        onClose={() => setIsScheduleModalOpen(false)}
-        initialDirection={selectedDirection}
-        directionInfo={directionInfo}
-      />
+      {/* Schedule Modal - Different for Metro vs Bus */}
+      {isMetroLine ? (
+        <MetroScheduleModal 
+          lineCode={selectedLine.id}
+          isOpen={isScheduleModalOpen}
+          onClose={() => setIsScheduleModalOpen(false)}
+          initialStationId={selectedMetroStationId}
+          initialDirectionId={selectedMetroDirectionId}
+        />
+      ) : (
+        <ScheduleModal 
+          lineCode={selectedLine.id}
+          isOpen={isScheduleModalOpen}
+          onClose={() => setIsScheduleModalOpen(false)}
+          initialDirection={selectedDirection}
+          directionInfo={directionInfo}
+        />
+      )}
       
       {/* AlertsModal - Only for Bus lines */}
       {!isMetroLine && (
