@@ -127,6 +127,8 @@ def cleanup_old_forecasts(days_to_keep: int = 3):
         days_to_keep: Number of days to retain (default: 3)
     """
     job_name = 'cleanup_old_forecasts'
+    db = SessionLocal()
+    job_log = None
     
     try:
         # Calculate cutoff date (keep last 3 days minimum)
@@ -134,37 +136,62 @@ def cleanup_old_forecasts(days_to_keep: int = 3):
         
         logger.info(f"🗑️  [CRON] Starting cleanup of forecasts before {cutoff_date}")
         
-        db = SessionLocal()
-        try:
-            # Count records to delete
-            count_query = db.query(DailyForecast).filter(DailyForecast.date < cutoff_date)
-            records_to_delete = count_query.count()
-            
-            if records_to_delete == 0:
-                logger.info(f"✅ [CRON] No old forecasts to delete (cutoff: {cutoff_date})")
-                job_stats[job_name]['last_status'] = 'success_nothing_to_delete'
-                return
-            
-            # Delete old records
-            deleted = count_query.delete()
+        # Create job log
+        job_log = JobExecution(
+            job_type="cleanup_old_forecasts",
+            target_date=cutoff_date,
+            status="RUNNING",
+            start_time=datetime.now(),
+            metadata={"days_to_keep": days_to_keep, "cutoff_date": str(cutoff_date)}
+        )
+        db.add(job_log)
+        db.commit()
+        db.refresh(job_log)
+        
+        # Count records to delete
+        count_query = db.query(DailyForecast).filter(DailyForecast.date < cutoff_date)
+        records_to_delete = count_query.count()
+        
+        if records_to_delete == 0:
+            logger.info(f"✅ [CRON] No old forecasts to delete (cutoff: {cutoff_date})")
+            job_stats[job_name]['last_status'] = 'success_nothing_to_delete'
+            job_log.status = "SUCCESS"
+            job_log.end_time = datetime.now()
+            job_log.records_processed = 0
             db.commit()
-            
-            # Update stats
-            job_stats[job_name]['last_run'] = datetime.now()
-            job_stats[job_name]['last_status'] = 'success'
-            job_stats[job_name]['run_count'] += 1
-            
-            logger.info(f"✅ [CRON] Deleted {deleted} forecast records before {cutoff_date}")
-            logger.info(f"💾 Database cleanup freed space for ~{deleted * 0.5}KB")
-            
-        finally:
-            db.close()
-            
+            return
+        
+        # Delete old records
+        deleted = count_query.delete()
+        db.commit()
+        
+        # Update job log
+        job_log.status = "SUCCESS"
+        job_log.end_time = datetime.now()
+        job_log.records_processed = deleted
+        db.commit()
+        
+        # Update stats
+        job_stats[job_name]['last_run'] = datetime.now()
+        job_stats[job_name]['last_status'] = 'success'
+        job_stats[job_name]['run_count'] += 1
+        
+        logger.info(f"✅ [CRON] Deleted {deleted} forecast records before {cutoff_date}")
+        logger.info(f"💾 Database cleanup freed space for ~{deleted * 0.5}KB")
+        
     except Exception as e:
         job_stats[job_name]['error_count'] += 1
         logger.error(f"❌ [CRON] Cleanup failed: {str(e)}")
         logger.error(traceback.format_exc())
         job_stats[job_name]['last_status'] = 'failed'
+        
+        if job_log:
+            job_log.status = "FAILED"
+            job_log.end_time = datetime.now()
+            job_log.error_message = str(e)[:1000]
+            db.commit()
+    finally:
+        db.close()
 
 
 # ============================================================================
@@ -181,12 +208,24 @@ def data_quality_check():
     - Feature store health
     """
     job_name = 'data_quality_check'
+    db = SessionLocal()
+    job_log = None
+    issues = []
     
     try:
         logger.info(f"🔍 [CRON] Starting data quality check")
         
-        db = SessionLocal()
-        issues = []
+        # Create job log
+        job_log = JobExecution(
+            job_type="data_quality_check",
+            target_date=date.today(),
+            status="RUNNING",
+            start_time=datetime.now(),
+            metadata={"check_type": "forecast_coverage_and_quality"}
+        )
+        db.add(job_log)
+        db.commit()
+        db.refresh(job_log)
         
         try:
             # Check forecast coverage for critical dates
@@ -245,10 +284,17 @@ def data_quality_check():
             job_stats[job_name]['last_run'] = datetime.now()
             job_stats[job_name]['run_count'] += 1
             
+            # Update job log
+            job_log.status = "SUCCESS" if not issues else "SUCCESS"
+            job_log.end_time = datetime.now()
+            job_log.records_processed = len(issues)
+            job_log.metadata["issues"] = issues[:10]  # Store first 10 issues
+            job_log.metadata["total_issues"] = len(issues)
+            db.commit()
+            
             if issues:
                 job_stats[job_name]['last_status'] = 'issues_found'
                 logger.warning(f"⚠️  [CRON] Data quality check found {len(issues)} issues")
-                # TODO: Send notification with issues list
             else:
                 job_stats[job_name]['last_status'] = 'healthy'
                 logger.info(f"✅ [CRON] Data quality check passed - all systems healthy")
@@ -261,6 +307,17 @@ def data_quality_check():
         logger.error(f"❌ [CRON] Data quality check failed: {str(e)}")
         logger.error(traceback.format_exc())
         job_stats[job_name]['last_status'] = 'failed'
+        
+        if job_log:
+            db_err = SessionLocal()
+            try:
+                job_log.status = "FAILED"
+                job_log.end_time = datetime.now()
+                job_log.error_message = str(e)[:1000]
+                db_err.merge(job_log)
+                db_err.commit()
+            finally:
+                db_err.close()
 
 
 # ============================================================================
@@ -271,18 +328,41 @@ def prefetch_metro_schedules(target_date: Optional[date] = None, force: bool = F
     """Fetch and persist metro timetables for all station/direction pairs."""
     job_name = 'metro_schedule_prefetch'
     target = target_date or date.today()
+    db = SessionLocal()
+    job_log = None
 
     try:
         logger.info("🚇 [CRON] Starting metro timetable prefetch for %s", target)
-        db = SessionLocal()
-        try:
-            result = metro_schedule_cache_service.prefetch_all_schedules(
-                db,
-                valid_for=target,
-                force=force
-            )
-        finally:
-            db.close()
+        
+        # Create job log
+        job_log = JobExecution(
+            job_type="metro_schedule_prefetch",
+            target_date=target,
+            status="RUNNING",
+            start_time=datetime.now(),
+            metadata={"force": force, "valid_for": str(target)}
+        )
+        db.add(job_log)
+        db.commit()
+        db.refresh(job_log)
+        
+        result = metro_schedule_cache_service.prefetch_all_schedules(
+            db,
+            valid_for=target,
+            force=force
+        )
+
+        # Update job log
+        job_log.status = "SUCCESS" if result.get('failed') == 0 else "SUCCESS"
+        job_log.end_time = datetime.now()
+        job_log.records_processed = result.get('cached', 0)
+        job_log.metadata.update({
+            "total_pairs": result.get('total_pairs', 0),
+            "cached": result.get('cached', 0),
+            "failed": result.get('failed', 0),
+            "skipped": result.get('skipped', 0)
+        })
+        db.commit()
 
         job_stats[job_name]['last_run'] = datetime.now()
         job_stats[job_name]['run_count'] += 1
@@ -311,7 +391,15 @@ def prefetch_metro_schedules(target_date: Optional[date] = None, force: bool = F
         job_stats[job_name]['last_status'] = 'failed'
         logger.error("❌ [CRON] Metro timetable prefetch failed: %s", exc)
         logger.error(traceback.format_exc())
+        
+        if job_log:
+            job_log.status = "FAILED"
+            job_log.end_time = datetime.now()
+            job_log.error_message = str(exc)[:1000]
+            db.commit()
         raise
+    finally:
+        db.close()
 
 
 def retry_failed_metro_pairs():
@@ -459,7 +547,7 @@ def start_scheduler():
         generate_daily_forecast,
         trigger=CronTrigger(hour=2, minute=0, timezone="Europe/Istanbul"),
         id="daily_forecast",
-        name="Generate Tomorrow's Forecast",
+        name="Generate Forecasts (T+1, T+2)",
         replace_existing=True,
         misfire_grace_time=3600,  # Allow 1 hour delay if server was down
         coalesce=True  # Combine missed runs into one

@@ -81,11 +81,6 @@ export default function LineDetailPanel() {
   // Detect if selected line is metro
   const isMetroLine = selectedLine && /^[MFT]/.test(selectedLine.id);
   
-  useEffect(() => {
-    if (isPanelOpen && isFavoritesPage) {
-      queueMicrotask(() => setIsMinimized(false));
-    }
-  }, [isPanelOpen, isFavoritesPage]);
   const [hasRouteData, setHasRouteData] = useState(false);
   const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
   const [isAlertsModalOpen, setIsAlertsModalOpen] = useState(false);

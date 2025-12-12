@@ -30,11 +30,13 @@ class JobLogResponse(BaseModel):
     id: int
     job_type: str
     target_date: date | None
+    end_date: date | None
     status: str
     start_time: datetime
     end_time: datetime | None
     records_processed: int
     error_message: str | None
+    metadata: dict | None
 
 
 class DashboardStats(BaseModel):

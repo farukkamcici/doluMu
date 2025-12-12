@@ -29,7 +29,17 @@ export default function BottomNav() {
   const { closePanel } = useAppStore();
   
   useEffect(() => {
-    closePanel();
+    // Only close panel when navigating to settings or admin pages
+    const normalized = (() => {
+      const parts = (pathname || '').split('/').filter(Boolean);
+      const routeParts = parts.slice(1);
+      return routeParts.length ? `/${routeParts.join('/')}` : '/';
+    })();
+
+    if (normalized.startsWith('/settings') || normalized.startsWith('/admin')) {
+      closePanel();
+    }
+    // Panel stays open when switching between Map and Favorites tabs
   }, [pathname, closePanel]);
   
   return (

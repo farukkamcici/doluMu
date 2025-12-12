@@ -41,12 +41,14 @@ class JobExecution(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     job_type = Column(String, default="daily_forecast")
-    target_date = Column(Date, nullable=True)  # Which date the forecast is for
-    status = Column(String) # RUNNING, SUCCESS, FAILED
+    target_date = Column(Date, nullable=True)
+    end_date = Column(Date, nullable=True)
+    status = Column(String)
     start_time = Column(DateTime(timezone=True), server_default=func.now())
     end_time = Column(DateTime(timezone=True), nullable=True)
     records_processed = Column(Integer, default=0)
     error_message = Column(Text, nullable=True)
+    metadata = Column(JSON, nullable=True)
 
 class AdminUser(Base):
     """Admin users for accessing the admin panel."""

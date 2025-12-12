@@ -2,7 +2,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy.dialects.postgresql import insert
 import pandas as pd
 import lightgbm as lgb
-from datetime import datetime
+from datetime import datetime, timedelta
 import traceback
 from ..db import SessionLocal
 from ..models import TransportLine, DailyForecast, JobExecution
@@ -34,12 +34,17 @@ def run_daily_forecast_job(db: Session, store: FeatureStore, model: lgb.Booster,
     job_log = None
     
     try:
+        # Calculate end date for the job
+        end_date = target_date + timedelta(days=num_days - 1)
+        
         # 1. Create Job Log (STARTED)
         job_log = JobExecution(
             job_type="daily_forecast",
             target_date=target_date,
+            end_date=end_date if num_days > 1 else None,
             status="RUNNING",
-            start_time=datetime.now()
+            start_time=datetime.now(),
+            metadata={"num_days": num_days, "days": [str(target_date + timedelta(days=i)) for i in range(num_days)]}
         )
         db.add(job_log)
         db.commit()

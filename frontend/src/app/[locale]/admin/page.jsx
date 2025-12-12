@@ -534,6 +534,7 @@ function AdminDashboardContent() {
               <table className="w-full text-left text-sm text-gray-400">
                 <thead className="bg-gray-950 text-gray-300 uppercase text-xs font-bold tracking-wider border-b border-gray-800">
                   <tr>
+                    <th className="px-6 py-4">Job Type</th>
                     <th className="px-6 py-4">Status</th>
                     <th className="px-6 py-4">Target Date</th>
                     <th className="px-6 py-4">Start Time</th>
@@ -546,9 +547,29 @@ function AdminDashboardContent() {
                     const duration = job.end_time
                       ? ((new Date(job.end_time) - new Date(job.start_time)) / 1000).toFixed(1) + 's'
                       : 'Running...';
+                    
+                    // Job type icons and colors
+                    const jobTypeConfig = {
+                      'daily_forecast': { icon: '🔮', color: 'text-blue-400', label: 'Forecast' },
+                      'cleanup_old_forecasts': { icon: '🗑️', color: 'text-red-400', label: 'Cleanup' },
+                      'data_quality_check': { icon: '🔍', color: 'text-green-400', label: 'Quality Check' },
+                      'metro_schedule_prefetch': { icon: '🚇', color: 'text-purple-400', label: 'Metro Cache' }
+                    };
+                    const config = jobTypeConfig[job.job_type] || { icon: '⚙️', color: 'text-gray-400', label: job.job_type };
 
                     return (
                       <tr key={job.id} className="hover:bg-gray-800/40 transition-colors">
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-2">
+                            <span className="text-lg">{config.icon}</span>
+                            <div className="flex flex-col">
+                              <span className={`text-sm font-bold ${config.color}`}>{config.label}</span>
+                              {job.metadata?.num_days && job.metadata.num_days > 1 && (
+                                <span className="text-[10px] text-gray-500">({job.metadata.num_days} days)</span>
+                              )}
+                            </div>
+                          </div>
+                        </td>
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-3">
                             <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold border ${
@@ -576,9 +597,14 @@ function AdminDashboardContent() {
                         <td className="px-6 py-4">
                           <div className="flex flex-col gap-0.5">
                             <span className="text-white font-bold text-sm">
-                              {job.target_date ? format(new Date(job.target_date), 'MMM dd, yyyy') : 'N/A'}
+                              {job.target_date ? (
+                                job.end_date && job.end_date !== job.target_date ? (
+                                  `${format(new Date(job.target_date), 'MMM dd')} - ${format(new Date(job.end_date), 'MMM dd, yyyy')}`
+                                ) : (
+                                  format(new Date(job.target_date), 'MMM dd, yyyy')
+                                )
+                              ) : 'N/A'}
                             </span>
-                            <span className="text-gray-500 text-[10px]">{job.job_type}</span>
                           </div>
                         </td>
                         <td className="px-6 py-4 font-mono text-xs">{format(new Date(job.start_time), 'yyyy-MM-dd HH:mm')}</td>
@@ -589,7 +615,7 @@ function AdminDashboardContent() {
                   })}
                   {jobs.length === 0 && (
                     <tr>
-                      <td colSpan="5" className="px-6 py-12 text-center text-gray-600 italic">
+                      <td colSpan="6" className="px-6 py-12 text-center text-gray-600 italic">
                         No jobs recorded yet.
                       </td>
                     </tr>
