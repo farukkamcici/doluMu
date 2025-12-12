@@ -51,6 +51,14 @@
       "occupancyLabel": "Doluluk: {pct}%",
       "levelLabel": "Yoğunluk: {level}",
       "passengersApprox": "≈{count} yolcu"
+    },
+    "emptyState": {
+      "outOfServiceBadge": "Sefer yok",
+      "outOfServiceTitle": "{hour}:00 için sefer yok",
+      "outOfServiceHeadline": "Yoğunluk tahmini yok",
+      "outOfServiceDescription": "Seçilen saatte bu hat çalışmıyor.",
+      "outOfServiceTip": "İpucu: Kaydırıcıyı sefer saatlerine getirin.",
+      "noForecastHint": "Farklı bir saat seçin veya daha sonra tekrar deneyin."
     }
   },
   "schedule": {

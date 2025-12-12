@@ -71,6 +71,7 @@ function AdminDashboardContent() {
     const tomorrow = addDays(new Date(), 1);
     return tomorrow.toISOString().split('T')[0];
   });
+  const [numDays, setNumDays] = useState(2);
   const [showCleanupModal, setShowCleanupModal] = useState(false);
   const [cleanupConfirmText, setCleanupConfirmText] = useState("");
   const [isCleaningUp, setIsCleaningUp] = useState(false);
@@ -127,8 +128,17 @@ function AdminDashboardContent() {
     setTriggerMessage("");
     try {
       const headers = getAuthHeaders();
-      await axios.post(`${API_URL}/admin/forecast/trigger?target_date=${selectedDate}`, {}, { headers });
-      setTriggerMessage(`🚀 Job started for ${selectedDate}. It usually takes ~30 seconds.`);
+      const response = await axios.post(
+        `${API_URL}/admin/forecast/trigger?target_date=${selectedDate}&num_days=${numDays}`, 
+        {}, 
+        { headers }
+      );
+      
+      if (response.data) {
+        setTriggerMessage(`🚀 Forecast job started for ${response.data.num_days} day(s) (${response.data.start_date} to ${response.data.end_date}). This may take a few minutes.`);
+      } else {
+        setTriggerMessage(`🚀 Job started for ${selectedDate}. It usually takes ~30 seconds per day.`);
+      }
       setTimeout(fetchData, 1000);
     } catch (error) {
       setTriggerMessage("❌ Error triggering job. Check console.");
@@ -340,16 +350,30 @@ function AdminDashboardContent() {
             {/* Control Panel */}
             <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
               <h3 className="text-lg font-bold text-white mb-6">⚡ Forecast Operations</h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 {/* Date Picker */}
                 <div className="bg-gray-950 rounded-lg p-4">
-                  <label className="block text-xs text-gray-500 font-bold uppercase mb-2">Target Date</label>
+                  <label className="block text-xs text-gray-500 font-bold uppercase mb-2">Start Date</label>
                   <input
                     type="date"
                     value={selectedDate}
                     onChange={(e) => setSelectedDate(e.target.value)}
                     className="w-full bg-gray-900 text-white px-3 py-2 rounded-lg border border-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-600"
                   />
+                </div>
+
+                {/* Number of Days */}
+                <div className="bg-gray-950 rounded-lg p-4">
+                  <label className="block text-xs text-gray-500 font-bold uppercase mb-2">Number of Days</label>
+                  <select
+                    value={numDays}
+                    onChange={(e) => setNumDays(Number(e.target.value))}
+                    className="w-full bg-gray-900 text-white px-3 py-2 rounded-lg border border-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-600"
+                  >
+                    <option value={1}>1 day (T+1)</option>
+                    <option value={2}>2 days (T+1, T+2)</option>
+                    <option value={3}>3 days (T+1, T+2, T+3)</option>
+                  </select>
                 </div>
 
                 {/* Run Forecast */}

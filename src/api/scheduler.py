@@ -45,13 +45,14 @@ metro_cache_state: Dict[str, Optional[Dict]] = {
 # JOB 1: DAILY FORECAST GENERATION
 # ============================================================================
 
-def generate_daily_forecast(target_date: Optional[date] = None, retry_count: int = 0):
+def generate_daily_forecast(target_date: Optional[date] = None, num_days: int = 2, retry_count: int = 0):
     """
-    Generate forecast for target date (default: tomorrow).
+    Generate forecast for target date and subsequent days (default: T+1 and T+2).
     Implements retry logic with exponential backoff.
     
     Args:
-        target_date: Date to generate forecast for (defaults to tomorrow)
+        target_date: Starting date to generate forecast for (defaults to tomorrow)
+        num_days: Number of consecutive days to forecast (default: 2 for T+1 and T+2)
         retry_count: Current retry attempt number
     """
     job_name = 'daily_forecast'
@@ -62,7 +63,8 @@ def generate_daily_forecast(target_date: Optional[date] = None, retry_count: int
         if target_date is None:
             target_date = date.today() + timedelta(days=1)
         
-        logger.info(f"🚀 [CRON] Starting daily forecast generation for {target_date}")
+        end_date = target_date + timedelta(days=num_days - 1)
+        logger.info(f"🚀 [CRON] Starting daily forecast generation for {num_days} day(s) ({target_date} to {end_date})")
         
         # Get dependencies
         db = SessionLocal()
@@ -70,8 +72,8 @@ def generate_daily_forecast(target_date: Optional[date] = None, retry_count: int
             model = get_model()
             store = get_feature_store()
             
-            # Run forecast job
-            result = run_daily_forecast_job(db, store, model, target_date)
+            # Run forecast job for multiple days
+            result = run_daily_forecast_job(db, store, model, target_date, num_days)
             
             # Update stats
             job_stats[job_name]['last_run'] = datetime.now()
@@ -80,7 +82,8 @@ def generate_daily_forecast(target_date: Optional[date] = None, retry_count: int
             
             if result.get('status') == 'success':
                 processed = result.get('processed_count', 0)
-                logger.info(f"✅ [CRON] Daily forecast completed: {processed} predictions for {target_date}")
+                days = result.get('num_days', num_days)
+                logger.info(f"✅ [CRON] Daily forecast completed: {processed} predictions for {days} day(s) ({target_date} to {end_date})")
                 logger.info(f"📊 Fallback stats: {result.get('fallback_stats', {})}")
             else:
                 raise Exception(f"Forecast job failed: {result.get('error', 'Unknown error')}")
@@ -102,7 +105,7 @@ def generate_daily_forecast(target_date: Optional[date] = None, retry_count: int
                 generate_daily_forecast,
                 'date',
                 run_date=datetime.now() + timedelta(seconds=retry_delay),
-                args=[target_date, retry_count + 1],
+                args=[target_date, num_days, retry_count + 1],
                 id=f'daily_forecast_retry_{retry_count + 1}',
                 replace_existing=True
             )
@@ -572,19 +575,23 @@ def get_scheduler_status():
 # MANUAL TRIGGERS (for admin panel)
 # ============================================================================
 
-def trigger_forecast_now(target_date: Optional[date] = None):
+def trigger_forecast_now(target_date: Optional[date] = None, num_days: int = 2):
     """
     Manually trigger forecast generation (bypasses schedule).
     
     Args:
-        target_date: Date to generate forecast for (default: tomorrow)
+        target_date: Starting date to generate forecast for (default: tomorrow)
+        num_days: Number of consecutive days to forecast (default: 2 for T+1 and T+2)
     """
-    logger.info(f"🎯 Manual trigger: Generating forecast for {target_date or 'tomorrow'}")
+    if target_date is None:
+        target_date = date.today() + timedelta(days=1)
+    end_date = target_date + timedelta(days=num_days - 1)
+    logger.info(f"🎯 Manual trigger: Generating forecast for {num_days} day(s) ({target_date} to {end_date})")
     scheduler.add_job(
         generate_daily_forecast,
         'date',
         run_date=datetime.now(),
-        args=[target_date],
+        args=[target_date, num_days],
         id='manual_forecast_trigger',
         replace_existing=True
     )

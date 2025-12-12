@@ -51,6 +51,14 @@
       "occupancyLabel": "Occupancy: {pct}%",
       "levelLabel": "Level: {level}",
       "passengersApprox": "≈{count} passengers"
+    },
+    "emptyState": {
+      "outOfServiceBadge": "No service",
+      "outOfServiceTitle": "No trips at {hour}:00",
+      "outOfServiceHeadline": "Crowd predictions unavailable",
+      "outOfServiceDescription": "This line does not operate during the selected hour.",
+      "outOfServiceTip": "Tip: move the slider to an in-service hour.",
+      "noForecastHint": "Try selecting a different hour or refresh later."
     }
   },
   "schedule": {

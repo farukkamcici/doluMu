@@ -13,7 +13,9 @@ import {
   Users, 
   Star,
   Minimize2,
-  RotateCcw
+  RotateCcw,
+  Clock,
+  Info
 } from 'lucide-react';
 import TimeSlider from './TimeSlider';
 import CrowdChart from './CrowdChart';
@@ -36,6 +38,11 @@ const crowdLevelConfig = {
   "High": { color: "text-orange-400", progressColor: "bg-orange-500", badge: "bg-orange-500/20 border-orange-500/30" },
   "Very High": { color: "text-red-400", progressColor: "bg-red-500", badge: "bg-red-500/20 border-red-500/30" },
   "Unknown": { color: "text-gray-400", progressColor: "bg-gray-500", badge: "bg-gray-500/20 border-gray-500/30" },
+};
+
+const outOfServiceStyles = {
+  color: 'text-slate-300',
+  badge: 'bg-slate-500/15 border-slate-500/30',
 };
 
 export default function LineDetailPanel() {
@@ -285,8 +292,21 @@ export default function LineDetailPanel() {
   if (!isPanelOpen || !selectedLine) return null;
 
   const currentHourData = forecastData.find(f => f.hour === selectedHour);
-  const crowdLevel = currentHourData?.crowd_level;
-  const status = currentHourData ? crowdLevelConfig[crowdLevel] : null;
+  const isOutOfServiceHour =
+    !!currentHourData &&
+    (
+      currentHourData.in_service === false ||
+      currentHourData.crowd_level === 'Out of Service' ||
+      currentHourData.occupancy_pct == null
+    );
+
+  const crowdLevel = isOutOfServiceHour
+    ? 'Out of Service'
+    : (currentHourData?.crowd_level || 'Unknown');
+
+  const status = isOutOfServiceHour
+    ? null
+    : (crowdLevelConfig[crowdLevel] || crowdLevelConfig.Unknown);
   const metadata = selectedLine.metadata;
   const transportType = metadata ? getTransportType(metadata.transport_type_id) : null;
   const m1aLine = isMetroLine ? getLine('M1A') : null;
@@ -499,14 +519,26 @@ export default function LineDetailPanel() {
                   )}
                 </div>
                 <div className="flex items-center gap-1.5 shrink-0">
-                  {currentHourData && status && (
-                    <div className={cn(
-                      "rounded-lg px-2 py-1 border text-xs font-bold",
-                      status.badge,
-                      status.color
-                    )}>
-                      {currentHourData.occupancy_pct}%
-                    </div>
+                  {currentHourData && !loading && !error && (
+                    isOutOfServiceHour ? (
+                      <div className={cn(
+                        "rounded-lg px-2 py-1 border text-[11px] font-bold",
+                        outOfServiceStyles.badge,
+                        outOfServiceStyles.color
+                      )}>
+                        {t('emptyState.outOfServiceBadge')}
+                      </div>
+                    ) : (
+                      status && (
+                        <div className={cn(
+                          "rounded-lg px-2 py-1 border text-xs font-bold",
+                          status.badge,
+                          status.color
+                        )}>
+                          {currentHourData.occupancy_pct}%
+                        </div>
+                      )
+                    )
                   )}
                   <button 
                     onClick={(e) => {
@@ -666,7 +698,7 @@ export default function LineDetailPanel() {
                         </div>
                       )}
                       
-                      {currentHourData && status && !loading && !error && (
+                      {!loading && !error && (
                         <div className="p-3 space-y-3">
                           {/* Crowd Info with Time Badge */}
                           <div className="space-y-2">
@@ -682,16 +714,33 @@ export default function LineDetailPanel() {
                                       {selectedHour}:00
                                     </span>
                                   </div>
-                                  <div className={cn(
-                                    "rounded-md px-2.5 py-1.5 border text-xs font-semibold",
-                                    status.badge,
-                                    status.color
-                                  )}>
-                                    {currentHourData.occupancy_pct}%
-                                  </div>
+                                  {isOutOfServiceHour ? (
+                                    <div className={cn(
+                                      "rounded-md px-2.5 py-1.5 border text-xs font-semibold",
+                                      outOfServiceStyles.badge,
+                                      outOfServiceStyles.color
+                                    )}>
+                                      {t('emptyState.outOfServiceBadge')}
+                                    </div>
+                                  ) : (
+                                    currentHourData && status && (
+                                      <div className={cn(
+                                        "rounded-md px-2.5 py-1.5 border text-xs font-semibold",
+                                        status.badge,
+                                        status.color
+                                      )}>
+                                        {currentHourData.occupancy_pct}%
+                                      </div>
+                                    )
+                                  )}
                                 </div>
-                                <h3 className={cn("text-sm font-bold", status.color)}>
-                                  {t(`crowdLevels.${crowdLevel}`)}
+                                <h3 className={cn(
+                                  "text-sm font-bold",
+                                  isOutOfServiceHour ? outOfServiceStyles.color : status?.color
+                                )}>
+                                  {isOutOfServiceHour
+                                    ? t('emptyState.outOfServiceTitle', { hour: selectedHour })
+                                    : t(`crowdLevels.${crowdLevel}`)}
                                 </h3>
                               </>
                             ) : (
@@ -706,58 +755,111 @@ export default function LineDetailPanel() {
                                       {selectedHour}:00
                                     </span>
                                   </div>
-                                  <h3 className={cn("text-base font-bold", status.color)}>
-                                    {t(`crowdLevels.${crowdLevel}`)}
+                                  <h3 className={cn(
+                                    "text-base font-bold",
+                                    isOutOfServiceHour ? outOfServiceStyles.color : status?.color
+                                  )}>
+                                    {isOutOfServiceHour
+                                      ? t('emptyState.outOfServiceTitle', { hour: selectedHour })
+                                      : t(`crowdLevels.${crowdLevel}`)}
                                   </h3>
                                 </div>
-                                <div className={cn(
-                                  "rounded-md px-2.5 py-1.5 border text-xs font-semibold",
-                                  status.badge,
-                                  status.color
-                                )}>
-                                  {currentHourData.occupancy_pct}%
+                                {isOutOfServiceHour ? (
+                                  <div className={cn(
+                                    "rounded-md px-2.5 py-1.5 border text-xs font-semibold",
+                                    outOfServiceStyles.badge,
+                                    outOfServiceStyles.color
+                                  )}>
+                                    {t('emptyState.outOfServiceBadge')}
+                                  </div>
+                                ) : (
+                                  currentHourData && status && (
+                                    <div className={cn(
+                                      "rounded-md px-2.5 py-1.5 border text-xs font-semibold",
+                                      status.badge,
+                                      status.color
+                                    )}>
+                                      {currentHourData.occupancy_pct}%
+                                    </div>
+                                  )
+                                )}
+                              </div>
+                            )}
+
+                            {currentHourData ? (
+                              isOutOfServiceHour ? (
+                                <div className="rounded-xl border border-white/10 bg-gradient-to-br from-slate-800/60 to-slate-900/30 p-3">
+                                  <div className="flex items-start gap-3">
+                                    <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-slate-700/30">
+                                      <Clock size={16} className="text-slate-200" />
+                                    </div>
+                                    <div className="min-w-0">
+                                      <p className="text-[11px] text-gray-400 mt-1 leading-snug">
+                                        {t('emptyState.outOfServiceDescription')}
+                                      </p>
+                                      <p className="text-[11px] text-gray-500 mt-2">
+                                        {t('emptyState.outOfServiceTip')}
+                                      </p>
+                                    </div>
+                                  </div>
+                                </div>
+                              ) : (
+                                <>
+                                  <div className="w-full bg-slate-800 rounded-full h-1.5">
+                                    <div 
+                                      className={cn("h-1.5 rounded-full transition-all duration-500", status.progressColor)} 
+                                      style={{ width: `${currentHourData.occupancy_pct}%` }}
+                                    />
+                                  </div>
+                                  
+                                  <div className="flex items-center justify-between text-[11px]">
+                                    <span className="text-gray-400">
+                                      {t('predicted')}: <span className="font-semibold text-gray-300">
+                                        {Math.round(currentHourData.predicted_value).toLocaleString()}
+                                      </span> <span className="text-gray-500">{t('passengers')}</span>
+                                    </span>
+                                    <div className="relative">
+                                      <span 
+                                        className="flex items-center gap-1 text-gray-400 cursor-help"
+                                        onMouseEnter={() => isDesktop && setShowCapacityTooltip(true)}
+                                        onMouseLeave={() => isDesktop && setShowCapacityTooltip(false)}
+                                        onClick={(e) => {
+                                          if (!isDesktop) {
+                                            e.stopPropagation();
+                                            setShowCapacityTooltip(!showCapacityTooltip);
+                                            vibrate(5);
+                                          }
+                                        }}
+                                      >
+                                        <span className="text-[9px] text-gray-500">{t('maxCapacity')}</span>
+                                        <Users size={10} className="text-gray-500" /> 
+                                        <span className="font-semibold text-gray-300">{currentHourData.max_capacity.toLocaleString()}</span>
+                                      </span>
+                                      {showCapacityTooltip && (
+                                        <div className="absolute right-0 bottom-full mb-2 px-2 py-1.5 bg-slate-800 border border-white/10 rounded-lg shadow-xl z-50 whitespace-nowrap">
+                                          <p className="text-[10px] text-gray-300">{t('maxCapacityTooltip')}</p>
+                                          <div className="absolute right-3 top-full w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-slate-800"></div>
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+                                </>
+                              )
+                            ) : (
+                              <div className="rounded-xl border border-white/10 bg-gradient-to-br from-slate-800/60 to-slate-900/30 p-3">
+                                <div className="flex items-start gap-3">
+                                  <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-slate-700/30">
+                                    <Info size={16} className="text-slate-200" />
+                                  </div>
+                                  <div className="min-w-0">
+                                    <p className="text-xs font-semibold text-slate-200">{tErrors('noForecastData')}</p>
+                                    <p className="text-[11px] text-gray-500 mt-1 leading-snug">
+                                      {t('emptyState.noForecastHint')}
+                                    </p>
+                                  </div>
                                 </div>
                               </div>
                             )}
-                            
-                            <div className="w-full bg-slate-800 rounded-full h-1.5">
-                              <div 
-                                className={cn("h-1.5 rounded-full transition-all duration-500", status.progressColor)} 
-                                style={{ width: `${currentHourData.occupancy_pct}%` }}
-                              />
-                            </div>
-                            
-                            <div className="flex items-center justify-between text-[11px]">
-                              <span className="text-gray-400">
-                                {t('predicted')}: <span className="font-semibold text-gray-300">
-                                  {Math.round(currentHourData.predicted_value).toLocaleString()}
-                                </span> <span className="text-gray-500">{t('passengers')}</span>
-                              </span>
-                              <div className="relative">
-                                <span 
-                                  className="flex items-center gap-1 text-gray-400 cursor-help"
-                                  onMouseEnter={() => isDesktop && setShowCapacityTooltip(true)}
-                                  onMouseLeave={() => isDesktop && setShowCapacityTooltip(false)}
-                                  onClick={(e) => {
-                                    if (!isDesktop) {
-                                      e.stopPropagation();
-                                      setShowCapacityTooltip(!showCapacityTooltip);
-                                      vibrate(5);
-                                    }
-                                  }}
-                                >
-                                  <span className="text-[9px] text-gray-500">{t('maxCapacity')}</span>
-                                  <Users size={10} className="text-gray-500" /> 
-                                  <span className="font-semibold text-gray-300">{currentHourData.max_capacity.toLocaleString()}</span>
-                                </span>
-                                {showCapacityTooltip && (
-                                  <div className="absolute right-0 bottom-full mb-2 px-2 py-1.5 bg-slate-800 border border-white/10 rounded-lg shadow-xl z-50 whitespace-nowrap">
-                                    <p className="text-[10px] text-gray-300">{t('maxCapacityTooltip')}</p>
-                                    <div className="absolute right-3 top-full w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-slate-800"></div>
-                                  </div>
-                                )}
-                              </div>
-                            </div>
                           </div>
 
                           {/* Time Slider integrated into Card */}

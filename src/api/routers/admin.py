@@ -143,15 +143,29 @@ def trigger_forecast_job(
         model: lgb.Booster = Depends(get_model),
         store: FeatureStore = Depends(get_feature_store),
         target_date: date = None,
+        num_days: int = 2,
         current_user: AdminUser = Depends(get_current_user)
 ):
+    """
+    Trigger batch forecast job for multiple days.
+    
+    Args:
+        target_date: Starting date for forecast (default: tomorrow)
+        num_days: Number of consecutive days to forecast (default: 2 for T+1 and T+2)
+    """
     if target_date is None:
         target_date = date.today() + timedelta(days=1)
 
-    print(f"Adding forecast job for {target_date} to background tasks.")
-    background_tasks.add_task(run_daily_forecast_job, db, store, model, target_date)
+    end_date = target_date + timedelta(days=num_days - 1)
+    print(f"Adding forecast job for {num_days} day(s) ({target_date} to {end_date}) to background tasks.")
+    background_tasks.add_task(run_daily_forecast_job, db, store, model, target_date, num_days)
 
-    return {"message": "Forecast job started in the background.", "target_date": target_date}
+    return {
+        "message": f"Forecast job started in the background for {num_days} day(s).",
+        "start_date": target_date,
+        "end_date": end_date,
+        "num_days": num_days
+    }
 
 
 @router.post("/admin/jobs/reset")
@@ -230,14 +244,27 @@ def resume_scheduler(current_user: AdminUser = Depends(get_current_user)):
 @router.post("/admin/scheduler/trigger/forecast")
 def trigger_forecast_manually(
     target_date: date = None,
+    num_days: int = 2,
     current_user: AdminUser = Depends(get_current_user)
 ):
-    """Manually trigger forecast generation (bypasses schedule)"""
+    """
+    Manually trigger forecast generation (bypasses schedule).
+    
+    Args:
+        target_date: Starting date for forecast (default: tomorrow)
+        num_days: Number of consecutive days to forecast (default: 2 for T+1 and T+2)
+    """
     if target_date is None:
         target_date = date.today() + timedelta(days=1)
     
-    sched.trigger_forecast_now(target_date)
-    return {"message": f"Forecast generation triggered for {target_date}"}
+    end_date = target_date + timedelta(days=num_days - 1)
+    sched.trigger_forecast_now(target_date, num_days)
+    return {
+        "message": f"Forecast generation triggered for {num_days} day(s)",
+        "start_date": target_date,
+        "end_date": end_date,
+        "num_days": num_days
+    }
 
 
 @router.post("/admin/scheduler/trigger/cleanup")

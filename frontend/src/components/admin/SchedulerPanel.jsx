@@ -21,10 +21,12 @@ export default function SchedulerPanel({ schedulerStatus, onPauseResume, getAuth
     try {
       const headers = getAuthHeaders();
       let endpoint = '';
+      let params = {};
       
       switch(jobId) {
         case 'daily_forecast':
           endpoint = `${API_URL}/admin/scheduler/trigger/forecast`;
+          params = { num_days: 2 };
           break;
         case 'cleanup_old_forecasts':
           endpoint = `${API_URL}/admin/scheduler/trigger/cleanup`;
@@ -45,8 +47,13 @@ export default function SchedulerPanel({ schedulerStatus, onPauseResume, getAuth
           throw new Error('Unknown job type');
       }
 
-      await axios.post(endpoint, {}, { headers });
-      setMessage(`✅ Job '${jobId}' triggered successfully!`);
+      const response = await axios.post(endpoint, params, { headers });
+      
+      if (jobId === 'daily_forecast' && response.data) {
+        setMessage(`✅ Forecast triggered for ${response.data.num_days} day(s): ${response.data.start_date} to ${response.data.end_date}`);
+      } else {
+        setMessage(`✅ Job '${jobId}' triggered successfully!`);
+      }
       
       // Refresh after 2 seconds
       setTimeout(() => {
@@ -197,7 +204,7 @@ export default function SchedulerPanel({ schedulerStatus, onPauseResume, getAuth
           >
             <div className="text-2xl mb-2">🔮</div>
             <div className="text-sm font-bold text-blue-400">Generate Forecast</div>
-            <div className="text-xs text-gray-500 mt-1">Run forecast for tomorrow</div>
+            <div className="text-xs text-gray-500 mt-1">Run forecast for next 2 days (T+1, T+2)</div>
           </button>
 
           <button
