@@ -1,6 +1,6 @@
 {
-  "name": "Istanbul Transit Crowding",
-  "short_name": "IBB Crowd",
+  "name": "Dolumu: İstanbul Toplu Taşıma Kullanım Tahmini Uygulaması",
+  "short_name": "Dolumu",
   "theme_color": "#0f172a",
   "background_color": "#0f172a",
   "display": "standalone",
