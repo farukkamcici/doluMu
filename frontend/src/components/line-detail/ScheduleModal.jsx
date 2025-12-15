@@ -11,15 +11,14 @@ export default function ScheduleModal({ lineCode, isOpen, onClose, initialDirect
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState(initialDirection);
   
-  // Marmaray bypass: don't show modal
   const isMarmaray = lineCode === 'MARMARAY';
-  if (isMarmaray && isOpen) {
-    onClose();
-    return null;
-  }
 
   useEffect(() => {
-    if (!isOpen || !lineCode) return;
+    if (isMarmaray && isOpen) onClose();
+  }, [isMarmaray, isOpen, onClose]);
+
+  useEffect(() => {
+    if (!isOpen || !lineCode || isMarmaray) return;
 
     const fetchSchedule = async () => {
       setLoading(true);
@@ -52,7 +51,7 @@ export default function ScheduleModal({ lineCode, isOpen, onClose, initialDirect
     };
 
     fetchSchedule();
-  }, [isOpen, lineCode]);
+  }, [isOpen, isMarmaray, lineCode]);
 
   useEffect(() => {
     setActiveTab(initialDirection);
@@ -75,7 +74,7 @@ export default function ScheduleModal({ lineCode, isOpen, onClose, initialDirect
     return -1;
   };
 
-  if (!isOpen) return null;
+  if (!isOpen || isMarmaray) return null;
 
   const directionSchedule = Array.isArray(schedule?.[activeTab]) ? schedule[activeTab] : [];
   const nextIndex = getNextTimeIndex(directionSchedule);

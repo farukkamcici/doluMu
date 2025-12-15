@@ -154,6 +154,9 @@
     "themeDesc": "Currently dark theme only",
     "preferences": "Preferences",
     "preferencesDesc": "Language and display settings",
+    "installApp": "Install App",
+    "installAppDesc": "Add to Home Screen for faster access",
+    "installUnavailable": "Install option isn't available yet. Please use Chrome and try again.",
     "dataStorage": "Data & Storage",
     "dataStorageDesc": "Manage your local data",
     "clearFavorites": "Clear Favorites",
@@ -234,5 +237,27 @@
     "activeAlerts": "active alerts",
     "lineCode": "Line",
     "close": "Close"
+  },
+  "pwa": {
+    "installTitle": "Install App",
+    "installSubtitle": "Faster access",
+    "installButton": "Install",
+    "dismissLabel": "Dismiss",
+    "dontShowAgain": "Don't show again",
+    "appIconAlt": "App icon",
+    "iosTitle": "Add to Home Screen",
+    "iosSubtitle": "Install using your browser menu for faster access.",
+    "iosBrowserSafari": "Safari",
+    "iosBrowserChrome": "Chrome",
+    "iosRecommended": "Detected",
+    "iosSafariStep1": "Tap the Share button.",
+    "iosSafariStep2": "Select ‘Add to Home Screen’.",
+    "iosSafariStep3": "Confirm to add the app.",
+    "iosChromeStep1": "Tap the menu (•••).",
+    "iosChromeStep2": "Tap ‘Share’.",
+    "iosChromeStep3": "Select ‘Add to Home Screen’.",
+    "iosGotIt": "Got it",
+    "iosArrowHintSafari": "Share button",
+    "iosArrowHintChrome": "Menu button"
   }
 }

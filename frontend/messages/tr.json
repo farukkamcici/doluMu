@@ -154,6 +154,9 @@
     "themeDesc": "Şu anda sadece koyu tema",
     "preferences": "Tercihler",
     "preferencesDesc": "Dil ve görüntü ayarları",
+    "installApp": "Uygulamayı Yükle",
+    "installAppDesc": "Daha hızlı erişim için ana ekrana ekleyin",
+    "installUnavailable": "Yükleme seçeneği henüz hazır değil. Lütfen Chrome kullanıp tekrar deneyin.",
     "dataStorage": "Veri ve Depolama",
     "dataStorageDesc": "Yerel verilerinizi yönetin",
     "clearFavorites": "Favorileri Temizle",
@@ -234,5 +237,27 @@
     "activeAlerts": "aktif duyuru",
     "lineCode": "Hat",
     "close": "Kapat"
+  },
+  "pwa": {
+    "installTitle": "Uygulamayı Yükle",
+    "installSubtitle": "Daha Hızlı Erişim",
+    "installButton": "Yükle",
+    "dismissLabel": "Kapat",
+    "dontShowAgain": "Bir daha gösterme",
+    "appIconAlt": "Uygulama simgesi",
+    "iosTitle": "Ana Ekrana Ekle",
+    "iosSubtitle": "Hızlı erişim için tarayıcı menüsünden yükleyin.",
+    "iosBrowserSafari": "Safari",
+    "iosBrowserChrome": "Chrome",
+    "iosRecommended": "Algılandı",
+    "iosSafariStep1": "Paylaş düğmesine dokunun.",
+    "iosSafariStep2": "‘Ana Ekrana Ekle’yi seçin.",
+    "iosSafariStep3": "Onaylayıp ekleyin.",
+    "iosChromeStep1": "Menüye (•••) dokunun.",
+    "iosChromeStep2": "‘Paylaş’a dokunun.",
+    "iosChromeStep3": "‘Ana Ekrana Ekle’yi seçin.",
+    "iosGotIt": "Anladım",
+    "iosArrowHintSafari": "Paylaş düğmesi",
+    "iosArrowHintChrome": "Menü düğmesi"
   }
 }

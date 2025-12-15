@@ -4,6 +4,9 @@ import { useTranslations } from 'next-intl';
 import BottomNav from '@/components/ui/BottomNav';
 import LanguageSwitcher from '@/components/ui/LanguageSwitcher';
 import ReportForm from '@/components/settings/ReportForm';
+import IosInstallHelpModal from '@/components/ui/IosInstallHelpModal';
+import useMediaQuery from '@/hooks/useMediaQuery';
+import usePwaInstall from '@/hooks/usePwaInstall';
 import useAppStore from '@/store/useAppStore';
 import { 
   Globe, 
@@ -15,7 +18,8 @@ import {
   Info, 
   Star,
   Shield,
-  Heart
+  Heart,
+  Download
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -62,9 +66,14 @@ function SettingItem({ icon: Icon, label, description, value, action, danger }) 
 
 export default function SettingsPage() {
   const t = useTranslations('settings');
+  const tpwa = useTranslations('pwa');
   const [showReportForm, setShowReportForm] = useState(false);
   const [showConfirm, setShowConfirm] = useState(null);
+  const [showIosHelp, setShowIosHelp] = useState(false);
   const favorites = useAppStore((state) => state.favorites);
+  const setAlertMessage = useAppStore((state) => state.setAlertMessage);
+  const isMobile = useMediaQuery('(max-width: 768px)');
+  const { isIos, isStandalone, deferredPrompt, promptInstall } = usePwaInstall();
 
   const handleClearFavorites = () => {
     if (favorites.length === 0) {
@@ -139,6 +148,34 @@ export default function SettingsPage() {
             value="Dark"
             description={t('themeDesc')}
           />
+
+          {isMobile && !isStandalone ? (
+            <SettingItem
+              icon={Download}
+              label={t('installApp')}
+              description={t('installAppDesc')}
+              action={
+                <button
+                  onClick={async () => {
+                    if (isIos) {
+                      setShowIosHelp(true);
+                      return;
+                    }
+
+                    if (!deferredPrompt) {
+                      setAlertMessage(t('installUnavailable'));
+                      return;
+                    }
+
+                    await promptInstall();
+                  }}
+                  className="px-3 py-1.5 rounded-lg text-xs font-medium bg-primary text-white hover:bg-primary/90 transition-colors"
+                >
+                  {tpwa('installButton')}
+                </button>
+              }
+            />
+          ) : null}
         </SettingSection>
 
         <SettingSection
@@ -225,6 +262,8 @@ export default function SettingsPage() {
 
         <BottomNav />
       </main>
+
+      <IosInstallHelpModal open={showIosHelp} onClose={() => setShowIosHelp(false)} />
 
       {showReportForm && (
         <ReportForm onClose={() => setShowReportForm(false)} />
