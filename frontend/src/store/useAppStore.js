@@ -6,6 +6,7 @@ const useAppStore = create(
     (set, get) => ({
       selectedLine: null,
       isPanelOpen: false,
+      isPanelMinimized: false,
       selectedHour: new Date().getHours(),
       userLocation: null,
       alertMessage: null,
@@ -21,12 +22,21 @@ const useAppStore = create(
       setSelectedLine: (line) => set({ 
         selectedLine: line, 
         isPanelOpen: true,
+        isPanelMinimized: false,
         selectedHour: new Date().getHours() // Panel açıldığında şu anki saate ayarla
       }),
+      openLineDetail: (line, options = {}) => set({
+        selectedLine: line,
+        isPanelOpen: true,
+        selectedHour: new Date().getHours(),
+        isPanelMinimized: options?.maximize ? false : get().isPanelMinimized,
+      }),
+      setPanelMinimized: (minimized) => set({ isPanelMinimized: minimized }),
       closePanel: () => set({ 
         isPanelOpen: false, 
         selectedLine: null, 
         showRoute: false,
+        isPanelMinimized: false,
         selectedHour: new Date().getHours() // Panel kapandığında resetle
       }),
       setSelectedHour: (hour) => set({ selectedHour: hour }),

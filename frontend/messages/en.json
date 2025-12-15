@@ -13,6 +13,7 @@
   "searchBar": {
     "placeholder": "Search line (e.g., M2, 500T)",
     "loading": "Loading...",
+    "clear": "Clear",
     "noResults": "No lines found for \"{query}\""
   },
   "lineDetail": {
@@ -129,6 +130,7 @@
     "subtitle": "View real-time status of your favorite lines",
     "loading": "Loading...",
     "selectLine": "Select a line",
+    "tapForDetails": "Tap for details",
     "noData": "No data found",
     "occupancy": "Occupancy",
     "passengers": "Passengers",
@@ -143,6 +145,8 @@
     "emptyState": {
       "title": "You haven't added any favorite lines yet",
       "description": "Search for lines on the map and click the star button to add them to your favorites.",
+      "step1": "Open the map and search a line",
+      "step2": "Tap the star to save it here",
       "button": "Go to Lines"
     }
   },

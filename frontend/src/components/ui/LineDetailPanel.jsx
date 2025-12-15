@@ -59,6 +59,8 @@ export default function LineDetailPanel() {
   const { 
     selectedLine, 
     isPanelOpen, 
+    isPanelMinimized,
+    setPanelMinimized,
     closePanel, 
     selectedHour, 
     toggleFavorite, 
@@ -77,7 +79,6 @@ export default function LineDetailPanel() {
   const [forecastData, setForecastData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [isMinimized, setIsMinimized] = useState(false);
   const [lineStatus, setLineStatus] = useState(null);
   
   // Detect if selected line is metro
@@ -261,10 +262,10 @@ export default function LineDetailPanel() {
   }, [selectedLine, selectedDirection, isPanelOpen, getAvailableDirections, getPolyline, setShowRoute]);
 
   useEffect(() => {
-    if (!isDesktop && isMinimized) {
+    if (!isDesktop && isPanelMinimized) {
       controls.start({ y: 0 });
     }
-  }, [isMinimized, isDesktop, controls]);
+  }, [isPanelMinimized, isDesktop, controls]);
 
   useEffect(() => {
     if (isDesktop && isPanelOpen && !initialPositionSet.current && panelRef.current) {
@@ -307,7 +308,7 @@ export default function LineDetailPanel() {
   };
 
   const toggleMinimize = () => {
-    setIsMinimized(!isMinimized);
+    setPanelMinimized(!isPanelMinimized);
     vibrate(10);
   };
 
@@ -316,11 +317,11 @@ export default function LineDetailPanel() {
     const velocity = info.velocity.y;
     
     if (velocity > 500 || info.offset.y > threshold) {
-      setIsMinimized(true);
+      setPanelMinimized(true);
       controls.start({ y: 0 });
       vibrate(10);
     } else if (velocity < -500 || info.offset.y < -threshold) {
-      setIsMinimized(false);
+      setPanelMinimized(false);
       controls.start({ y: 0 });
       vibrate(10);
     } else {
@@ -401,7 +402,7 @@ export default function LineDetailPanel() {
   return (
     <>
       <AnimatePresence>
-        {((!isDesktop && !isMinimized) || (isDesktop && isFavoritesPage && !isMinimized)) && (
+        {((!isDesktop && !isPanelMinimized) || (isDesktop && isFavoritesPage && !isPanelMinimized)) && (
           <motion.div 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -435,15 +436,15 @@ export default function LineDetailPanel() {
               : "fixed bottom-16 left-0 right-0 rounded-t-3xl"
           )}
           style={!isDesktop ? {
-            height: isMinimized ? 'auto' : (isFavoritesPage ? 'fit-content' : 'min(55vh, calc(100vh - 6rem))'),
+            height: isPanelMinimized ? 'auto' : (isFavoritesPage ? 'fit-content' : 'min(55vh, calc(100vh - 6rem))'),
             maxHeight: 'calc(100vh - 5rem)',
             transition: 'height 0.3s ease-out'
           } : {
             top: INITIAL_PANEL_POSITION.top,
             left: INITIAL_PANEL_POSITION.left,
             width: `${panelSize.width}px`,
-            height: isMinimized ? 'auto' : 'fit-content',
-            minHeight: isMinimized ? 'auto' : (isFavoritesPage ? 'auto' : `${panelSize.height}px`),
+            height: isPanelMinimized ? 'auto' : 'fit-content',
+            minHeight: isPanelMinimized ? 'auto' : (isFavoritesPage ? 'auto' : `${panelSize.height}px`),
             maxHeight: 'calc(100vh - 8rem)'
           }}
         >
@@ -466,14 +467,14 @@ export default function LineDetailPanel() {
                       onPointerDown={(e) => e.stopPropagation()}
                       onClick={(e) => {
                         e.stopPropagation();
-                        setIsMinimized(!isMinimized);
+                        setPanelMinimized(!isPanelMinimized);
                         vibrate(5);
                       }}
                       className="flex items-center gap-1.5 px-2 py-1 rounded-md hover:bg-white/10 transition-colors text-gray-400 hover:text-gray-200 cursor-pointer"
-                      title={isMinimized ? t('expand') : t('minimize')}
+                      title={isPanelMinimized ? t('expand') : t('minimize')}
                     >
                       <Minimize2 size={12} />
-                      <span className="text-[10px] font-medium">{isMinimized ? t('expand') : t('minimize')}</span>
+                      <span className="text-[10px] font-medium">{isPanelMinimized ? t('expand') : t('minimize')}</span>
                     </button>
                     <button
                       onPointerDown={(e) => e.stopPropagation()}
@@ -668,7 +669,7 @@ export default function LineDetailPanel() {
             </div>
 
             {/* BODY - Only show if not minimized */}
-            {!isMinimized && (
+            {!isPanelMinimized && (
               <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-800/30 hover:scrollbar-thumb-gray-500">
                 
                 {/* Card Layout */}
@@ -961,7 +962,7 @@ export default function LineDetailPanel() {
           </div>
           
           {/* Desktop Resize Handle */}
-          {isDesktop && !isMinimized && (
+          {isDesktop && !isPanelMinimized && (
             <div
               ref={resizeRef}
               onMouseDown={handleResize}

@@ -1,10 +1,30 @@
 'use client';
+import { useCallback, useRef } from 'react';
 import { useTranslations } from 'next-intl';
 import useAppStore from '@/store/useAppStore';
 
 export default function TimeSlider() {
   const t = useTranslations('timeSlider');
   const { selectedHour, setSelectedHour } = useAppStore();
+
+  const lastHapticAtRef = useRef(0);
+  const lastHapticValueRef = useRef(selectedHour);
+
+  const triggerSoftHaptic = useCallback((value) => {
+    if (typeof window === 'undefined') return;
+    if (typeof navigator === 'undefined') return;
+    if (typeof navigator.vibrate !== 'function') return;
+
+    const now = new Date().getTime();
+    const minIntervalMs = 60;
+
+    if (value === lastHapticValueRef.current) return;
+    if (now - lastHapticAtRef.current < minIntervalMs) return;
+
+    lastHapticAtRef.current = now;
+    lastHapticValueRef.current = value;
+    navigator.vibrate(8);
+  }, []);
 
   return (
     <div className="w-full">
@@ -15,7 +35,11 @@ export default function TimeSlider() {
           max="23"
           step="1"
           value={selectedHour}
-          onChange={(e) => setSelectedHour(parseInt(e.target.value))}
+          onChange={(e) => {
+            const nextHour = parseInt(e.target.value);
+            setSelectedHour(nextHour);
+            triggerSoftHaptic(nextHour);
+          }}
           className="w-full h-2 rounded-full appearance-none cursor-pointer slider-thumb"
           style={{
             background: `linear-gradient(to right, rgb(59 130 246) 0%, rgb(59 130 246) ${(selectedHour / 23) * 100}%, rgba(51, 65, 85, 0.5) ${(selectedHour / 23) * 100}%, rgba(51, 65, 85, 0.5) 100%)`

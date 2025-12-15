@@ -13,6 +13,7 @@
   "searchBar": {
     "placeholder": "Hat ara (örn: M2, 500T)",
     "loading": "Yükleniyor...",
+    "clear": "Temizle",
     "noResults": "\"{query}\" için hat bulunamadı"
   },
   "lineDetail": {
@@ -129,6 +130,7 @@
     "subtitle": "Favori hatlarınızın anlık durumunu görün",
     "loading": "Yükleniyor...",
     "selectLine": "Bir hat seçin",
+    "tapForDetails": "Detaylar için dokun",
     "noData": "Veri bulunamadı",
     "occupancy": "Doluluk",
     "passengers": "Yolcu",
@@ -143,6 +145,8 @@
     "emptyState": {
       "title": "Henüz favori hat eklemediniz",
       "description": "Harita üzerinden hatları arayın ve yıldız butonuna tıklayarak favorilerinize ekleyin.",
+      "step1": "Haritayı açın ve bir hat arayın",
+      "step2": "Yıldız simgesine dokunup buraya kaydedin",
       "button": "Hatlara Git"
     }
   },

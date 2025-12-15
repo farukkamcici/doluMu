@@ -4,8 +4,9 @@ import { useLocale, useTranslations } from 'next-intl';
 import { useRouter } from '@/i18n/routing';
 import BottomNav from '@/components/ui/BottomNav';
 import LineDetailPanel from '@/components/ui/LineDetailPanel';
+import PageHeader from '@/components/ui/PageHeader';
 import useAppStore from '@/store/useAppStore';
-import { Star, TrendingUp, MapPin, AlertTriangle } from 'lucide-react';
+import { Star, TrendingUp, MapPin, AlertTriangle, ArrowRight } from 'lucide-react';
 import { getLineMetadata, getForecast, getLineStatus } from '@/lib/api';
 import { getTransportType } from '@/lib/transportTypes';
 import { useGetTransportLabel } from '@/hooks/useGetTransportLabel';
@@ -23,7 +24,7 @@ function FavoriteLineCard({ lineId }) {
   const t = useTranslations('forecast');
   const locale = useLocale();
   const getTransportLabel = useGetTransportLabel();
-  const { setSelectedLine } = useAppStore();
+  const { openLineDetail } = useAppStore();
   const [metadata, setMetadata] = useState(null);
   const [currentStatus, setCurrentStatus] = useState(null);
   const [lineStatus, setLineStatus] = useState(null);
@@ -65,14 +66,14 @@ function FavoriteLineCard({ lineId }) {
           line: metadata.line,
         }
       };
-      setSelectedLine(lineObject);
+      openLineDetail(lineObject, { maximize: true });
     }
   };
 
   if (loading) {
     return (
       <div
-        className="rounded-xl bg-surface p-4 border border-white/5 min-h-[100px]"
+        className="rounded-2xl bg-surface/70 p-4 border border-white/10 min-h-[104px] shadow-lg"
         aria-busy="true"
       >
         <div className="flex items-start justify-between gap-3">
@@ -103,7 +104,8 @@ function FavoriteLineCard({ lineId }) {
     <button
       onClick={handleCardClick}
       className={cn(
-        "w-full flex flex-col gap-3 rounded-xl bg-surface p-4 border border-white/5 hover:bg-white/5 transition-all text-left relative",
+        'group w-full rounded-2xl border border-white/10 bg-surface/70 p-4 text-left shadow-lg backdrop-blur-md',
+        'transition-colors hover:bg-surface/85 active:bg-surface',
         lineStatus?.status === 'OUT_OF_SERVICE' && "opacity-70"
       )}
     >
@@ -118,39 +120,58 @@ function FavoriteLineCard({ lineId }) {
         </div>
       )}
       
-      <div className="flex items-start justify-between">
-        <div className="flex items-center gap-2 flex-wrap">
-          <span className="rounded-lg bg-primary px-3 py-1.5 text-sm font-bold text-white">
-            {metadata.line_name}
-          </span>
-          {transportType && (
-            <span className={`px-2 py-1 rounded text-xs font-medium border ${transportType.bgColor} ${transportType.textColor} ${transportType.borderColor}`}>
-              {getTransportLabel(transportType.labelKey)}
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <div className="flex items-center gap-2">
+            <span className="rounded-xl bg-primary px-3 py-1.5 text-sm font-bold text-white">
+              {metadata.line_name}
             </span>
-          )}
-        </div>
-        {currentStatus && (
-          <div className={cn("px-2 py-1 rounded-lg text-xs font-semibold", config.badge, "text-white")}>
-            {crowdLabel}
+            {transportType ? (
+              <span
+                className={cn(
+                  'rounded-xl px-2 py-1 text-xs font-semibold border',
+                  transportType.bgColor,
+                  transportType.textColor,
+                  transportType.borderColor
+                )}
+              >
+                {getTransportLabel(transportType.labelKey)}
+              </span>
+            ) : null}
           </div>
-        )}
+          {metadata.line ? (
+            <p className="mt-2 line-clamp-1 text-sm text-gray-300">{metadata.line}</p>
+          ) : null}
+        </div>
+
+        <div className="flex shrink-0 flex-col items-end gap-2">
+          {currentStatus ? (
+            <div className={cn('rounded-xl px-2 py-1 text-xs font-semibold text-white', config.badge)}>
+              {crowdLabel}
+            </div>
+          ) : null}
+          <div className="flex items-center gap-1 text-xs text-gray-400">
+            <span>{t('tapForDetails')}</span>
+            <ArrowRight size={14} className="transition-transform group-hover:translate-x-0.5" />
+          </div>
+        </div>
       </div>
 
-      {metadata.line && (
-        <p className="text-sm text-gray-300 line-clamp-1">{metadata.line}</p>
-      )}
-
-      {currentStatus && (
-        <div className="flex items-center gap-4 text-xs text-gray-400">
-          <span className="flex items-center gap-1">
-            <TrendingUp size={12} />
-            {t('occupancy')}: {currentStatus.occupancy_pct}%
-          </span>
-          <span>
-            {t('passengers')}: {Math.round(currentStatus.predicted_value).toLocaleString(locale === 'tr' ? 'tr-TR' : 'en-US')}
-          </span>
+      {currentStatus ? (
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          <div className="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-background/30 px-3 py-2 text-xs text-gray-200">
+            <TrendingUp size={14} className="text-secondary" />
+            <span className="text-gray-400">{t('occupancy')}</span>
+            <span className="font-semibold text-gray-200">{currentStatus.occupancy_pct}%</span>
+          </div>
+          <div className="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-background/30 px-3 py-2 text-xs text-gray-200">
+            <span className="text-gray-400">{t('passengers')}</span>
+            <span className="font-semibold text-gray-200">
+              {Math.round(currentStatus.predicted_value).toLocaleString(locale === 'tr' ? 'tr-TR' : 'en-US')}
+            </span>
+          </div>
         </div>
-      )}
+      ) : null}
     </button>
   );
 }
@@ -158,7 +179,7 @@ function FavoriteLineCard({ lineId }) {
 export default function ForecastPage() {
   const t = useTranslations('forecast');
   const router = useRouter();
-  const { favorites } = useAppStore();
+  const { favorites, isPanelOpen, isPanelMinimized } = useAppStore();
 
   const handleGoToMap = () => {
     router.push('/');
@@ -166,30 +187,55 @@ export default function ForecastPage() {
 
   return (
     <main className="relative flex min-h-screen flex-col bg-background pb-20 font-sans text-text">
-      <div className="p-6 pt-12">
-        <h1 className="text-2xl font-bold text-primary">{t('title')}</h1>
-        <p className="text-sm text-gray-400 mt-1">{t('subtitle')}</p>
-      </div>
+      <PageHeader
+        title={t('title')}
+        subtitle={t('subtitle')}
+        icon={Star}
+        disableBlur={isPanelOpen && !isPanelMinimized}
+      />
 
-      <div className="flex-1 px-4 space-y-4 overflow-y-auto">
+      <div className="flex-1 px-4 space-y-4 overflow-y-auto pt-4">
         {favorites.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
-            <div className="rounded-full bg-surface p-6 mb-4 border border-white/5">
-              <Star size={48} className="text-gray-500" />
+          <div className="flex flex-1 items-center justify-center px-2 py-10">
+            <div className="w-full max-w-md">
+              <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-surface/70 p-6 shadow-2xl backdrop-blur">
+                <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-primary/15 via-transparent to-secondary/10" />
+
+                <div className="relative">
+                  <div className="flex items-start gap-4">
+                    <div className="shrink-0 rounded-2xl border border-primary/25 bg-primary/10 p-3">
+                      <Star size={22} className="text-secondary" />
+                    </div>
+                    <div className="min-w-0">
+                      <h2 className="text-lg font-semibold text-text">
+                        {t('emptyState.title')}
+                      </h2>
+                      <p className="mt-1 text-sm text-gray-400">
+                        {t('emptyState.description')}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="mt-5 rounded-2xl border border-white/10 bg-background/30 p-4">
+                    <div className="flex items-center gap-3 text-sm text-gray-300">
+                      <MapPin size={16} className="text-secondary" />
+                      <span className="leading-snug">{t('emptyState.step1')}</span>
+                    </div>
+                    <div className="mt-3 flex items-center gap-3 text-sm text-gray-300">
+                      <Star size={16} className="text-secondary" />
+                      <span className="leading-snug">{t('emptyState.step2')}</span>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={handleGoToMap}
+                    className="mt-6 w-full rounded-2xl bg-primary px-5 py-3 text-sm font-semibold text-white shadow hover:bg-primary/90 transition-colors"
+                  >
+                    {t('emptyState.button')}
+                  </button>
+                </div>
+              </div>
             </div>
-            <h2 className="text-xl font-semibold text-gray-300 mb-2">
-              {t('emptyState.title')}
-            </h2>
-            <p className="text-sm text-gray-400 mb-6 max-w-md">
-              {t('emptyState.description')}
-            </p>
-            <button
-              onClick={handleGoToMap}
-              className="px-6 py-3 rounded-lg bg-primary text-white font-semibold hover:bg-primary/90 transition-colors flex items-center gap-2"
-            >
-              <MapPin size={18} />
-              {t('emptyState.button')}
-            </button>
           </div>
         ) : (
           favorites.map((lineId) => (
