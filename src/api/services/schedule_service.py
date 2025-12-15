@@ -240,7 +240,13 @@ class IETTScheduleService:
         raw_data = self._fetch_from_iett(line_code)
         if not raw_data:
             logger.warning(f"No schedule data available for line {line_code} - returning empty")
-            empty_result = {"G": [], "D": [], "meta": {}}
+            empty_result = {
+                "G": [],
+                "D": [],
+                "meta": {},
+                "has_service_today": False,
+                "data_status": "NO_DATA"
+            }
             _schedule_cache[cache_key] = empty_result
             return empty_result
         
@@ -315,10 +321,15 @@ class IETTScheduleService:
                     "end": parsed_route.get("start", "")
                 }
         
+        has_service_today = bool(schedules_by_direction['G'] or schedules_by_direction['D'])
+        data_status = "OK" if has_service_today else "NO_SERVICE_DAY"
+
         # Prepare final result
         result = {
             **schedules_by_direction,
-            "meta": meta
+            "meta": meta,
+            "has_service_today": has_service_today,
+            "data_status": data_status
         }
         
         # Cache result

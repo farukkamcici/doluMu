@@ -1,4 +1,5 @@
 import lightgbm as lgb
+import os
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
@@ -55,13 +56,27 @@ async def lifespan(app: FastAPI):
 app = FastAPI(lifespan=lifespan)
 
 # Add CORS middleware
+
+default_cors_origins = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "https://ibb-transport.vercel.app",
+    "https://dolumu.app",
+    "https://www.dolumu.app",
+]
+
+cors_origins_env = os.getenv("CORS_ALLOW_ORIGINS")
+cors_origins = (
+    [origin.strip() for origin in cors_origins_env.split(",") if origin.strip()]
+    if cors_origins_env
+    else default_cors_origins
+)
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",
-        "https://ibb-transport.vercel.app"
-    ],
-    allow_origin_regex=r"https://.*\.vercel\.app",
+    allow_origins=cors_origins,
+    # Allow only this project's Vercel preview deployments (not every *.vercel.app origin).
+    allow_origin_regex=r"^https://ibb-transport(-.*)?\.vercel\.app$",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

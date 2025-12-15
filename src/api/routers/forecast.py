@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from datetime import date, datetime, timedelta, time as datetime_time
-from typing import List, Optional, Tuple
+from typing import Dict, List, Optional
 import logging
 from ..db import get_db
 from ..models import DailyForecast, TransportLine
@@ -34,7 +34,7 @@ def _parse_time(time_str: str) -> Optional[datetime_time]:
     return None
 
 
-def _get_service_hours(line_code: str, direction: Optional[str] = None) -> Optional[Tuple[int, int, bool]]:
+def _get_service_hours(line_code: str, direction: Optional[str] = None) -> Optional[Dict[str, Optional[int]]]:
     """
     Get service hours (first and last departure) for a line.
     
@@ -54,7 +54,12 @@ def _get_service_hours(line_code: str, direction: Optional[str] = None) -> Optio
                 last_t = _parse_time(metro_line.get('last_time') or '')
                 if first_t and last_t:
                     wraps = last_t < first_t
-                    return (first_t.hour, last_t.hour, wraps)
+                    return {
+                        "first_hour": first_t.hour,
+                        "last_hour": last_t.hour,
+                        "wraps_midnight": wraps,
+                        "has_service": True
+                    }
 
         schedule = schedule_service.get_schedule(line_code)
         
@@ -70,6 +75,17 @@ def _get_service_hours(line_code: str, direction: Optional[str] = None) -> Optio
                     all_times.append(parsed)
         
         if not all_times:
+            data_status = schedule.get('data_status')
+            if data_status == 'NO_SERVICE_DAY' or schedule.get('has_service_today') is False:
+                logger.info(f"Line {line_code} has no planned service for current day type")
+                return {
+                    "first_hour": None,
+                    "last_hour": None,
+                    "wraps_midnight": False,
+                    "has_service": False
+                }
+
+        if not all_times:
             logger.warning(f"No schedule data available for line {line_code}")
             return None
         
@@ -79,14 +95,19 @@ def _get_service_hours(line_code: str, direction: Optional[str] = None) -> Optio
         last_hour = all_times[-1].hour
         
         logger.debug(f"Service hours for {line_code} direction {direction}: {first_hour}:00 - {last_hour}:00")
-        return (first_hour, last_hour, False)
+        return {
+            "first_hour": first_hour,
+            "last_hour": last_hour,
+            "wraps_midnight": False,
+            "has_service": True
+        }
         
     except Exception as e:
         logger.error(f"Error getting service hours for {line_code}: {e}")
         return None
 
 
-def _is_hour_in_service(hour: int, service_hours: Optional[Tuple[int, int, bool]]) -> bool:
+def _is_hour_in_service(hour: int, service_hours: Optional[Dict[str, Optional[int]]]) -> bool:
     """
     Check if a given hour is within service hours.
     
@@ -102,8 +123,16 @@ def _is_hour_in_service(hour: int, service_hours: Optional[Tuple[int, int, bool]
     if service_hours is None:
         # No schedule data - assume in service (benefit of doubt)
         return True
-    
-    first_hour, last_hour, wraps_midnight = service_hours
+
+    if not service_hours.get('has_service', True):
+        return False
+
+    first_hour = service_hours.get('first_hour')
+    last_hour = service_hours.get('last_hour')
+    wraps_midnight = service_hours.get('wraps_midnight', False)
+
+    if first_hour is None or last_hour is None:
+        return False
 
     # Add +1 hour buffer after last departure for vehicles in transit
     extended_last_hour = (last_hour + 1) % 24

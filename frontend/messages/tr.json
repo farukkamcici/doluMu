@@ -44,6 +44,11 @@
       "Out of Service": "Sefer Yok"
     },
     "resetPosition": "Konumu sıfırla",
+    "serviceWindowTitle": "Hizmet aralığı",
+    "serviceWindowBusContext": "{from} → {to}",
+    "serviceWindowMetroContext": "{station} • {direction}",
+    "serviceWindowNoTrips": "Bu seçim için planlı sefer bulunmuyor.",
+    "serviceWindowError": "Tarife geçici olarak gösterilemiyor.",
     "chart": {
       "hourLabel": "Saat: {hour}:00",
       "outOfService": "Sefer yok",
@@ -122,6 +127,7 @@
   "forecast": {
     "title": "Favorilerim",
     "subtitle": "Favori hatlarınızın anlık durumunu görün",
+    "loading": "Yükleniyor...",
     "selectLine": "Bir hat seçin",
     "noData": "Veri bulunamadı",
     "occupancy": "Doluluk",

@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useTranslations } from 'next-intl';
 import { usePathname } from '@/i18n/routing';
 import { motion, AnimatePresence, useAnimation, useDragControls } from 'framer-motion';
@@ -48,6 +48,7 @@ const outOfServiceStyles = {
 export default function LineDetailPanel() {
   const t = useTranslations('lineDetail');
   const tErrors = useTranslations('errors');
+  const tSchedule = useTranslations('schedule');
   const getTransportLabel = useGetTransportLabel();
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const pathname = usePathname();
@@ -77,6 +78,7 @@ export default function LineDetailPanel() {
   const [error, setError] = useState(null);
   const [isMinimized, setIsMinimized] = useState(false);
   const [lineStatus, setLineStatus] = useState(null);
+  const [scheduleSummary, setScheduleSummary] = useState(null);
   
   // Detect if selected line is metro
   const isMetroLine = selectedLine && /^[MFT]/.test(selectedLine.id);
@@ -302,6 +304,8 @@ export default function LineDetailPanel() {
   const status = isOutOfServiceHour
     ? null
     : (crowdLevelConfig[crowdLevel] || crowdLevelConfig.Unknown);
+  const hasAnyInServiceHour = useMemo(() => forecastData.some(item => item.in_service), [forecastData]);
+  const shouldShowForecastChart = loading || forecastData.length > 0;
   const metadata = selectedLine.metadata;
   const transportType = metadata ? getTransportType(metadata.transport_type_id) : null;
   const m1aLine = isMetroLine ? getLine('M1A') : null;
@@ -312,6 +316,97 @@ export default function LineDetailPanel() {
   const isFav = isFavorite(selectedLine.id);
   const availableDirections = getAvailableDirections(selectedLine.id);
   const directionInfo = getDirectionInfo(selectedLine.id);
+  const serviceContextLabel = useMemo(() => {
+    if (!scheduleSummary) return null;
+
+    if (scheduleSummary.type === 'METRO') {
+      const stationLabel = currentMetroStation?.description || currentMetroStation?.name;
+      const metroDirection = metroDirections.find((d) => d.id === selectedMetroDirectionId);
+      const directionLabel = metroDirection?.name;
+
+      if (stationLabel && directionLabel) {
+        return t('serviceWindowMetroContext', { station: stationLabel, direction: directionLabel });
+      }
+      return stationLabel || directionLabel || null;
+    }
+
+    const info = directionInfo[selectedDirection];
+    if (info?.firstStop && info?.lastStop) {
+      return t('serviceWindowBusContext', { from: info.firstStop, to: info.lastStop });
+    }
+    if (info?.label) {
+      return info.label;
+    }
+
+    if (selectedDirection === 'G') return tSchedule('outbound');
+    if (selectedDirection === 'D') return tSchedule('inbound');
+    return null;
+  }, [
+    scheduleSummary,
+    currentMetroStation,
+    metroDirections,
+    selectedMetroDirectionId,
+    directionInfo,
+    selectedDirection,
+    t,
+    tSchedule
+  ]);
+
+  useEffect(() => {
+    if (!selectedLine) {
+      setScheduleSummary(null);
+      return;
+    }
+    setScheduleSummary(null);
+  }, [selectedLine?.id, selectedDirection, isMetroLine, selectedMetroStationId, selectedMetroDirectionId]);
+
+  useEffect(() => {
+    if (!isPanelOpen) {
+      setScheduleSummary(null);
+    }
+  }, [isPanelOpen]);
+
+  const handleBusScheduleSummary = useCallback((summary) => {
+    if (!summary) {
+      setScheduleSummary(null);
+      return;
+    }
+    if (!selectedLine || summary.lineCode !== selectedLine.id) {
+      return;
+    }
+    if (summary.status === 'unsupported' || summary.status === 'idle') {
+      setScheduleSummary(null);
+      return;
+    }
+    if (summary.direction && summary.direction !== selectedDirection) {
+      return;
+    }
+    setScheduleSummary({ ...summary, type: 'BUS' });
+  }, [selectedLine?.id, selectedDirection]);
+
+  const handleMetroScheduleSummary = useCallback((summary) => {
+    if (!summary) {
+      setScheduleSummary(null);
+      return;
+    }
+    if (!selectedLine || (summary.lineCode && summary.lineCode !== selectedLine.id)) {
+      return;
+    }
+    if (!isMetroLine) {
+      return;
+    }
+    if (summary.status === 'idle') {
+      setScheduleSummary(null);
+      return;
+    }
+    if (summary.stationId && summary.stationId !== selectedMetroStationId) {
+      return;
+    }
+    if (summary.directionId && summary.directionId !== selectedMetroDirectionId) {
+      return;
+    }
+    setScheduleSummary({ ...summary, type: 'METRO' });
+  }, [selectedLine?.id, isMetroLine, selectedMetroStationId, selectedMetroDirectionId]);
 
   const vibrate = (pattern) => {
     if (typeof navigator !== 'undefined' && navigator.vibrate) {
@@ -875,7 +970,46 @@ export default function LineDetailPanel() {
                     </div>
 
                     {/* Card 2: Schedule Widget */}
-                    <div className={cn(isDesktop ? "md:col-span-2" : "")}>
+                    <div className={cn(isDesktop ? "md:col-span-2" : "", 'space-y-2')}>
+                      {scheduleSummary && (
+                        <div className="rounded-xl bg-slate-800/50 border border-white/5 p-3">
+                          <div className="flex items-center justify-between gap-2">
+                            <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-400">
+                              {t('serviceWindowTitle')}
+                            </p>
+                            {serviceContextLabel && (
+                              <span className="text-[10px] text-gray-500 truncate max-w-[60%]">
+                                {serviceContextLabel}
+                              </span>
+                            )}
+                          </div>
+                          {scheduleSummary.status === 'loading' ? (
+                            <div className="mt-2 flex items-center gap-2">
+                              <Skeleton className="h-4 w-16" />
+                              <Skeleton className="h-4 w-16" />
+                            </div>
+                          ) : scheduleSummary.status === 'error' ? (
+                            <p className="mt-2 text-xs text-red-300">
+                              {t('serviceWindowError')}
+                            </p>
+                          ) : scheduleSummary.hasTrips ? (
+                            <div className="mt-2 flex items-center gap-4 text-xs text-gray-300">
+                              <div className="flex items-center gap-1">
+                                <span className="text-[10px] text-gray-500">{tSchedule('firstDeparture')}:</span>
+                                <span className="font-semibold text-emerald-400">{scheduleSummary.firstDeparture}</span>
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <span className="text-[10px] text-gray-500">{tSchedule('lastDeparture')}:</span>
+                                <span className="font-semibold text-orange-400">{scheduleSummary.lastDeparture}</span>
+                              </div>
+                            </div>
+                          ) : (
+                            <p className="mt-2 text-xs text-gray-400">
+                              {t('serviceWindowNoTrips')}
+                            </p>
+                          )}
+                        </div>
+                      )}
                       {isMetroLine ? (
                         <MetroScheduleWidget 
                           lineCode={selectedLine.id}
@@ -884,6 +1018,7 @@ export default function LineDetailPanel() {
                           compact={true}
                           limit={isDesktop ? 5 : 3}
                           onShowFullSchedule={() => setIsScheduleModalOpen(true)}
+                          onScheduleSummary={handleMetroScheduleSummary}
                         />
                       ) : (
                         <ScheduleWidget 
@@ -893,13 +1028,14 @@ export default function LineDetailPanel() {
                           compact={true}
                           limit={isDesktop ? 5 : 3}
                           transportType={transportType}
+                          onScheduleSummary={handleBusScheduleSummary}
                         />
                       )}
                     </div>
                   </div>
 
                   {/* Card 3: 24h Chart - Only show if forecast data exists */}
-                  {(forecastData.length > 0 || loading) && (
+                  {shouldShowForecastChart && (
                     <div className="rounded-xl bg-background border border-white/5 overflow-hidden relative">
                       <div className="px-3 py-2 border-b border-white/5">
                         <p className="text-xs font-medium text-gray-400">
@@ -923,8 +1059,14 @@ export default function LineDetailPanel() {
                             </div>
                             <span className="sr-only">Loading 24 hour forecast</span>
                           </div>
-                        ) : (
+                        ) : hasAnyInServiceHour ? (
                           <CrowdChart data={forecastData} />
+                        ) : (
+                          <div className="flex h-full items-center justify-center px-4 text-center">
+                            <p className="text-sm text-gray-400">
+                              {t('emptyState.outOfServiceDescription')}
+                            </p>
+                          </div>
                         )}
                       </div>
                     </div>

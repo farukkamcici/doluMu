@@ -44,6 +44,11 @@
       "Out of Service": "Out of Service"
     },
     "resetPosition": "Reset position",
+    "serviceWindowTitle": "Service window",
+    "serviceWindowBusContext": "{from} → {to}",
+    "serviceWindowMetroContext": "{station} • {direction}",
+    "serviceWindowNoTrips": "No scheduled trips for this selection.",
+    "serviceWindowError": "Schedule temporarily unavailable.",
     "chart": {
       "hourLabel": "Hour: {hour}:00",
       "outOfService": "Out of Service",
@@ -122,6 +127,7 @@
   "forecast": {
     "title": "My Favorites",
     "subtitle": "View real-time status of your favorite lines",
+    "loading": "Loading...",
     "selectLine": "Select a line",
     "noData": "No data found",
     "occupancy": "Occupancy",

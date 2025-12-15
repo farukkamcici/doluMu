@@ -19,13 +19,30 @@ export default function MetroScheduleWidget({
   directionId,
   compact = false, 
   limit = 3,
-  onShowFullSchedule
+  onShowFullSchedule,
+  onScheduleSummary = null
 }) {
   const t = useTranslations('schedule');
   
   const [schedule, setSchedule] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  useEffect(() => {
+    if (!onScheduleSummary) return;
+    if (!stationId || !directionId) {
+      onScheduleSummary({
+        type: 'METRO',
+        lineCode,
+        stationId: stationId || null,
+        directionId: directionId || null,
+        hasTrips: false,
+        firstDeparture: null,
+        lastDeparture: null,
+        status: 'idle'
+      });
+    }
+  }, [stationId, directionId, onScheduleSummary]);
 
   // Fetch full day schedule from backend with cache
   useEffect(() => {
@@ -42,6 +59,18 @@ export default function MetroScheduleWidget({
         // Continue to background fetch for freshness
       } else {
         setLoading(true);
+        setSchedule(null);
+        setError(null);
+        onScheduleSummary?.({
+          type: 'METRO',
+          lineCode,
+          stationId,
+          directionId,
+          hasTrips: false,
+          firstDeparture: null,
+          lastDeparture: null,
+          status: 'loading'
+        });
       }
 
       // 2. Fetch fresh data (with or without cache)
@@ -76,6 +105,16 @@ export default function MetroScheduleWidget({
         // If we have cache, don't show error
         if (!cached) {
           setError(err.message);
+          onScheduleSummary?.({
+            type: 'METRO',
+            lineCode,
+            stationId,
+            directionId,
+            hasTrips: false,
+            firstDeparture: null,
+            lastDeparture: null,
+            status: 'error'
+          });
         }
       } finally {
         setLoading(false);
@@ -83,7 +122,24 @@ export default function MetroScheduleWidget({
     };
 
     fetchSchedule();
-  }, [stationId, directionId]);
+  }, [stationId, directionId, onScheduleSummary]);
+
+  useEffect(() => {
+    if (!onScheduleSummary) return;
+    if (!schedule) return;
+
+    const scheduleTimes = schedule?.Data?.[0]?.TimeInfos?.Times || [];
+    onScheduleSummary({
+      type: 'METRO',
+      lineCode,
+      stationId,
+      directionId,
+      hasTrips: scheduleTimes.length > 0,
+      firstDeparture: scheduleTimes[0] || null,
+      lastDeparture: scheduleTimes[scheduleTimes.length - 1] || null,
+      status: scheduleTimes.length > 0 ? 'success' : 'empty'
+    });
+  }, [schedule, stationId, directionId, onScheduleSummary]);
 
   // Get upcoming departures (same logic as bus)
   const getUpcomingDepartures = (times) => {

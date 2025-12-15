@@ -5,7 +5,7 @@ import { Clock, Calendar, ChevronRight, TrainFront, Ship, Info } from 'lucide-re
 import { cn } from '@/lib/utils';
 import { Skeleton, SkeletonText } from '@/components/ui/Skeleton';
 
-export default function ScheduleWidget({ lineCode, direction, onShowFullSchedule, compact = false, limit = 3, transportType = null }) {
+export default function ScheduleWidget({ lineCode, direction, onShowFullSchedule, compact = false, limit = 3, transportType = null, onScheduleSummary = null }) {
   const t = useTranslations('schedule');
   const [schedule, setSchedule] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -13,21 +13,38 @@ export default function ScheduleWidget({ lineCode, direction, onShowFullSchedule
 
   useEffect(() => {
     if (!lineCode) return;
-    
-    // Debug: Log transport type
-    console.log('[ScheduleWidget] Line:', lineCode, 'TransportType:', transportType);
-    
+
     // Only fetch schedule for Bus and Metrobus (transport_type_id: 1)
     const isBusOrMetrobus = !transportType || transportType.id === 1;
     if (!isBusOrMetrobus) {
-      console.log('[ScheduleWidget] Skipping API call for non-bus line');
       setLoading(false);
+      onScheduleSummary?.({
+        type: 'BUS',
+        lineCode,
+        direction,
+        hasTrips: false,
+        firstDeparture: null,
+        lastDeparture: null,
+        status: 'unsupported',
+        dataStatus: null
+      });
       return;
     }
 
     const fetchSchedule = async () =>{
       setLoading(true);
       setError(null);
+      setSchedule(null);
+      onScheduleSummary?.({
+        type: 'BUS',
+        lineCode,
+        direction,
+        hasTrips: false,
+        firstDeparture: null,
+        lastDeparture: null,
+        status: 'loading',
+        dataStatus: null
+      });
       try {
         const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/lines/${lineCode}/schedule`);
         if (!response.ok) throw new Error('Failed to fetch schedule');
@@ -36,13 +53,40 @@ export default function ScheduleWidget({ lineCode, direction, onShowFullSchedule
       } catch (err) {
         console.error('Schedule fetch error:', err);
         setError(err.message);
+        onScheduleSummary?.({
+          type: 'BUS',
+          lineCode,
+          direction,
+          hasTrips: false,
+          firstDeparture: null,
+          lastDeparture: null,
+          status: 'error',
+          dataStatus: null
+        });
       } finally {
         setLoading(false);
       }
     };
 
     fetchSchedule();
-  }, [lineCode, transportType]);
+  }, [lineCode, transportType, direction, onScheduleSummary]);
+
+  useEffect(() => {
+    if (!onScheduleSummary) return;
+    if (!schedule) return;
+
+    const directionSchedule = schedule[direction] || [];
+    onScheduleSummary({
+      type: 'BUS',
+      lineCode,
+      direction,
+      hasTrips: directionSchedule.length > 0,
+      firstDeparture: directionSchedule[0] || null,
+      lastDeparture: directionSchedule[directionSchedule.length - 1] || null,
+      status: directionSchedule.length > 0 ? 'success' : 'empty',
+      dataStatus: schedule?.data_status ?? null
+    });
+  }, [schedule, direction, lineCode, onScheduleSummary]);
 
   const getUpcomingDepartures = (times) => {
     if (!times || times.length === 0) return [];

@@ -18,6 +18,8 @@ class ScheduleResponse(BaseModel):
     G: List[str]  # Forward direction (Gidiş)
     D: List[str]  # Return direction (Dönüş)
     meta: Optional[Dict[str, DirectionMeta]] = None  # Route direction metadata
+    has_service_today: bool = True
+    data_status: str = "OK"
 
 
 @router.get("/lines/{line_code}/schedule", response_model=ScheduleResponse)

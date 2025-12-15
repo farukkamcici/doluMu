@@ -268,12 +268,22 @@ class IETTStatusService:
                         in_service = now >= first_service or now <= last_service
 
                     if in_service:
-                        return {"in_operation": True, "next_service_time": None}
+                        return {"in_operation": True, "next_service_time": None, "reason": None}
 
                     # Out of service: next service is the daily first_service.
-                    return {"in_operation": False, "next_service_time": first_service.strftime("%H:%M")}
+                    return {
+                        "in_operation": False,
+                        "next_service_time": first_service.strftime("%H:%M"),
+                        "reason": "OUTSIDE_TOPOLOGY_WINDOW"
+                    }
 
             schedule = schedule_service.get_schedule(line_code)
+            data_status = schedule.get('data_status', 'UNKNOWN')
+            has_service_today = schedule.get('has_service_today', True)
+
+            if data_status == 'NO_DATA':
+                logger.warning(f"No schedule payload for {line_code}; assuming active")
+                return {"in_operation": True, "next_service_time": None, "reason": "NO_DATA"}
             
             # Get times from specified direction(s)
             all_times = []
@@ -287,8 +297,12 @@ class IETTStatusService:
                         all_times.append(parsed)
             
             if not all_times:
-                # No schedule data - assume active (benefit of doubt)
-                return {"in_operation": True, "next_service_time": None}
+                if not has_service_today or data_status == 'NO_SERVICE_DAY':
+                    logger.info(f"Line {line_code} has no planned service for current day type")
+                    return {"in_operation": False, "next_service_time": None, "reason": "NO_SERVICE_DAY"}
+
+                # Unknown state - assume active (benefit of doubt)
+                return {"in_operation": True, "next_service_time": None, "reason": "UNKNOWN"}
             
             # Sort times
             all_times.sort()
@@ -309,7 +323,7 @@ class IETTStatusService:
             # Check if current time is within operating hours
             if first_service <= now <= last_service:
                 logger.info(f"Line {line_code} direction {direction} is IN SERVICE")
-                return {"in_operation": True, "next_service_time": None}
+                return {"in_operation": True, "next_service_time": None, "reason": None}
             else:
                 # Out of service - find next service time
                 next_service = None
@@ -322,12 +336,13 @@ class IETTStatusService:
                     next_service = first_service.strftime("%H:%M")
                     logger.info(f"Line {line_code} direction {direction} OUT OF SERVICE - after last service")
                 
-                return {"in_operation": False, "next_service_time": next_service}
+                reason = 'BEFORE_WINDOW' if now < first_service else 'AFTER_WINDOW'
+                return {"in_operation": False, "next_service_time": next_service, "reason": reason}
                 
         except Exception as e:
             logger.error(f"Error checking operation hours for line {line_code}: {e}")
             # On error, assume active
-            return {"in_operation": True, "next_service_time": None}
+            return {"in_operation": True, "next_service_time": None, "reason": "ERROR"}
     
     def get_line_status(self, line_code: str, direction: Optional[str] = None) -> Dict:
         """
@@ -353,7 +368,13 @@ class IETTStatusService:
             operation_info = self._check_operation_hours(line_code, direction=None)
             if not operation_info["in_operation"]:
                 next_time = operation_info.get("next_service_time")
-                message = f"Hat şu an hizmet vermemektedir. İlk sefer: {next_time}" if next_time else "Hat şu an hizmet vermemektedir."
+                reason = operation_info.get("reason")
+                if reason == 'NO_SERVICE_DAY':
+                    message = "Hat bugün planlı sefer yapmıyor."
+                elif next_time:
+                    message = f"Hat şu an hizmet vermemektedir. İlk sefer: {next_time}"
+                else:
+                    message = "Hat şu an hizmet vermemektedir."
                 return {
                     "status": LineStatus.OUT_OF_SERVICE,
                     "alerts": [{"text": message, "time": "", "type": ""}],
@@ -393,7 +414,13 @@ class IETTStatusService:
         
         if not operation_info["in_operation"]:
             next_time = operation_info.get("next_service_time")
-            message = f"Hat şu an hizmet vermemektedir. İlk sefer: {next_time}" if next_time else "Hat şu an hizmet vermemektedir."
+            reason = operation_info.get("reason")
+            if reason == 'NO_SERVICE_DAY':
+                message = "Hat bugün planlı sefer yapmıyor."
+            elif next_time:
+                message = f"Hat şu an hizmet vermemektedir. İlk sefer: {next_time}"
+            else:
+                message = "Hat şu an hizmet vermemektedir."
             
             return {
                 "status": LineStatus.OUT_OF_SERVICE,
