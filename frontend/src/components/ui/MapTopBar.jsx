@@ -14,20 +14,17 @@ export default function MapTopBar() {
         <motion.div
           layout
           transition={spring}
-          className="mx-auto flex min-h-12 w-full max-w-3xl items-start gap-2 sm:gap-3"
+          className="mx-auto flex w-full max-w-3xl flex-col gap-2 sm:gap-3"
         >
           <motion.div
             layout
             transition={spring}
-            className="min-w-0 flex-1"
+            className="w-full"
           >
             <SearchBar />
           </motion.div>
-          <motion.div
-            layout
-            transition={spring}
-            className="shrink-0"
-          >
+
+          <motion.div layout transition={spring} className="flex w-full justify-end">
             <TemperatureBadge />
           </motion.div>
         </motion.div>

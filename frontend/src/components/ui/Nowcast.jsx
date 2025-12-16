@@ -186,23 +186,19 @@ const TemperatureBadge = () => {
                         animate={{ opacity: 1, scale: 1 }}
                         exit={{ opacity: 0, scale: 0.98 }}
                         transition={spring}
-                        className="flex h-12 items-center gap-2 px-3"
+                        className="flex h-10 items-center gap-2 px-3"
                     >
                         {loading ? (
-                            <div className="flex flex-col justify-center space-y-1 px-1">
+                            <div className="flex items-center px-1">
                                 <Skeleton className="h-4 w-10 bg-white/20" />
-                                <Skeleton className="h-3 w-12 bg-white/10" />
                                 <span className="sr-only">Loading weather</span>
                             </div>
                         ) : error ? (
                             <AlertTriangle className="text-orange-400" size={16} />
                         ) : (
-                            <div className="flex flex-col justify-center px-1">
+                            <div className="flex items-center px-1">
                                 <div className="text-base font-bold leading-tight text-text">
-                                    {currentTemp ? Math.round(currentTemp) : '--'}°
-                                </div>
-                                <div className="text-[10px] font-medium leading-tight text-secondary/70">
-                                    {tCommon('istanbul')}
+                                    {currentTemp ? Math.round(currentTemp) : '--'}°C
                                 </div>
                             </div>
                         )}
@@ -233,7 +229,7 @@ const TemperatureBadge = () => {
                                 <div className="flex flex-1 items-center justify-between">
                                     <div className="flex flex-col justify-center px-1">
                                         <div className="text-base font-bold leading-tight text-text">
-                                            {currentTemp ? Math.round(currentTemp) : '--'}°
+                                            {currentTemp ? Math.round(currentTemp) : '--'}°C
                                         </div>
                                         <div className="text-[10px] font-medium leading-tight text-secondary/70">
                                             {tCommon('istanbul')}
@@ -281,7 +277,7 @@ const TemperatureBadge = () => {
                                             </div>
 
                                             <div className="min-w-[35px] text-center text-sm font-bold text-text">
-                                                {Math.round(data.temperature_2m)}°
+                                                {Math.round(data.temperature_2m)}°C
                                             </div>
 
                                             <div className="flex min-w-[52px] items-center justify-end gap-1 rounded-lg bg-primary/5 px-1.5 py-0.5">

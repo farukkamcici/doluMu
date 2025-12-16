@@ -2,7 +2,7 @@
 import { MapContainer, TileLayer, Marker, Polyline, CircleMarker, Tooltip, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import useAppStore from '@/store/useAppStore';
-import LocateButton from '@/components/ui/LocateButton';
+import MapControls from '@/components/map/MapControls';
 import MetroLayer from '@/components/map/MetroLayer';
 import MetroStationInfoCard from '@/components/map/MetroStationInfoCard';
 import { divIcon } from 'leaflet';
@@ -198,7 +198,7 @@ export default function MapView() {
         maxZoom={19}
       />
 
-      <LocateButton />
+      <MapControls />
 
       {userLocation && (
         <Marker position={userLocation} icon={userLocationIcon}>
