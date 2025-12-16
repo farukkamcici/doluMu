@@ -408,7 +408,7 @@ export default function LineDetailPanel() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-[898] bg-black/60 backdrop-blur-sm"
+            className="fixed inset-0 z-[898] bg-[#0f172a]/50 backdrop-blur-sm"
             onClick={closePanel}
           />
         )}
@@ -429,16 +429,28 @@ export default function LineDetailPanel() {
           dragTransition={{ bounceStiffness: 600, bounceDamping: 20 }}
           onDragEnd={!isDesktop ? handleDragEnd : undefined}
           animate={controls}
+          initial={false}
+          transition={{ 
+            duration: 0.25, 
+            ease: [0.25, 0.1, 0.25, 1],
+            boxShadow: { duration: 0.25, ease: 'easeOut' }
+          }}
           className={cn(
-            "bg-slate-900/95 backdrop-blur-md shadow-2xl overflow-hidden pointer-events-auto",
+            "overflow-hidden pointer-events-auto border bg-[#0f172a]",
             isDesktop 
-              ? "absolute rounded-xl" 
-              : "fixed bottom-16 left-0 right-0 rounded-t-3xl"
+              ? "absolute rounded-2xl border-white/[0.08] shadow-[0_8px_24px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.04)]" 
+              : cn(
+                  "fixed left-0 right-0 bottom-0 rounded-t-[28px] shadow-[0_-8px_24px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.04)]",
+                  isFavoritesPage
+                    ? "border-t-white/[0.10] border-x-white/[0.10] border-b-transparent"
+                    : "border-t-white/[0.08] border-x-white/[0.08] border-b-transparent"
+                )
           )}
           style={!isDesktop ? {
             height: isPanelMinimized ? 'auto' : (isFavoritesPage ? 'fit-content' : 'min(55vh, calc(100vh - 6rem))'),
             maxHeight: 'calc(100vh - 5rem)',
-            transition: 'height 0.3s ease-out'
+            paddingBottom: '84px',
+            transition: 'height 0.25s cubic-bezier(0.25, 0.1, 0.25, 1), box-shadow 0.25s ease-out'
           } : {
             top: INITIAL_PANEL_POSITION.top,
             left: INITIAL_PANEL_POSITION.left,
@@ -470,7 +482,7 @@ export default function LineDetailPanel() {
                         setPanelMinimized(!isPanelMinimized);
                         vibrate(5);
                       }}
-                      className="flex items-center gap-1.5 px-2 py-1 rounded-md hover:bg-white/10 transition-colors text-gray-400 hover:text-gray-200 cursor-pointer"
+                      className="flex items-center gap-1.5 px-2 py-1 rounded-md hover:bg-white/10 transition-colors text-white/50 hover:text-white/80 cursor-pointer"
                       title={isPanelMinimized ? t('expand') : t('minimize')}
                     >
                       <Minimize2 size={12} />
@@ -489,7 +501,7 @@ export default function LineDetailPanel() {
                         }
                         vibrate(5);
                       }}
-                      className="p-1.5 rounded-md hover:bg-white/10 transition-colors text-gray-400 hover:text-gray-200 cursor-pointer"
+                      className="p-1.5 rounded-md hover:bg-white/10 transition-colors text-white/50 hover:text-white/80 cursor-pointer"
                       title={t('resetPosition')}
                     >
                       <RotateCcw size={12} />
@@ -504,7 +516,7 @@ export default function LineDetailPanel() {
                       e.stopPropagation();
                       closePanel();
                     }}
-                    className="rounded-full bg-background p-1.5 text-gray-400 hover:bg-white/10 hover:text-gray-200 transition-colors cursor-pointer"
+                    className="rounded-full bg-background p-1.5 text-white/50 hover:bg-white/10 hover:text-white/80 transition-colors cursor-pointer"
                   >
                     <X size={14} />
                   </button>
@@ -515,9 +527,10 @@ export default function LineDetailPanel() {
               {!isDesktop && (
                 <div 
                   onClick={toggleMinimize}
-                  className="flex items-center justify-center py-2.5 cursor-pointer hover:bg-white/5 transition-colors"
+                  className="relative flex items-center justify-center py-3 cursor-pointer hover:bg-white/5 transition-colors"
                 >
-                  <div className="w-12 h-1 bg-gray-600 rounded-full" />
+                  <div className="absolute top-0 left-1/2 -translate-x-1/2 w-16 h-[2px] bg-gradient-to-r from-transparent via-white/10 to-transparent rounded-full" />
+                  <div className="w-10 h-1 bg-white/30 rounded-full" />
                 </div>
               )}
 
@@ -563,7 +576,7 @@ export default function LineDetailPanel() {
                     }}
                     className={cn(
                       "rounded-full bg-background p-1.5 hover:bg-white/10 transition-colors",
-                      isFav ? "text-yellow-400" : "text-gray-400"
+                      isFav ? "text-yellow-400" : "text-white/50"
                     )}
                     aria-label={isFav ? t('removeFromFavorites') : t('addToFavorites')}
                   >
@@ -575,7 +588,7 @@ export default function LineDetailPanel() {
                         e.stopPropagation();
                         closePanel();
                       }}
-                      className="rounded-full bg-background p-1.5 text-gray-400 hover:bg-white/10"
+                      className="rounded-full bg-background p-1.5 text-white/50 hover:bg-white/10"
                     >
                       <X size={16} />
                     </button>
@@ -601,7 +614,7 @@ export default function LineDetailPanel() {
 
                           setMetroSelection(selectedLine.id, newStationId, nextDirectionId);
                         }}
-                        className="w-full appearance-none bg-slate-700/50 border border-white/10 rounded-lg px-3 py-2 pr-8 text-xs text-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500/50 cursor-pointer"
+                        className="w-full appearance-none bg-background/60 border border-white/10 rounded-lg px-3 py-2 pr-8 text-xs text-white/80 focus:outline-none focus:ring-2 focus:ring-primary/50 cursor-pointer"
                       >
                         {metroStations.map((station) => (
                           <option key={station.id} value={station.id}>
@@ -609,7 +622,7 @@ export default function LineDetailPanel() {
                           </option>
                         ))}
                       </select>
-                      <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
+                      <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 pointer-events-none" />
                     </div>
 
                     {/* Direction Selector */}
@@ -620,7 +633,7 @@ export default function LineDetailPanel() {
                           const newDirectionId = parseInt(e.target.value);
                           setMetroSelection(selectedLine.id, selectedMetroStationId, newDirectionId);
                         }}
-                        className="w-full appearance-none bg-slate-700/50 border border-white/10 rounded-lg px-3 py-2 pr-8 text-xs text-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500/50 cursor-pointer"
+                        className="w-full appearance-none bg-background/60 border border-white/10 rounded-lg px-3 py-2 pr-8 text-xs text-white/80 focus:outline-none focus:ring-2 focus:ring-primary/50 cursor-pointer"
                         disabled={metroDirections.length === 0}
                       >
                         {metroDirections.map((direction) => (
@@ -629,7 +642,7 @@ export default function LineDetailPanel() {
                           </option>
                         ))}
                       </select>
-                      <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
+                      <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 pointer-events-none" />
                     </div>
                   </div>
                 </div>
@@ -654,7 +667,7 @@ export default function LineDetailPanel() {
                               isLongLabel && !isDesktop ? "text-[10px]" : "text-xs",
                               selectedDirection === dir
                                 ? "bg-primary text-white shadow-sm"
-                                : "text-gray-400 hover:text-gray-200 hover:bg-white/5"
+                                : "text-white/50 hover:text-white/80 hover:bg-white/5"
                             )}
                             title={label}
                           >
@@ -670,7 +683,7 @@ export default function LineDetailPanel() {
 
             {/* BODY - Only show if not minimized */}
             {!isPanelMinimized && (
-              <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-800/30 hover:scrollbar-thumb-gray-500">
+              <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-primary/30 scrollbar-track-background/50">
                 
                 {/* Card Layout */}
                 <div className="p-4 space-y-3">

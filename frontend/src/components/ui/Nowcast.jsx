@@ -171,7 +171,7 @@ const TemperatureBadge = () => {
             layout
             transition={spring}
             className={
-                `relative shrink-0 cursor-pointer overflow-hidden rounded-2xl border border-white/10 bg-surface/90 shadow-lg backdrop-blur-md origin-top ${
+                `relative shrink-0 cursor-pointer overflow-hidden rounded-2xl border border-white/[0.08] bg-[#0f172a] shadow-[0_4px_16px_rgba(0,0,0,0.3),inset_0_1px_0_rgba(255,255,255,0.04)] origin-top hover:shadow-[0_4px_20px_rgba(0,0,0,0.4)] transition-all duration-200 ${
                     isExpanded ? 'z-[1200]' : 'z-[1001]'
                 }`
             }
@@ -186,7 +186,7 @@ const TemperatureBadge = () => {
                         animate={{ opacity: 1, scale: 1 }}
                         exit={{ opacity: 0, scale: 0.98 }}
                         transition={spring}
-                        className="flex h-10 items-center gap-2 px-3"
+                        className="flex h-11 items-center gap-2 px-4"
                     >
                         {loading ? (
                             <div className="flex items-center px-1">

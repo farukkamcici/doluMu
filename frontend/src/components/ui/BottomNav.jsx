@@ -13,12 +13,30 @@ function NavItem({ href, icon: Icon, label }) {
   const isActive = pathname === href || (href !== '/' && pathname.startsWith(href));
   
   return (
-    <Link href={href} className={cn(
-      "flex flex-col items-center justify-center space-y-1 transition-colors w-full h-full",
-      isActive ? "text-primary" : "text-gray-500 hover:text-text"
-    )}>
-      <Icon className="h-6 w-6" />
-      <span className="text-[10px] font-medium">{label}</span>
+    <Link 
+      href={href} 
+      className="flex flex-1 flex-col items-center justify-center gap-1.5 py-2 relative group"
+    >
+      <div className="relative flex items-center justify-center">
+        <Icon 
+          className={cn(
+            "h-[22px] w-[22px] transition-all duration-200 ease-out",
+            isActive 
+              ? "text-primary stroke-[2]" 
+              : "text-white/50 stroke-[1.5] group-hover:text-white/70"
+          )} 
+          strokeWidth={isActive ? 2 : 1.5}
+        />
+        {isActive && (
+          <div className="absolute -bottom-1 h-[2px] w-5 bg-primary rounded-full" />
+        )}
+      </div>
+      <span className={cn(
+        "text-[11px] font-medium tracking-wide transition-colors duration-200",
+        isActive ? "text-text" : "text-white/40 group-hover:text-white/60"
+      )}>
+        {label}
+      </span>
     </Link>
   );
 }
@@ -43,12 +61,22 @@ export default function BottomNav() {
   }, [pathname, closePanel]);
   
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-[1000] border-t border-white/10 bg-surface pb-safe shadow-lg">
-       <nav className="mx-auto flex h-16 max-w-md items-center justify-around">
-         <NavItem href="/" icon={Map} label={t('map')} />
-         <NavItem href="/forecast" icon={Star} label={t('favorites')} />
-         <NavItem href="/settings" icon={Settings} label={t('settings')} />
-       </nav>
-     </div>
+    <div className="fixed bottom-0 left-0 right-0 z-[1000] pointer-events-none pb-safe">
+      {/* Blur & occlusion layer - only affects nav footprint */}
+      <div className="absolute inset-x-0 bottom-0 h-[88px] pb-safe">
+        <div className="absolute inset-0 backdrop-blur-xl" />
+      </div>
+      
+      {/* Floating nav container */}
+      <div className="relative mx-auto max-w-md px-4 pb-2 pointer-events-auto">
+        <nav className="flex items-center h-[68px] rounded-[24px] border border-white/[0.08] bg-[#0f172a] shadow-[0_-4px_16px_rgba(0,0,0,0.3),inset_0_1px_0_rgba(255,255,255,0.03)]">
+          <NavItem href="/" icon={Map} label={t('map')} />
+          <div className="h-8 w-px bg-white/[0.06]" />
+          <NavItem href="/forecast" icon={Star} label={t('favorites')} />
+          <div className="h-8 w-px bg-white/[0.06]" />
+          <NavItem href="/settings" icon={Settings} label={t('settings')} />
+        </nav>
+      </div>
+    </div>
   );
 }

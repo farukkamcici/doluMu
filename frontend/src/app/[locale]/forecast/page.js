@@ -73,7 +73,7 @@ function FavoriteLineCard({ lineId }) {
   if (loading) {
     return (
       <div
-        className="rounded-2xl bg-surface/70 p-4 border border-white/10 min-h-[104px] shadow-lg"
+        className="rounded-2xl bg-surface p-4 border border-white/[0.08] min-h-[104px] shadow-lg"
         aria-busy="true"
       >
         <div className="flex items-start justify-between gap-3">
@@ -104,8 +104,8 @@ function FavoriteLineCard({ lineId }) {
     <button
       onClick={handleCardClick}
       className={cn(
-        'group w-full rounded-2xl border border-white/10 bg-surface/70 p-4 text-left shadow-lg backdrop-blur-md',
-        'transition-colors hover:bg-surface/85 active:bg-surface',
+        'group w-full rounded-2xl border border-white/[0.08] bg-surface p-4 text-left shadow-lg',
+        'transition-colors hover:bg-surface/95 active:bg-surface',
         lineStatus?.status === 'OUT_OF_SERVICE' && "opacity-70"
       )}
     >
@@ -198,7 +198,7 @@ export default function ForecastPage() {
         {favorites.length === 0 ? (
           <div className="flex flex-1 items-center justify-center px-2 py-10">
             <div className="w-full max-w-md">
-              <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-surface/70 p-6 shadow-2xl backdrop-blur">
+              <div className="relative overflow-hidden rounded-3xl border border-white/[0.08] bg-surface p-6 shadow-2xl">
                 <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-primary/15 via-transparent to-secondary/10" />
 
                 <div className="relative">
@@ -210,14 +210,14 @@ export default function ForecastPage() {
                       <h2 className="text-lg font-semibold text-text">
                         {t('emptyState.title')}
                       </h2>
-                      <p className="mt-1 text-sm text-gray-400">
+                      <p className="mt-1 text-sm text-white/60">
                         {t('emptyState.description')}
                       </p>
                     </div>
                   </div>
 
                   <div className="mt-5 rounded-2xl border border-white/10 bg-background/30 p-4">
-                    <div className="flex items-center gap-3 text-sm text-gray-300">
+                    <div className="flex items-center gap-3 text-sm text-white/70">
                       <MapPin size={16} className="text-secondary" />
                       <span className="leading-snug">{t('emptyState.step1')}</span>
                     </div>

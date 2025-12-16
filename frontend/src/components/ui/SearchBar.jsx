@@ -71,16 +71,16 @@ export default function SearchBar() {
   };
 
   return (
-    <div className="relative w-full h-12">
-      <div className="flex items-center gap-2 overflow-hidden rounded-2xl border border-white/10 bg-surface/90 px-3 h-12 shadow-lg backdrop-blur-md focus-within:ring-2 focus-within:ring-primary/30">
-         <Search className="h-4 w-4 text-secondary shrink-0" />
+    <div className="relative w-full h-14">
+      <div className="flex items-center gap-3 overflow-hidden rounded-2xl border border-white/[0.08] bg-[#0f172a] px-5 h-14 shadow-[0_4px_16px_rgba(0,0,0,0.3),inset_0_1px_0_rgba(255,255,255,0.04)] focus-within:ring-2 focus-within:ring-primary/40 transition-all duration-200">
+         <Search className="h-5 w-5 text-secondary shrink-0" />
          <input 
            type="text"
            inputMode="text"
            value={query}
            onChange={(e) => setQuery(e.target.value)}
            placeholder={t('placeholder')} 
-           className="min-w-0 flex-1 truncate bg-transparent text-sm text-text outline-none placeholder:text-gray-500" 
+           className="min-w-0 flex-1 truncate bg-transparent text-base text-text outline-none placeholder:text-white/40" 
          />
          {query.length > 0 ? (
            <button
@@ -89,16 +89,16 @@ export default function SearchBar() {
                setQuery('');
                setResults([]);
              }}
-             className="inline-flex h-8 w-8 items-center justify-center rounded-xl text-gray-400 hover:bg-white/5 hover:text-gray-200 transition-colors"
+             className="inline-flex h-9 w-9 items-center justify-center rounded-xl text-white/50 hover:bg-white/10 hover:text-white/80 transition-colors"
              aria-label={t('clear')}
            >
-             <X className="h-4 w-4" />
+             <X className="h-5 w-5" />
            </button>
          ) : null}
       </div>
       
       {(results.length > 0 || loading) && (
-        <div className="absolute top-full mt-2 w-full max-h-[400px] overflow-y-auto overflow-hidden rounded-2xl border border-white/10 bg-surface shadow-xl z-50 scrollbar-thin scrollbar-thumb-amber-500/30 scrollbar-track-slate-800/50">
+        <div className="absolute top-full mt-3 w-full max-h-[400px] overflow-y-auto overflow-hidden rounded-2xl border border-white/[0.08] bg-[#0f172a] shadow-[0_8px_24px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.04)] z-50 scrollbar-thin scrollbar-thumb-primary/30 scrollbar-track-background/50">
           {loading && (
             <div className="p-4 space-y-3" aria-busy="true" aria-live="polite">
               {Array.from({ length: 3 }).map((_, index) => (
