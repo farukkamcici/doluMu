@@ -205,7 +205,7 @@ const TemperatureBadge = () => {
                 className="relative w-full cursor-pointer overflow-hidden rounded-2xl border border-white/[0.08] bg-[#1a2332] shadow-[0_6px_20px_rgba(0,0,0,0.4),0_2px_8px_rgba(0,0,0,0.2),inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur-xl transition-shadow duration-200 hover:shadow-[0_8px_24px_rgba(0,0,0,0.5),0_4px_12px_rgba(0,0,0,0.3),inset_0_1px_0_rgba(255,255,255,0.08)]"
                 aria-expanded={isExpanded}
             >
-                <div className="flex h-11 items-center gap-2 px-4">
+                <div className="flex h-10 items-center gap-2 px-3 sm:h-11 sm:px-4">
                     {loading ? (
                         <div className="flex items-center px-1">
                             <Skeleton className="h-4 w-10 bg-white/20" />
@@ -215,7 +215,7 @@ const TemperatureBadge = () => {
                         <AlertTriangle className="text-orange-400" size={16} />
                     ) : (
                         <div className="flex items-center px-1">
-                            <div className="text-base font-bold leading-tight text-text">
+                            <div className="text-sm font-bold leading-tight text-text sm:text-base">
                                 {currentTemp ? Math.round(currentTemp) : '--'}°C
                             </div>
                         </div>
@@ -234,7 +234,7 @@ const TemperatureBadge = () => {
                         className="absolute right-0 mt-2 w-[220px] sm:w-[260px] overflow-hidden rounded-2xl border border-white/10 bg-[#1a2332] shadow-[0_8px_24px_rgba(0,0,0,0.5)] backdrop-blur-xl"
                         style={{ transformOrigin: 'top right' }}
                     >
-                        <div className="flex h-12 items-center gap-2 px-3">
+                        <div className="flex h-11 items-center gap-2 px-3 sm:h-12">
                             {loading ? (
                                 <div className="flex flex-col justify-center space-y-1 px-1">
                                     <Skeleton className="h-4 w-10 bg-white/20" />
@@ -249,7 +249,7 @@ const TemperatureBadge = () => {
                             ) : (
                                 <div className="flex flex-1 items-center justify-between">
                                     <div className="flex flex-col justify-center px-1">
-                                        <div className="text-base font-bold leading-tight text-text">
+                                        <div className="text-sm font-bold leading-tight text-text sm:text-base">
                                             {currentTemp ? Math.round(currentTemp) : '--'}°C
                                         </div>
                                         <div className="text-[10px] font-medium leading-tight text-secondary/70">

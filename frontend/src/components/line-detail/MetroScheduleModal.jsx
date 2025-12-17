@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useTranslations } from 'next-intl';
 import { X, Clock, TrainFront } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -114,9 +115,10 @@ export default function MetroScheduleModal({
   const scheduleTimes = schedule?.Data?.[0]?.TimeInfos?.Times || [];
   const nextIndex = getNextTimeIndex(scheduleTimes);
   const destinationStation = schedule?.Data?.[0]?.LastStation || '';
+  if (typeof document === 'undefined') return null;
 
-  return (
-    <div className="fixed inset-0 z-[950] flex items-center justify-center">
+  return createPortal(
+    <div className="fixed inset-0 z-[1600] flex items-center justify-center">
       <div
         className="absolute inset-0 bg-black/70 backdrop-blur-sm"
         onClick={onClose}
@@ -244,6 +246,7 @@ export default function MetroScheduleModal({
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

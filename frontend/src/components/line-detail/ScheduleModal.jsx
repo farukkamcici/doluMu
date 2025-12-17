@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useTranslations } from 'next-intl';
 import { X, Clock, ArrowRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -78,9 +79,10 @@ export default function ScheduleModal({ lineCode, isOpen, onClose, initialDirect
 
   const directionSchedule = Array.isArray(schedule?.[activeTab]) ? schedule[activeTab] : [];
   const nextIndex = getNextTimeIndex(directionSchedule);
+  if (typeof document === 'undefined') return null;
 
-  return (
-    <div className="fixed inset-0 z-[950] flex items-center justify-center">
+  return createPortal(
+    <div className="fixed inset-0 z-[1600] flex items-center justify-center">
       <div
         className="absolute inset-0 bg-black/70 backdrop-blur-sm"
         onClick={onClose}
@@ -198,6 +200,7 @@ export default function ScheduleModal({ lineCode, isOpen, onClose, initialDirect
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

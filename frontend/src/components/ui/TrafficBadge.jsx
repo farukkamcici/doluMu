@@ -2,6 +2,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useTranslations } from "next-intl";
 import Image from "next/image";
+import { X } from "lucide-react";
 import * as Tooltip from "@radix-ui/react-tooltip";
 
 const TrafficBadge = () => {
@@ -71,7 +72,7 @@ const TrafficBadge = () => {
               if (e.key === "Escape") setOpen(false);
             }}
           >
-            <div className="flex h-11 items-center gap-2 px-4">
+            <div className="flex h-10 items-center gap-2 px-3 sm:h-11 sm:px-4">
               <Image
                 src="/icons/traffic-light-solid.svg"
                 alt=""
@@ -82,7 +83,7 @@ const TrafficBadge = () => {
                 className="h-4 w-4 shrink-0 invert opacity-90"
               />
               <div className="flex items-center px-1">
-                <div className="text-base font-bold leading-tight text-text">
+                <div className="text-sm font-bold leading-tight text-text sm:text-base">
                   {loading || percent == null ? "--" : `%${percent}`}
                 </div>
               </div>
@@ -92,13 +93,21 @@ const TrafficBadge = () => {
 
         <Tooltip.Portal>
           <Tooltip.Content
-            className="z-[1300] max-w-[280px] rounded-xl border border-white/10 bg-[#1a2332] px-4 py-3 shadow-[0_8px_24px_rgba(0,0,0,0.5)] backdrop-blur-xl"
+            className="relative z-[1300] max-w-[280px] rounded-xl border border-white/10 bg-[#1a2332] px-4 py-3 shadow-[0_8px_24px_rgba(0,0,0,0.5)] backdrop-blur-xl"
             side="bottom"
             align="center"
             sideOffset={10}
             collisionPadding={12}
             onPointerDownOutside={() => setOpen(false)}
           >
+            <button
+              type="button"
+              onClick={() => setOpen(false)}
+              className="absolute right-2 top-2 inline-flex h-7 w-7 items-center justify-center rounded-xl border border-white/10 bg-background/20 text-gray-300 hover:bg-white/5 hover:text-white transition-colors"
+              aria-label="Close"
+            >
+              <X size={14} />
+            </button>
             <div className="space-y-2">
               <div className="text-sm font-semibold text-text">
                 {tTraffic("title")}
