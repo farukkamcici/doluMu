@@ -13,22 +13,24 @@ export default function MapTopBar() {
     <div className="fixed left-0 right-0 top-0 z-[1001] px-4 pt-6 sm:px-5 sm:pt-8">
       <LayoutGroup>
         <motion.div
-          layout
+          layout="position"
           transition={spring}
           className="mx-auto flex w-full max-w-3xl flex-col gap-3 sm:gap-4"
         >
           <motion.div
-            layout
+            layout="position"
             transition={spring}
             className="w-full"
           >
             <SearchBar />
           </motion.div>
 
-          <motion.div layout transition={spring} className="flex w-full justify-end gap-3">
-            <TrafficBadge />
+          <div className="flex w-full justify-end gap-3">
+            <motion.div layout="position" transition={spring}>
+              <TrafficBadge />
+            </motion.div>
             <TemperatureBadge />
-          </motion.div>
+          </div>
         </motion.div>
       </LayoutGroup>
     </div>

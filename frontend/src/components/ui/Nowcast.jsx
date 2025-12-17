@@ -25,6 +25,8 @@ const TemperatureBadge = () => {
     const lastFetchRef = useRef(null);
     const collapseTimeoutRef = useRef(null);
 
+    const containerRef = useRef(null);
+
     const fetchWeatherData = useCallback(async () => {
         // Prevent excessive calls - minimum 5 minutes between fetches
         const now = Date.now();
@@ -75,9 +77,8 @@ const TemperatureBadge = () => {
 
     // Handle expansion with auto-collapse
     const handleToggle = useCallback((e) => {
-        // Prevent event propagation to avoid interfering with other UI elements
+        // Prevent event propagation (including Map-level handlers) when opening/closing
         e.stopPropagation();
-        e.preventDefault();
         
         setIsExpanded(prev => {
             const newState = !prev;
@@ -87,7 +88,7 @@ const TemperatureBadge = () => {
                 clearTimeout(collapseTimeoutRef.current);
             }
             
-            // If expanding, set auto-collapse after 8 seconds
+            // If expanding, set auto-collapse after a few seconds
             if (newState) {
                 collapseTimeoutRef.current = setTimeout(() => {
                     setIsExpanded(false);
@@ -131,6 +132,31 @@ const TemperatureBadge = () => {
         };
     }, []);
 
+
+    // Close panel on outside click / Escape for a lightweight, mobile-friendly UX
+    useEffect(() => {
+        if (!isExpanded) return;
+
+        const handlePointerDown = (event) => {
+            const container = containerRef.current;
+            if (!container) return;
+            if (container.contains(event.target)) return;
+            setIsExpanded(false);
+        };
+
+        const handleKeyDown = (event) => {
+            if (event.key === 'Escape') setIsExpanded(false);
+        };
+
+        document.addEventListener('pointerdown', handlePointerDown);
+        document.addEventListener('keydown', handleKeyDown);
+
+        return () => {
+            document.removeEventListener('pointerdown', handlePointerDown);
+            document.removeEventListener('keydown', handleKeyDown);
+        };
+    }, [isExpanded]);
+
     // Parse API response - format is "hour_0" (current), "hour_1", "hour_2", etc.
     // hour_0 = current hour, hour_1 to hour_6 = next 6 hours forecast
     const currentWeather = weatherData?.hour_0;
@@ -154,8 +180,6 @@ const TemperatureBadge = () => {
             };
         })
         .filter(item => item !== null);
-
-    const spring = { type: 'spring', stiffness: 500, damping: 30 };
     const now = new Date(nowTs);
     const nowDateLabel = new Intl.DateTimeFormat(locale, {
         day: '2-digit',
@@ -167,51 +191,48 @@ const TemperatureBadge = () => {
     }).format(now);
 
     return (
-        <motion.div
-            layout
-            transition={spring}
-            className={
-                `relative shrink-0 cursor-pointer overflow-hidden rounded-2xl border border-white/[0.08] bg-[#1a2332] shadow-[0_6px_20px_rgba(0,0,0,0.4),0_2px_8px_rgba(0,0,0,0.2),inset_0_1px_0_rgba(255,255,255,0.06)] origin-top hover:shadow-[0_8px_24px_rgba(0,0,0,0.5),0_4px_12px_rgba(0,0,0,0.3),inset_0_1px_0_rgba(255,255,255,0.08)] transition-all duration-200 ${
-                    isExpanded ? 'z-[1200]' : 'z-[1001]'
-                }`
-            }
-            style={{ originY: 0, originX: 0.5 }}
-            onClick={handleToggle}
+        <div
+            ref={containerRef}
+            className={`relative shrink-0 ${isExpanded ? 'z-[1200]' : 'z-[1001]'}`}
+            onPointerDown={(e) => {
+                // Stop early so Map / other UI layers don't treat this as a click.
+                e.stopPropagation();
+            }}
         >
-            <AnimatePresence mode="wait" initial={false}>
-                {!isExpanded ? (
-                    <motion.div
-                        key="pill"
-                        initial={{ opacity: 0, scale: 0.98 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.98 }}
-                        transition={spring}
-                        className="flex h-11 items-center gap-2 px-4"
-                    >
-                        {loading ? (
-                            <div className="flex items-center px-1">
-                                <Skeleton className="h-4 w-10 bg-white/20" />
-                                <span className="sr-only">Loading weather</span>
+            <button
+                type="button"
+                onClick={handleToggle}
+                className="relative w-full cursor-pointer overflow-hidden rounded-2xl border border-white/[0.08] bg-[#1a2332] shadow-[0_6px_20px_rgba(0,0,0,0.4),0_2px_8px_rgba(0,0,0,0.2),inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur-xl transition-shadow duration-200 hover:shadow-[0_8px_24px_rgba(0,0,0,0.5),0_4px_12px_rgba(0,0,0,0.3),inset_0_1px_0_rgba(255,255,255,0.08)]"
+                aria-expanded={isExpanded}
+            >
+                <div className="flex h-11 items-center gap-2 px-4">
+                    {loading ? (
+                        <div className="flex items-center px-1">
+                            <Skeleton className="h-4 w-10 bg-white/20" />
+                            <span className="sr-only">Loading weather</span>
+                        </div>
+                    ) : error ? (
+                        <AlertTriangle className="text-orange-400" size={16} />
+                    ) : (
+                        <div className="flex items-center px-1">
+                            <div className="text-base font-bold leading-tight text-text">
+                                {currentTemp ? Math.round(currentTemp) : '--'}°C
                             </div>
-                        ) : error ? (
-                            <AlertTriangle className="text-orange-400" size={16} />
-                        ) : (
-                            <div className="flex items-center px-1">
-                                <div className="text-base font-bold leading-tight text-text">
-                                    {currentTemp ? Math.round(currentTemp) : '--'}°C
-                                </div>
-                            </div>
-                        )}
-                    </motion.div>
-                ) : (
+                        </div>
+                    )}
+                </div>
+            </button>
+
+            <AnimatePresence initial={false}>
+                {isExpanded ? (
                     <motion.div
                         key="panel"
-                        layout
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        transition={spring}
-                        className="w-[220px] sm:w-[260px]"
+                        initial={{ opacity: 0, y: -10, scale: 0.98 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: -10, scale: 0.98 }}
+                        transition={{ type: 'tween', duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
+                        className="absolute right-0 mt-2 w-[220px] sm:w-[260px] overflow-hidden rounded-2xl border border-white/10 bg-[#1a2332] shadow-[0_8px_24px_rgba(0,0,0,0.5)] backdrop-blur-xl"
+                        style={{ transformOrigin: 'top right' }}
                     >
                         <div className="flex h-12 items-center gap-2 px-3">
                             {loading ? (
@@ -298,9 +319,9 @@ const TemperatureBadge = () => {
                             </div>
                         </div>
                     </motion.div>
-                )}
+                ) : null}
             </AnimatePresence>
-        </motion.div>
+        </div>
     );
 };
 
