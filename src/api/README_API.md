@@ -330,6 +330,23 @@ else:
 
 ---
 
+### 6. Bus Schedule Cache (`services/bus_schedule_cache.py`)
+
+**Purpose**: Persist IETT planned bus schedules in Postgres to avoid runtime SOAP/XML timeouts.
+
+**Data Source**:
+- IETT SOAP API: `https://api.ibb.gov.tr/iett/UlasimAnaVeri/PlanlananSeferSaati.asmx` (`GetPlanlananSeferSaati_XML`)
+
+**Cache Key**:
+- `(line_code, valid_for, day_type)` where `day_type` is `I` (weekday), `C` (Saturday), `P` (Sunday)
+
+**Behavior**:
+- Nightly prefetch seeds today's schedules at 04:15 (Europe/Istanbul).
+- Request-time fallback: if a user requests at e.g. 02:00 and today's row is missing, the API fetches upstream on-demand, stores it, and returns it.
+- Stale tolerance: serve the latest successful cached row (up to 2 days old) when today's cache is missing.
+
+---
+
 ## API Endpoints
 
 ### Forecast Endpoints
@@ -938,6 +955,12 @@ if retry_queue:
     schedule_retry_job(interval=30_minutes)
 ```
 
+#### 5. Bus Schedule Prefetch
+- **Schedule**: Every day at 04:15 AM
+- **Function**: `prefetch_bus_schedules()`
+- **Coverage**: All bus lines where `transport_type_id == 1` (~938 lines)
+- **Fallback**: Retry failed lines every 30 minutes (max 10 attempts)
+
 ### Job Monitoring
 
 **Metrics Tracked**:
@@ -957,6 +980,11 @@ job_stats = {
 - Next run time for each job
 - Historical run counts and error rates
 - Last execution status and duration
+
+**Bus Cache Admin API**:
+- `GET /api/admin/bus/cache/status`
+- `POST /api/admin/bus/cache/refresh`
+- `POST /api/admin/bus/cache/cleanup`
 
 ---
 
@@ -995,6 +1023,18 @@ MetroScheduleCache
     └─ source_status
     
     UNIQUE(station_id, direction_id, valid_for)
+
+BusScheduleCache
+    |
+    |- line_code
+    |- valid_for (date)
+    |- day_type (I/C/P)
+    |- payload (JSONB)
+    |- fetched_at
+    |- source_status
+    |
+    UNIQUE(line_code, valid_for, day_type)
+
 
 JobExecution
     │
@@ -1067,6 +1107,25 @@ CREATE TABLE metro_schedules (
 ```
 
 **Refresh Strategy**: Daily prefetch at 03:15 AM
+
+#### `bus_schedules`
+Cached IETT planned bus schedules (PlanlananSeferSaati) per line.
+
+```sql
+CREATE TABLE bus_schedules (
+    id SERIAL PRIMARY KEY,
+    line_code VARCHAR NOT NULL,
+    valid_for DATE NOT NULL,
+    day_type CHAR(1) NOT NULL,
+    payload JSONB NOT NULL,
+    fetched_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    source_status VARCHAR DEFAULT 'SUCCESS',
+    error_message TEXT,
+    UNIQUE (line_code, valid_for, day_type)
+);
+```
+
+**Refresh Strategy**: Daily prefetch at 04:15 AM
 
 ---
 

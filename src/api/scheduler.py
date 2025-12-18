@@ -16,6 +16,7 @@ from .db import SessionLocal
 from .models import DailyForecast, JobExecution
 from .services.batch_forecast import run_daily_forecast_job
 from .services.metro_schedule_cache import metro_schedule_cache_service
+from .services.bus_schedule_cache import bus_schedule_cache_service
 from .state import get_model, get_feature_store
 
 logger = logging.getLogger(__name__)
@@ -29,6 +30,7 @@ job_stats = {
     'cleanup_old_forecasts': {'last_run': None, 'last_status': None, 'run_count': 0, 'error_count': 0},
     'data_quality_check': {'last_run': None, 'last_status': None, 'run_count': 0, 'error_count': 0},
     'metro_schedule_prefetch': {'last_run': None, 'last_status': None, 'run_count': 0, 'error_count': 0},
+    'bus_schedule_prefetch': {'last_run': None, 'last_status': None, 'run_count': 0, 'error_count': 0},
 }
 
 metro_cache_state: Dict[str, Optional[Dict]] = {
@@ -39,6 +41,16 @@ metro_cache_state: Dict[str, Optional[Dict]] = {
     'retry_job_id': None,
     'current_valid_for': None
 }
+
+bus_cache_state: Dict[str, Optional[Dict]] = {
+    'pending_lines': {},
+    'last_run': None,
+    'last_success': None,
+    'last_result': None,
+    'retry_job_id': None,
+    'current_valid_for': None
+}
+
 
 
 # ============================================================================
@@ -310,7 +322,7 @@ def data_quality_check():
 def prefetch_metro_schedules(target_date: Optional[date] = None, force: bool = False):
     """Fetch and persist metro timetables for all station/direction pairs."""
     job_name = 'metro_schedule_prefetch'
-    target = target_date or date.today()
+    target = target_date or bus_schedule_cache_service.today_istanbul()
     db = SessionLocal()
     job_log = None
 
@@ -513,6 +525,215 @@ def refresh_single_metro_pair_job(station_id: int, direction_id: int, valid_for:
         db.close()
 
 
+
+
+# ============================================================================
+# JOB 5: BUS SCHEDULE PREFETCH
+# ============================================================================
+
+def prefetch_bus_schedules(target_date: Optional[date] = None, force: bool = False):
+    """Fetch and persist IETT planned schedules for all bus lines."""
+    job_name = 'bus_schedule_prefetch'
+    target = target_date or bus_schedule_cache_service.today_istanbul()
+    db = SessionLocal()
+    job_log = None
+
+    try:
+        logger.info("🚌 [CRON] Starting bus schedule prefetch for %s", target)
+
+        job_log = JobExecution(
+            job_type="bus_schedule_prefetch",
+            target_date=target,
+            status="RUNNING",
+            start_time=datetime.now(),
+            job_metadata={"force": force, "valid_for": str(target)}
+        )
+        db.add(job_log)
+        db.commit()
+        db.refresh(job_log)
+
+        result = bus_schedule_cache_service.prefetch_all_schedules(
+            db,
+            valid_for=target,
+            force=force
+        )
+
+        failed_lines = result.get('failed_lines', [])
+
+        job_log.status = "SUCCESS" if result.get('failed') == 0 else "SUCCESS"
+        job_log.end_time = datetime.now()
+        job_log.records_processed = result.get('stored', 0)
+        job_log.job_metadata.update({
+            "total_lines": result.get('total_lines', 0),
+            "stored": result.get('stored', 0),
+            "failed": result.get('failed', 0),
+            "skipped": result.get('skipped', 0),
+            "day_type": result.get('day_type')
+        })
+        db.commit()
+
+        job_stats[job_name]['last_run'] = datetime.now()
+        job_stats[job_name]['run_count'] += 1
+        job_stats[job_name]['last_status'] = 'success' if result.get('failed') == 0 else 'partial'
+
+        bus_cache_state['last_run'] = datetime.now()
+        bus_cache_state['last_result'] = result
+        bus_cache_state['current_valid_for'] = target
+
+        if failed_lines:
+            _set_pending_bus_lines(failed_lines, target)
+            _schedule_bus_retry_job()
+            bus_cache_state['last_success'] = bus_cache_state.get('last_success')
+            job_stats[job_name]['last_status'] = 'partial'
+            logger.warning("🚌 [CRON] Bus prefetch completed with %s failures", len(failed_lines))
+        else:
+            bus_cache_state['pending_lines'] = {}
+            bus_cache_state['last_success'] = datetime.now()
+            _cancel_bus_retry_job()
+            logger.info("✅ [CRON] Bus schedules cached for all %s lines", result.get('total_lines'))
+
+        return result
+
+    except Exception as exc:
+        job_stats[job_name]['error_count'] += 1
+        job_stats[job_name]['last_status'] = 'failed'
+        logger.error("❌ [CRON] Bus schedule prefetch failed: %s", exc)
+        logger.error(traceback.format_exc())
+
+        if job_log:
+            job_log.status = "FAILED"
+            job_log.end_time = datetime.now()
+            job_log.error_message = str(exc)[:1000]
+            db.commit()
+        raise
+    finally:
+        db.close()
+
+
+def retry_failed_bus_lines():
+    """Retry fetching pending bus lines."""
+    pending = bus_cache_state.get('pending_lines') or {}
+    if not pending:
+        _cancel_bus_retry_job()
+        return
+
+    target = bus_cache_state.get('current_valid_for') or bus_schedule_cache_service.today_istanbul()
+    db = SessionLocal()
+    try:
+        resolved = []
+        for line_code, info in list(pending.items()):
+            result = bus_schedule_cache_service.refresh_single_line(
+                db,
+                line_code=line_code,
+                valid_for=target,
+                force=True
+            )
+
+            if result.get('status') == 'success':
+                resolved.append(line_code)
+            else:
+                info['attempts'] = info.get('attempts', 0) + 1
+                info['last_error'] = result.get('error')
+                if info['attempts'] >= 10:
+                    info['abandoned'] = True
+
+        for line_code in resolved:
+            pending.pop(line_code, None)
+
+        if not pending:
+            bus_cache_state['last_success'] = datetime.now()
+            _cancel_bus_retry_job()
+            logger.info("✅ All pending bus lines recovered")
+
+    finally:
+        db.close()
+
+
+def _set_pending_bus_lines(failed_lines: List[Dict], valid_for: date):
+    pending = {}
+    for row in failed_lines:
+        line_code = row.get('line_code')
+        if not line_code:
+            continue
+        pending[line_code] = {
+            'line_code': line_code,
+            'last_error': row.get('error'),
+            'attempts': 0,
+            'valid_for': valid_for.isoformat()
+        }
+    bus_cache_state['pending_lines'] = pending
+
+
+def _schedule_bus_retry_job():
+    if bus_cache_state.get('retry_job_id'):
+        return
+    job = scheduler.add_job(
+        retry_failed_bus_lines,
+        trigger=IntervalTrigger(minutes=30, timezone="Europe/Istanbul"),
+        id='bus_schedule_retry',
+        name='Retry Failed Bus Schedules',
+        replace_existing=True
+    )
+    bus_cache_state['retry_job_id'] = job.id
+    logger.info("🔁 Scheduled bus schedule retry job")
+
+
+def _cancel_bus_retry_job():
+    job_id = bus_cache_state.get('retry_job_id')
+    if job_id:
+        try:
+            scheduler.remove_job(job_id)
+        except Exception:
+            pass
+        bus_cache_state['retry_job_id'] = None
+
+
+def get_bus_cache_runtime_state() -> Dict:
+    return {
+        'pending_lines': list((bus_cache_state.get('pending_lines') or {}).values()),
+        'last_run': bus_cache_state.get('last_run').isoformat() if bus_cache_state.get('last_run') else None,
+        'last_success': bus_cache_state.get('last_success').isoformat() if bus_cache_state.get('last_success') else None,
+        'last_result': bus_cache_state.get('last_result'),
+        'retry_job_active': bool(bus_cache_state.get('retry_job_id')),
+        'target_date': bus_cache_state.get('current_valid_for').isoformat() if bus_cache_state.get('current_valid_for') else None
+    }
+
+
+def trigger_bus_prefetch_now(target_date: Optional[date] = None, force: bool = False):
+    scheduler.add_job(
+        prefetch_bus_schedules,
+        'date',
+        run_date=datetime.now(),
+        args=[target_date, force],
+        id='manual_bus_prefetch',
+        replace_existing=True
+    )
+
+
+def trigger_single_bus_line_refresh(line_code: str, target_date: Optional[date] = None):
+    scheduler.add_job(
+        refresh_single_bus_line_job,
+        'date',
+        run_date=datetime.now(),
+        args=[line_code, target_date],
+        id=f'bus_line_refresh_{line_code}',
+        replace_existing=True
+    )
+
+
+def refresh_single_bus_line_job(line_code: str, target_date: Optional[date] = None):
+    db = SessionLocal()
+    try:
+        bus_schedule_cache_service.refresh_single_line(
+            db,
+            line_code=line_code,
+            valid_for=target_date or bus_schedule_cache_service.today_istanbul(),
+            force=True
+        )
+    finally:
+        db.close()
+
+
 # ============================================================================
 # SCHEDULER LIFECYCLE MANAGEMENT
 # ============================================================================
@@ -566,7 +787,18 @@ def start_scheduler():
         misfire_grace_time=3600,
         coalesce=True
     )
-    
+
+    # JOB 5: Bus Schedule Prefetch - Every day at 04:15 Istanbul time
+    scheduler.add_job(
+        prefetch_bus_schedules,
+        trigger=CronTrigger(hour=4, minute=15, timezone="Europe/Istanbul"),
+        id="bus_schedule_prefetch",
+        name="Prefetch Bus Schedules",
+        replace_existing=True,
+        misfire_grace_time=3600,
+        coalesce=True
+    )
+
     # Start the scheduler
     scheduler.start()
     

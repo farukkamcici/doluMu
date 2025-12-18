@@ -92,3 +92,21 @@ class MetroScheduleCache(Base):
     __table_args__ = (
         UniqueConstraint('station_id', 'direction_id', 'valid_for', name='uq_station_direction_valid_date'),
     )
+
+
+class BusScheduleCache(Base):
+    """Daily snapshot of IETT planned bus schedules per line."""
+    __tablename__ = "bus_schedules"
+
+    id = Column(Integer, primary_key=True, index=True)
+    line_code = Column(String, nullable=False, index=True)
+    valid_for = Column(Date, nullable=False, index=True)
+    day_type = Column(String(1), nullable=False, index=True)  # I/C/P
+    payload = Column(JSON, nullable=False)
+    fetched_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    source_status = Column(String, nullable=False, default="SUCCESS")
+    error_message = Column(Text, nullable=True)
+
+    __table_args__ = (
+        UniqueConstraint('line_code', 'valid_for', 'day_type', name='uq_bus_line_valid_day_type'),
+    )

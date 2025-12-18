@@ -12,6 +12,7 @@ from ..services.batch_forecast import run_daily_forecast_job
 from ..services.store import FeatureStore
 from ..services.route_service import route_service
 from ..services.metro_schedule_cache import metro_schedule_cache_service
+from ..services.bus_schedule_cache import bus_schedule_cache_service
 from ..models import JobExecution, TransportLine, DailyForecast, AdminUser
 from ..auth import authenticate_user, create_access_token, get_current_user, get_password_hash
 from .. import scheduler as sched
@@ -69,6 +70,13 @@ class MetroCacheRefreshRequest(BaseModel):
     direction_id: Optional[int] = None
     target_date: Optional[date] = None
     force: bool = False
+
+class BusCacheRefreshRequest(BaseModel):
+    mode: str = "all"  # 'all' or 'line'
+    line_code: Optional[str] = None
+    target_date: Optional[date] = None
+    force: bool = False
+
 
 
 # ============================================
@@ -276,7 +284,7 @@ def refresh_metro_cache(
     current_user: AdminUser = Depends(get_current_user)
 ):
     """Trigger metro timetable refresh for all pairs or a single station/direction."""
-    target_date = payload.target_date or date.today()
+    target_date = payload.target_date or bus_schedule_cache_service.today_istanbul()
 
     if payload.mode == 'pair':
         if not (payload.station_id and payload.direction_id):
@@ -310,6 +318,58 @@ def cleanup_metro_cache(
         "deleted": deleted,
         "cutoff_days": days
     }
+
+@router.get("/admin/bus/cache/status")
+def get_bus_cache_status(
+    db: Session = Depends(get_db),
+    current_user: AdminUser = Depends(get_current_user)
+):
+    """Return bus schedule cache stats and runtime state."""
+    status = bus_schedule_cache_service.get_status(db)
+    status['runtime'] = sched.get_bus_cache_runtime_state()
+    return status
+
+
+@router.post("/admin/bus/cache/refresh")
+def refresh_bus_cache(
+    payload: BusCacheRefreshRequest,
+    current_user: AdminUser = Depends(get_current_user)
+):
+    """Trigger bus schedule refresh for all lines or a single line."""
+    target_date = payload.target_date or bus_schedule_cache_service.today_istanbul()
+
+    if payload.mode == 'line':
+        if not payload.line_code:
+            raise HTTPException(status_code=400, detail="line_code is required for line refresh")
+        sched.trigger_single_bus_line_refresh(payload.line_code, target_date)
+        return {
+            "message": "Bus line refresh scheduled",
+            "line_code": payload.line_code,
+            "target_date": target_date
+        }
+
+    sched.trigger_bus_prefetch_now(target_date, payload.force)
+    return {
+        "message": "Bus schedule prefetch scheduled",
+        "target_date": target_date,
+        "force": payload.force
+    }
+
+
+@router.post("/admin/bus/cache/cleanup")
+def cleanup_bus_cache(
+    days: int = 5,
+    db: Session = Depends(get_db),
+    current_user: AdminUser = Depends(get_current_user)
+):
+    """Manually purge bus schedule cache entries older than N days."""
+    deleted = bus_schedule_cache_service.cleanup_old_entries(db, older_than_days=days)
+    return {
+        "message": f"Deleted {deleted} cached bus schedule rows",
+        "deleted": deleted,
+        "cutoff_days": days
+    }
+
 
 
 @router.delete("/admin/forecasts/date/{target_date}")

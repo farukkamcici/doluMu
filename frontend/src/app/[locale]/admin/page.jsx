@@ -25,6 +25,7 @@ import ForecastCoverage from '@/components/admin/ForecastCoverage';
 import UserManagement from '@/components/admin/UserManagement';
 import ReportsPanel from '@/components/admin/ReportsPanel';
 import MetroCachePanel from '@/components/admin/MetroCachePanel';
+import BusCachePanel from '@/components/admin/BusCachePanel';
 import ProtectedRoute from '@/components/admin/ProtectedRoute';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -33,6 +34,7 @@ const tabs = [
   { id: 'dashboard', name: 'Overview', icon: LayoutDashboard },
   { id: 'operations', name: 'Forecast Ops', icon: Wand2 },
   { id: 'scheduler', name: 'Scheduler', icon: CalendarClock },
+  { id: 'bus-cache', name: 'Bus Cache', icon: DatabaseZap },
   { id: 'metro-cache', name: 'Metro Cache', icon: TrainFront },
   { id: 'reports', name: 'Reports', icon: FileText },
   { id: 'users', name: 'Users', icon: UsersIcon },
@@ -95,6 +97,7 @@ function AdminDashboardContent() {
   const [isCleaningUp, setIsCleaningUp] = useState(false);
   const [newReportsCount, setNewReportsCount] = useState(0);
   const [metroCacheStatus, setMetroCacheStatus] = useState(null);
+  const [busCacheStatus, setBusCacheStatus] = useState(null);
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
 
@@ -106,19 +109,21 @@ function AdminDashboardContent() {
   const fetchData = async () => {
     try {
       const headers = getAuthHeaders();
-      const [statsRes, jobsRes, schedRes, covRes, reportsStatsRes, metroCacheRes] = await Promise.all([
+      const [statsRes, jobsRes, schedRes, covRes, reportsStatsRes, metroCacheRes, busCacheRes] = await Promise.all([
         axios.get(`${API_URL}/admin/stats`, { headers }),
         axios.get(`${API_URL}/admin/jobs?limit=${jobLimit}`, { headers }),
         axios.get(`${API_URL}/admin/scheduler/status`, { headers }).catch(() => ({ data: null })),
         axios.get(`${API_URL}/admin/forecasts/coverage`, { headers }).catch(() => ({ data: null })),
         axios.get(`${API_URL}/admin/reports/stats/summary`, { headers }).catch(() => ({ data: null })),
-        axios.get(`${API_URL}/admin/metro/cache/status`, { headers }).catch(() => ({ data: null }))
+        axios.get(`${API_URL}/admin/metro/cache/status`, { headers }).catch(() => ({ data: null })),
+        axios.get(`${API_URL}/admin/bus/cache/status`, { headers }).catch(() => ({ data: null }))
       ]);
       setStats(statsRes.data);
       setJobs(jobsRes.data);
       setSchedulerStatus(schedRes.data);
       setForecastCoverage(covRes.data);
       setMetroCacheStatus(metroCacheRes.data);
+      setBusCacheStatus(busCacheRes.data);
       
       if (reportsStatsRes.data) {
         setNewReportsCount(reportsStatsRes.data.by_status?.new || 0);
@@ -523,6 +528,15 @@ function AdminDashboardContent() {
           </div>
         )}
 
+
+        {/* Bus Cache */}
+        {activeTab === 'bus-cache' && (
+          <BusCachePanel
+            status={busCacheStatus}
+            getAuthHeaders={getAuthHeaders}
+            onRefresh={fetchData}
+          />
+        )}
         {/* Metro Cache */}
         {activeTab === 'metro-cache' && (
           <MetroCachePanel 

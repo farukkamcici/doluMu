@@ -15,11 +15,15 @@ from typing import Dict, List, Optional
 from cachetools import TTLCache
 import xml.etree.ElementTree as ET
 
+from ..db import SessionLocal
+from .bus_schedule_cache import bus_schedule_cache_service
+from ..models import BusScheduleCache
+
 logger = logging.getLogger(__name__)
 
-# Cache schedules for 24 hours (86400 seconds)
-# Key: line_code_date, Value: {'G': [...], 'D': [...]}
-_schedule_cache = TTLCache(maxsize=1000, ttl=86400)
+# In-process micro-cache (DB is the source of truth).
+# Key: line_code_date, Value: canonical schedule payload
+_schedule_cache = TTLCache(maxsize=2000, ttl=300)
 
 
 class IETTScheduleService:
@@ -211,165 +215,159 @@ class IETTScheduleService:
         return {"start": "", "end": ""}
     
     def get_schedule(self, line_code: str) -> Dict:
-        """
-        Get filtered and sorted schedule for a bus line with route metadata.
-        
+        """Get filtered and sorted schedule for a bus line.
+
+        Source of truth is Postgres cache (bus_schedules). On cache miss the
+        service fetches from IETT, stores the result, and returns it.
+
         Args:
             line_code: Bus line code (e.g., "15F")
-            
-        Returns:
-            Dictionary with directions, times, and metadata
-            Example: {
-                "G": ["06:00", "06:20", ...], 
-                "D": ["07:00", "07:30", ...],
-                "meta": {
-                    "G": {"start": "KADIKÖY", "end": "PENDİK"},
-                    "D": {"start": "PENDİK", "end": "KADIKÖY"}
-                }
-            }
-        """
-        # Check cache first
-        cache_key = f"{line_code}_{datetime.now().strftime('%Y-%m-%d')}"
-        if cache_key in _schedule_cache:
-            logger.debug(f"Cache hit for schedule: {line_code}")
-            return _schedule_cache[cache_key]
-        
-        logger.info(f"Fetching schedule for line {line_code} from IETT API")
-        
-        # Fetch from API
-        raw_data = self._fetch_from_iett(line_code)
-        if not raw_data:
-            logger.warning(f"No schedule data available for line {line_code} - returning empty")
-            empty_result = {
-                "G": [],
-                "D": [],
-                "meta": {},
-                "has_service_today": False,
-                "data_status": "NO_DATA"
-            }
-            _schedule_cache[cache_key] = empty_result
-            return empty_result
-        
-        # Get today's day type
-        day_type = self._get_day_type()
-        logger.debug(f"Filtering for day type: {day_type}")
-        
-        # Filter and organize by direction
-        schedules_by_direction = {"G": [], "D": []}
-        route_names_by_direction = {}
-        
-        for record in raw_data:
-            try:
-                # Extract fields from XML (SHATKODU, SYON, SGUNTIPI, DT, HATADI)
-                schedule_day_type = record.get('SGUNTIPI') or record.get('sguntipi') or record.get('GunTipi')
-                direction = record.get('SYON') or record.get('syon') or record.get('Yon')
-                time_str = record.get('DT') or record.get('dt') or record.get('Saat')
-                route_name = record.get('HATADI') or record.get('hatadi') or record.get('HatAdi') or ""
-                
-                # Skip if missing required fields
-                if not all([schedule_day_type, direction, time_str]):
-                    continue
-                
-                # Filter by day type
-                if schedule_day_type != day_type:
-                    continue
-                
-                # Store route name for this direction
-                if direction not in route_names_by_direction and route_name:
-                    route_names_by_direction[direction] = route_name
-                
-                # Add to appropriate direction
-                if direction in schedules_by_direction:
-                    schedules_by_direction[direction].append(time_str)
-                    
-            except Exception as e:
-                logger.warning(f"Error processing schedule record: {e}")
-                continue
-        
-        # Sort times chronologically
-        for direction in schedules_by_direction:
-            times = schedules_by_direction[direction]
-            
-            # Parse times for sorting
-            parsed_times = []
-            for time_str in times:
-                parsed = self._parse_time(time_str)
-                if parsed:
-                    parsed_times.append((parsed, time_str))
-            
-            # Sort and extract original strings
-            parsed_times.sort(key=lambda x: x[0])
-            schedules_by_direction[direction] = [time_str for _, time_str in parsed_times]
-        
-        # Build metadata with route direction info
-        meta = {}
-        
-        # Parse route names for each direction
-        for direction, route_name in route_names_by_direction.items():
-            parsed_route = self._parse_route_name(route_name)
-            
-            if direction == 'G':
-                # Gidiş: A -> B
-                meta['G'] = {
-                    "start": parsed_route.get("start", ""),
-                    "end": parsed_route.get("end", "")
-                }
-            elif direction == 'D':
-                # Dönüş: B -> A (reversed)
-                meta['D'] = {
-                    "start": parsed_route.get("end", ""),
-                    "end": parsed_route.get("start", "")
-                }
-        
-        has_service_today = bool(schedules_by_direction['G'] or schedules_by_direction['D'])
-        data_status = "OK" if has_service_today else "NO_SERVICE_DAY"
 
-        # Prepare final result
-        result = {
-            **schedules_by_direction,
-            "meta": meta,
-            "has_service_today": has_service_today,
-            "data_status": data_status
-        }
-        
-        # Cache result
-        _schedule_cache[cache_key] = result
-        
-        logger.info(
-            f"Schedule fetched for line {line_code}: "
-            f"G={len(schedules_by_direction['G'])} trips, "
-            f"D={len(schedules_by_direction['D'])} trips, "
-            f"meta={meta}"
-        )
-        
-        return result
-    
+        Returns:
+            Canonical payload with directions, route metadata and status flags.
+        """
+        target_date = bus_schedule_cache_service.today_istanbul()
+        cache_key = f"{line_code}_{target_date.isoformat()}"
+
+        # Fast path: memory cache
+        if cache_key in _schedule_cache:
+            logger.debug("Memory cache hit for schedule: %s", line_code)
+            return _schedule_cache[cache_key]
+
+        # DB cache lookup
+        db = SessionLocal()
+        try:
+            cached_payload, is_stale, record = bus_schedule_cache_service.get_cached_schedule(
+                db,
+                line_code,
+                valid_for=target_date,
+                max_stale_days=2
+            )
+            if cached_payload:
+                if is_stale:
+                    logger.warning(
+                        "Serving stale bus schedule for line=%s (valid_for=%s)",
+                        line_code,
+                        record.valid_for if record else target_date
+                    )
+                _schedule_cache[cache_key] = cached_payload
+                return cached_payload
+        finally:
+            db.close()
+
+        # Cache miss: fetch from upstream and persist
+        logger.info("Fetching schedule for line %s from IETT API", line_code)
+        day_type = bus_schedule_cache_service.day_type_for_date(target_date)
+
+        db = SessionLocal()
+        try:
+            try:
+                raw_rows = bus_schedule_cache_service.fetch_schedule_from_api(line_code)
+                payload = bus_schedule_cache_service.build_filtered_payload(raw_rows, target_date=target_date)
+
+                bus_schedule_cache_service.store_schedule(
+                    db,
+                    line_code=line_code,
+                    valid_for=target_date,
+                    day_type=day_type,
+                    payload=payload,
+                    status='SUCCESS'
+                )
+
+                _schedule_cache[cache_key] = payload
+                return payload
+
+            except Exception as exc:
+                logger.error("Failed to fetch schedule for line %s: %s", line_code, exc)
+                empty_payload = {
+                    "G": [],
+                    "D": [],
+                    "meta": {},
+                    "has_service_today": False,
+                    "data_status": "NO_DATA",
+                    "day_type": day_type,
+                    "valid_for": target_date.isoformat(),
+                }
+
+                # Persist failure row for observability
+                try:
+                    bus_schedule_cache_service.store_schedule(
+                        db,
+                        line_code=line_code,
+                        valid_for=target_date,
+                        day_type=day_type,
+                        payload=empty_payload,
+                        status='FAILED',
+                        error_message=str(exc)[:1000]
+                    )
+                except Exception:
+                    pass
+
+                _schedule_cache[cache_key] = empty_payload
+                return empty_payload
+        finally:
+            db.close()
+
+
     def clear_cache(self, line_code: Optional[str] = None):
+        """Clear bus schedule cache.
+
+        Clears both the in-process micro-cache and persisted Postgres cache rows.
         """
-        Clear schedule cache.
-        
-        Args:
-            line_code: If provided, clear only this line's cache. Otherwise clear all.
-        """
+        target_date = bus_schedule_cache_service.today_istanbul()
+
+        # Memory
         if line_code:
-            cache_key = f"{line_code}_{datetime.now().strftime('%Y-%m-%d')}"
-            _schedule_cache.pop(cache_key, None)
-            logger.info(f"Cleared cache for line {line_code}")
+            _schedule_cache.pop(f"{line_code}_{target_date.isoformat()}", None)
         else:
             _schedule_cache.clear()
-            logger.info("Cleared all schedule cache")
-    
+
+        # DB
+        db = SessionLocal()
+        try:
+            q = db.query(BusScheduleCache)
+            if line_code:
+                q = q.filter(BusScheduleCache.line_code == line_code)
+            deleted = q.delete(synchronize_session=False)
+            db.commit()
+            logger.info("Cleared bus schedule DB cache (line=%s, deleted=%s)", line_code, deleted)
+        except Exception as exc:
+            db.rollback()
+            logger.warning("Failed to clear bus schedule DB cache: %s", exc)
+        finally:
+            db.close()
+
     def get_cache_stats(self) -> Dict:
-        """
-        Get cache statistics.
-        
-        Returns:
-            Dictionary with cache size and hit rate info
-        """
+        """Get schedule cache statistics (memory + DB)."""
+        target_date = bus_schedule_cache_service.today_istanbul()
+        day_type = bus_schedule_cache_service.day_type_for_date(target_date)
+
+        db = SessionLocal()
+        try:
+            rows_today = db.query(BusScheduleCache).filter(
+                BusScheduleCache.valid_for == target_date,
+                BusScheduleCache.day_type == day_type,
+            ).count()
+            rows_success = db.query(BusScheduleCache).filter(
+                BusScheduleCache.valid_for == target_date,
+                BusScheduleCache.day_type == day_type,
+                BusScheduleCache.source_status == 'SUCCESS',
+            ).count()
+        finally:
+            db.close()
+
         return {
-            "cache_size": len(_schedule_cache),
-            "max_size": _schedule_cache.maxsize,
-            "ttl_seconds": _schedule_cache.ttl
+            "memory": {
+                "cache_size": len(_schedule_cache),
+                "max_size": _schedule_cache.maxsize,
+                "ttl_seconds": _schedule_cache.ttl,
+            },
+            "db": {
+                "date": target_date.isoformat(),
+                "day_type": day_type,
+                "rows_today": rows_today,
+                "rows_today_success": rows_success,
+            },
         }
 
 
