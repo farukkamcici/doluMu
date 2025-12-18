@@ -157,7 +157,7 @@ export default function BusCachePanel({ status, getAuthHeaders, onRefresh }) {
           <Stat
             title="Cached Today"
             value={`${today.lines_cached || 0} / ${today.lines_total || 0}`}
-            subtext={`${today.fresh_lines || 0} fresh • ${today.stale_lines || 0} stale • day_type ${today.day_type || '—'}`
+            subtext={`${today.fresh_lines || 0} fresh • ${today.stale_lines || 0} stale • day_type ${today.day_type || '—'}`}
           />
           <Stat
             title="Pending Lines"
