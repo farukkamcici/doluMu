@@ -59,27 +59,45 @@ def search_lines(query: str, db: Session = Depends(get_db)):
     if not query:
         return []
     
-    # Normalize query for Turkish case-insensitive search
-    normalized_query = turkish_lower(query)
-    search_query = f"%{normalized_query}%"
+    # 1. Strip trailing/leading whitespace
+    clean_input = query.strip()
     
+    # 2. Normalize for Turkish (case-insensitive)
+    normalized_query = turkish_lower(clean_input)
+    
+    # 3. Create a "compact" version (remove internal spaces) for flexible matching
+    # This handles "km 42" -> "km42" matching against "KM42"
+    compact_query = normalized_query.replace(" ", "")
+    
+    search_query = f"%{normalized_query}%"
+    compact_search_pattern = f"%{compact_query}%"
+    
+    # DB-side compact version of line_name
+    db_line_compact = func.replace(TransportLine.line_name, ' ', '')
+
     # Define a CASE statement to rank results with relevance scoring
     ordering_logic = case(
-        (func.lower(TransportLine.line_name) == normalized_query, 1),
-        (func.lower(TransportLine.line_name).like(f"{normalized_query}%"), 2),
-        (func.lower(TransportLine.line_name).like(search_query), 3),
-        else_=4
+        (TransportLine.line_name.ilike(normalized_query), 1),             # Exact match (Original)
+        (db_line_compact.ilike(compact_query), 2),                        # Exact match (Ignoring spaces)
+        (TransportLine.line_name.ilike(f"{normalized_query}%"), 3),       # Starts with (Original)
+        (db_line_compact.ilike(f"{compact_query}%"), 4),                  # Starts with (Ignoring spaces)
+        (TransportLine.line_name.ilike(search_query), 5),                 # Contains (Original)
+        else_=6
     )
 
-    # Search in both line_name and line (route description) using LOWER for case-insensitive comparison
+    # Search in line_name (flexible) and line description (standard)
     lines = db.query(TransportLine, ordering_logic.label('relevance_score')).filter(
         or_(
-            func.lower(TransportLine.line_name).like(search_query),
-            func.lower(TransportLine.line).like(search_query)
+            TransportLine.line_name.ilike(search_query),
+            TransportLine.line.ilike(search_query),
+            # Add flexible space handling:
+            # Check if "KM42" (db) matches "km42" (user input "km 42")
+            db_line_compact.ilike(compact_search_pattern)
         )
     ).order_by(
         ordering_logic,
         TransportLine.line_name
+    ).limit(15).all()
     ).limit(15).all()
     
     results: List[SearchResult] = []

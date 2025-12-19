@@ -232,7 +232,10 @@ function AdminDashboardContent() {
     
     try {
       const headers = getAuthHeaders();
-      const res = await axios.delete(`${API_URL}/admin/database/cleanup-all`, { headers });
+      const res = await axios.delete(`${API_URL}/admin/database/cleanup-all`, { 
+        headers,
+        params: { confirm: true }
+      });
       setTriggerMessage(`✅ ${res.data.message}: ${res.data.deleted_forecasts} forecasts + ${res.data.deleted_jobs} jobs deleted`);
       setShowCleanupModal(false);
       setCleanupConfirmText("");

@@ -672,9 +672,13 @@ def delete_admin_user(
 
 @router.delete("/admin/database/cleanup-all")
 def cleanup_all_database(
+    confirm: bool = False,
     db: Session = Depends(get_db),
     current_user: AdminUser = Depends(get_current_user)
 ):
+    if not confirm:
+        raise HTTPException(status_code=400, detail="Must set 'confirm=True' to execute cleanup.")
+
     """
     DANGER: Delete all forecast data and job execution history from database.
     Preserves admin users and transport line metadata.
