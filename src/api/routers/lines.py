@@ -98,7 +98,6 @@ def search_lines(query: str, db: Session = Depends(get_db)):
         ordering_logic,
         TransportLine.line_name
     ).limit(15).all()
-    ).limit(15).all()
     
     results: List[SearchResult] = []
 
