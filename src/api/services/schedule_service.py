@@ -279,12 +279,15 @@ class IETTScheduleService:
 
             except Exception as exc:
                 logger.error("Failed to fetch schedule for line %s: %s", line_code, exc)
-                empty_payload = {
+                
+                # Return payload indicating schedule fetch failed
+                # UI should show forecasts for all hours with "schedule unavailable" note
+                failed_payload = {
                     "G": [],
                     "D": [],
                     "meta": {},
-                    "has_service_today": False,
-                    "data_status": "NO_DATA",
+                    "has_service_today": True,  # Not a service day issue - data fetch issue
+                    "data_status": "FETCH_FAILED",
                     "day_type": day_type,
                     "valid_for": target_date.isoformat(),
                 }
@@ -296,15 +299,15 @@ class IETTScheduleService:
                         line_code=line_code,
                         valid_for=target_date,
                         day_type=day_type,
-                        payload=empty_payload,
+                        payload=failed_payload,
                         status='FAILED',
                         error_message=str(exc)[:1000]
                     )
                 except Exception:
                     pass
 
-                _schedule_cache[cache_key] = empty_payload
-                return empty_payload
+                _schedule_cache[cache_key] = failed_payload
+                return failed_payload
         finally:
             db.close()
 

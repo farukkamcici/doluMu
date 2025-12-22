@@ -4,6 +4,7 @@ import { format } from 'date-fns';
 import axios from 'axios';
 import {
   Activity,
+  Bus,
   Clock,
   Pause,
   Play,
@@ -35,6 +36,8 @@ export default function SchedulerPanel({ schedulerStatus, onPauseResume, getAuth
         return ShieldCheck;
       case 'metro_schedule_prefetch':
         return TrainFront;
+      case 'bus_schedule_prefetch':
+        return Bus;
       default:
         return Activity;
     }
@@ -63,6 +66,21 @@ export default function SchedulerPanel({ schedulerStatus, onPauseResume, getAuth
         case 'metro_schedule_prefetch':
           await axios.post(`${API_URL}/admin/metro/cache/refresh`, { mode: 'all', force: true }, { headers });
           setMessage(`✅ Metro timetable refresh scheduled!`);
+          setTimeout(() => {
+            onRefresh?.();
+            setMessage("");
+          }, 2000);
+          setTriggeringJob(null);
+          return;
+        case 'bus_schedule_prefetch':
+          // Default to 2 days, but can be customized via prompt or state
+          const numDays = 2;  // TODO: Make this configurable via UI input
+          await axios.post(`${API_URL}/admin/bus/cache/refresh`, { 
+            mode: 'all', 
+            num_days: numDays, 
+            force: true 
+          }, { headers });
+          setMessage(`✅ Bus schedule prefetch scheduled for ${numDays} day(s)!`);
           setTimeout(() => {
             onRefresh?.();
             setMessage("");

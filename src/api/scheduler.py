@@ -533,24 +533,33 @@ def refresh_single_metro_pair_job(station_id: int, direction_id: int, valid_for:
 # ============================================================================
 
 def prefetch_bus_schedules(target_date: Optional[date] = None, num_days: int = 2, force: bool = False):
-    """Fetch and persist IETT planned schedules for all bus lines."""
+    """Fetch and persist IETT planned schedules for all bus lines.
+    
+    Prefetches schedules for ALL dates in the horizon, not just unique day_types.
+    This ensures forecast job has cached schedules for every target date.
+    
+    Example: If forecasting T+1 (Mon) and T+2 (Tue), both are weekday (I) but we
+    still need separate cache entries for each date to avoid SOAP calls.
+    """
     job_name = 'bus_schedule_prefetch'
     start_date = target_date or (bus_schedule_cache_service.today_istanbul() + timedelta(days=1))
     horizon_dates = [start_date + timedelta(days=offset) for offset in range(max(1, num_days))]
 
-    # Prefetch at least one valid_for per unique day_type in the horizon.
-    day_type_dates: Dict[str, date] = {}
-    for d in horizon_dates:
-        dt = bus_schedule_cache_service.day_type_for_date(d)
-        day_type_dates.setdefault(dt, d)
-
-    dates_to_prefetch = list(day_type_dates.values())
+    # Prefetch for ALL dates in horizon (not just unique day_types)
+    # Rationale: Even if two consecutive weekdays have same day_type (I),
+    # we need separate cache entries so forecast job can use exact date match
+    dates_to_prefetch = horizon_dates
     db = SessionLocal()
     job_log = None
 
     try:
         logger.info("🚌 [CRON] Starting bus schedule prefetch for %s day(s) starting %s", num_days, start_date)
 
+        # Collect day_types for metadata
+        day_types_in_horizon = sorted(set(
+            bus_schedule_cache_service.day_type_for_date(d) for d in dates_to_prefetch
+        ))
+        
         job_log = JobExecution(
             job_type="bus_schedule_prefetch",
             target_date=start_date,
@@ -561,7 +570,7 @@ def prefetch_bus_schedules(target_date: Optional[date] = None, num_days: int = 2
                 "start_date": str(start_date),
                 "num_days": num_days,
                 "prefetch_dates": [str(d) for d in dates_to_prefetch],
-                "prefetch_day_types": sorted(day_type_dates.keys()),
+                "prefetch_day_types": day_types_in_horizon,
             }
         )
         db.add(job_log)

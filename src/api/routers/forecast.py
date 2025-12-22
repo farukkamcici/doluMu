@@ -85,7 +85,9 @@ def _get_service_hours(line_code: str, direction: Optional[str] = None) -> Optio
         
         if not all_times:
             data_status = schedule.get('data_status')
-            if data_status == 'NO_SERVICE_DAY' or schedule.get('has_service_today') is False:
+            
+            # Case 1: Genuinely no service today (e.g., line doesn't run on Sundays)
+            if data_status == 'NO_SERVICE_DAY' or (data_status == 'NO_DATA' and schedule.get('has_service_today') is False):
                 logger.info(f"Line {line_code} has no planned service for current day type")
                 return {
                     "first_hour": None,
@@ -93,9 +95,15 @@ def _get_service_hours(line_code: str, direction: Optional[str] = None) -> Optio
                     "wraps_midnight": False,
                     "has_service": False
                 }
-
-        if not all_times:
-            logger.warning(f"No schedule data available for line {line_code}")
+            
+            # Case 2: Schedule fetch failed - show forecasts for ALL hours
+            # Return None so _is_hour_in_service returns True for all hours
+            if data_status == 'FETCH_FAILED':
+                logger.warning(f"Schedule unavailable for {line_code}, showing forecasts for all hours")
+                return None
+            
+            # Case 3: Unknown status - return None (show forecasts)
+            logger.warning(f"No schedule data for {line_code} (status={data_status}), showing forecasts")
             return None
         
         # Sort and get first/last hours
