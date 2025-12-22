@@ -113,7 +113,7 @@ The Istanbul Transport API is a high-performance FastAPI-based backend that deli
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup: Load model, initialize Feature Store, start scheduler
-    AppState.model = lgb.Booster(model_file='models/lgbm_transport_v6.txt')
+    AppState.model = lgb.Booster(model_file=os.getenv('MODEL_PATH', 'models/lgbm_transport_v7.txt'))
     AppState.store = FeatureStore()
     route_service.load_data()
     start_scheduler()
@@ -691,7 +691,7 @@ Model Training (model/train_model.py)
     ├─ Hyperparameter tuning
     └─ Feature importance analysis
     ↓
-Trained Model (models/lgbm_transport_v6.txt)
+Trained Model (defaults to `models/lgbm_transport_v7.txt`, configurable via `MODEL_PATH`)
 ```
 
 ### 2. Online Prediction Pipeline
@@ -750,7 +750,7 @@ Check Database Cache
 
 **Algorithm**: LightGBM (Gradient Boosting Decision Trees)
 
-**Model Version**: v6 (`models/lgbm_transport_v6.txt`)
+**Model Version**: v7 by default (`models/lgbm_transport_v7.txt`), configurable via `MODEL_PATH`
 
 **Training Configuration**:
 ```yaml
@@ -795,7 +795,7 @@ early_stopping_rounds: 50
 **Model Loading**:
 ```python
 # At application startup
-model = lgb.Booster(model_file='models/lgbm_transport_v6.txt')
+model = lgb.Booster(model_file=os.getenv('MODEL_PATH', 'models/lgbm_transport_v7.txt'))
 AppState.model = model  # Global singleton
 ```
 
@@ -1239,7 +1239,7 @@ CORS_ALLOW_ORIGINS=http://localhost:3000,https://dolumu.app
 WEATHER_API_URL=https://api.open-meteo.com/v1/forecast
 
 # Model Path (optional)
-MODEL_PATH=models/lgbm_transport_v6.txt
+MODEL_PATH=models/lgbm_transport_v7.txt
 ```
 
 ### Docker Deployment

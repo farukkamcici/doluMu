@@ -24,7 +24,7 @@ async def lifespan(app: FastAPI):
 
     # Load the LightGBM model and assign to AppState
     print("Loading model...")
-    model_path = 'models/lgbm_transport_v6.txt'
+    model_path = os.getenv("MODEL_PATH", "models/lgbm_transport_v7.txt")
     try:
         AppState.model = lgb.Booster(model_file=model_path)
         print("Model loaded successfully.")
