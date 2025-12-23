@@ -12,12 +12,12 @@ export default function AlertsModal({ isOpen, onClose, messages, lineCode }) {
     <>
       {/* Backdrop */}
       <div 
-        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[999]"
+        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[1600]"
         onClick={onClose}
       />
       
       {/* Modal */}
-      <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4">
+      <div className="fixed inset-0 z-[1601] flex items-center justify-center p-4">
         <div 
           className="bg-slate-900 rounded-xl border border-white/10 shadow-2xl max-w-2xl w-full max-h-[80vh] overflow-hidden"
           onClick={(e) => e.stopPropagation()}

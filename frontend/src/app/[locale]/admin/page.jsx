@@ -693,7 +693,7 @@ function AdminDashboardContent() {
 
       {/* Error Modal */}
       {selectedError && (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[1600] p-4 backdrop-blur-sm">
           <div className="rounded-xl border border-white/10 bg-slate-900/80 max-w-3xl w-full p-6 shadow-2xl">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-sm font-semibold text-red-200 flex items-center gap-2">
@@ -713,7 +713,7 @@ function AdminDashboardContent() {
 
       {/* Database Cleanup Confirmation Modal */}
       {showCleanupModal && (
-        <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+        <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-[1600] p-4 backdrop-blur-sm">
           <div className="bg-gray-900 border-2 border-red-900/50 rounded-xl max-w-md w-full p-6 shadow-2xl">
             <div className="flex items-center gap-3 mb-4">
               <span className="text-3xl">⚠️</span>

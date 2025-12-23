@@ -276,7 +276,7 @@ export default function SettingsPage() {
       )}
 
       {showConfirm && (
-        <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+        <div className="fixed inset-0 z-[1600] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
           <div className="bg-surface rounded-2xl border border-white/10 p-6 max-w-sm w-full">
             <h3 className="text-lg font-bold text-white mb-2">
               {showConfirm === 'favorites' 

@@ -22,7 +22,8 @@ export default function CapacityModal({
 
   if (!isOpen) return null;
 
-  const expectedPerVehicle = currentHourData?.vehicle_capacity || capacityMeta?.expected_capacity_weighted_int || null;
+  const expectedPerVehicle =
+    currentHourData?.vehicle_capacity || capacityMeta?.expected_capacity_weighted_int || null;
   const effectiveCapacity = currentHourData?.max_capacity || null;
   const predicted = currentHourData?.predicted_value ?? null;
   const tripsPerHour = currentHourData?.trips_per_hour ?? null;
@@ -39,13 +40,14 @@ export default function CapacityModal({
   if (typeof document === 'undefined') return null;
 
   return createPortal(
-    <div className="fixed inset-0 z-[1700] flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-[1700] overflow-y-auto">
       <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onClose} />
 
-      <div
-        className="relative z-10 bg-slate-900 rounded-xl border border-white/10 shadow-2xl max-w-2xl w-full max-h-[80vh] overflow-hidden"
-        onClick={(e) => e.stopPropagation()}
-      >
+      <div className="relative z-10 flex min-h-full items-start sm:items-center justify-center p-4">
+        <div
+          className="relative bg-slate-900 rounded-xl border border-white/10 shadow-2xl max-w-2xl w-full max-h-[calc(100vh-2rem)] supports-[height:100dvh]:max-h-[calc(100dvh-2rem)] overflow-hidden flex flex-col"
+          onClick={(e) => e.stopPropagation()}
+        >
           <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
             <div className="flex items-center gap-3">
               <div className="flex items-center justify-center w-10 h-10 rounded-full bg-sky-500/20">
@@ -53,7 +55,9 @@ export default function CapacityModal({
               </div>
               <div>
                 <h2 className="text-lg font-bold text-white">{t('capacityModalTitle')}</h2>
-                <p className="text-sm text-gray-400">{t('lineCode')}: {lineCode}</p>
+                <p className="text-sm text-gray-400">
+                  {t('lineCode')}: {lineCode}
+                </p>
               </div>
             </div>
             <button
@@ -64,7 +68,7 @@ export default function CapacityModal({
             </button>
           </div>
 
-          <div className="overflow-y-auto max-h-[calc(80vh-5rem)] p-6 space-y-4">
+          <div className="flex-1 min-h-0 overflow-y-auto p-6 space-y-4">
             {error && (
               <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
                 {error}
@@ -98,7 +102,9 @@ export default function CapacityModal({
                   <div className="mt-3 flex items-center gap-4 text-xs">
                     <div className="flex items-center gap-1.5">
                       <Calendar size={12} className="text-gray-500" />
-                      <span className="text-gray-400">{isRail ? t('capacityTripsPerHourRail') : t('capacityTripsPerHour')}:</span>
+                      <span className="text-gray-400">
+                        {isRail ? t('capacityTripsPerHourRail') : t('capacityTripsPerHour')}:
+                      </span>
                       <span className="font-semibold text-white">{tripsPerHour ?? '—'}</span>
                     </div>
                     <div className="flex items-center gap-1.5">
@@ -107,8 +113,12 @@ export default function CapacityModal({
                       ) : (
                         <Bus size={12} className="text-gray-500" />
                       )}
-                      <span className="text-gray-400">{isRail ? t('capacityPerDeparture') : t('capacityPerVehicle')}:</span>
-                      <span className="font-semibold text-white">{expectedPerVehicle ? expectedPerVehicle.toLocaleString() : '—'}</span>
+                      <span className="text-gray-400">
+                        {isRail ? t('capacityPerDeparture') : t('capacityPerVehicle')}:
+                      </span>
+                      <span className="font-semibold text-white">
+                        {expectedPerVehicle ? expectedPerVehicle.toLocaleString() : '—'}
+                      </span>
                     </div>
                   </div>
                   {capacityMeta?.confidence && (
@@ -133,7 +143,9 @@ export default function CapacityModal({
                     <div>
                       <div className="text-[11px] text-gray-400">{t('capacityOccupancy')}</div>
                       <div className="text-lg font-semibold text-sky-200">
-                        {clampPercent(currentHourData?.occupancy_pct) == null ? '—' : `${clampPercent(currentHourData?.occupancy_pct)}%`}
+                        {clampPercent(currentHourData?.occupancy_pct) == null
+                          ? '—'
+                          : `${clampPercent(currentHourData?.occupancy_pct)}%`}
                       </div>
                     </div>
                   </div>
@@ -148,7 +160,9 @@ export default function CapacityModal({
                   <div className="rounded-lg border border-white/10 bg-white/5 p-4">
                     <div className="flex items-center gap-2 mb-3">
                       <Bus size={14} className="text-gray-400" />
-                      <div className="text-sm font-semibold text-white">{t('capacityVehicleMixTitle')}</div>
+                      <div className="text-sm font-semibold text-white">
+                        {t('capacityVehicleMixTitle')}
+                      </div>
                     </div>
                     <div className="text-[11px] text-gray-400 mb-3">
                       {t('capacityVehicleMixDesc')}
@@ -158,11 +172,16 @@ export default function CapacityModal({
                       {capacityMix.slice(0, 8).map((row, idx) => {
                         const model = row.representative_brand_model || '—';
                         const modelCapacity = row.model_capacity_int || null;
-                        const share = row.share_by_vehicles != null ? `${Math.round(row.share_by_vehicles * 100)}%` : '—';
+                        const share =
+                          row.share_by_vehicles != null
+                            ? `${Math.round(row.share_by_vehicles * 100)}%`
+                            : '—';
                         const scenarioCapacity =
                           tripsPerHour && modelCapacity ? tripsPerHour * modelCapacity : null;
                         const scenarioOcc =
-                          predicted != null && scenarioCapacity ? clampPercent((predicted / scenarioCapacity) * 100) : null;
+                          predicted != null && scenarioCapacity
+                            ? clampPercent((predicted / scenarioCapacity) * 100)
+                            : null;
 
                         return (
                           <div key={idx} className="rounded-md border border-white/10 bg-slate-950/30 p-3">
@@ -170,8 +189,16 @@ export default function CapacityModal({
                               <div className="min-w-0 flex-1">
                                 <div className="text-xs font-medium text-white truncate">{model}</div>
                                 <div className="mt-1 flex items-center gap-3 text-[11px] text-gray-500">
-                                  <span>{t('capacityPerVehicle')}: <span className="text-gray-300">{modelCapacity ? modelCapacity.toLocaleString() : '—'}</span></span>
-                                  <span>{t('capacityShare')}: <span className="text-gray-300">{share}</span></span>
+                                  <span>
+                                    {t('capacityPerVehicle')}:{' '}
+                                    <span className="text-gray-300">
+                                      {modelCapacity ? modelCapacity.toLocaleString() : '—'}
+                                    </span>
+                                  </span>
+                                  <span>
+                                    {t('capacityShare')}:{' '}
+                                    <span className="text-gray-300">{share}</span>
+                                  </span>
                                 </div>
                               </div>
                               <div className="text-right shrink-0">
@@ -209,6 +236,7 @@ export default function CapacityModal({
               {t('close')}
             </button>
           </div>
+        </div>
       </div>
     </div>,
     document.body

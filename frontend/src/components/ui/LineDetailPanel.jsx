@@ -180,7 +180,11 @@ export default function LineDetailPanel() {
   const panelRef = useRef(null);
   const initialPositionSet = useRef(false);
   const INITIAL_PANEL_SIZE = { width: 440, height: 520 };
-  const INITIAL_PANEL_POSITION = { top: '5rem', left: '1rem' };
+  const DESKTOP_TOP_SAFE_OFFSET = '7.5rem';
+  const INITIAL_PANEL_POSITION = {
+    top: isDesktop ? DESKTOP_TOP_SAFE_OFFSET : '5rem',
+    left: '1rem',
+  };
 
   useEffect(() => {
     if (isPanelOpen && selectedLine) {
@@ -243,11 +247,20 @@ export default function LineDetailPanel() {
   }, [showCapacityTooltip, isDesktop]);
 
   useEffect(() => {
-    setIsCapacityModalOpen(false);
-    setCapacityMeta(null);
-    setCapacityMix([]);
-    setCapacityLoading(false);
-    setCapacityError(null);
+    let isActive = true;
+
+    queueMicrotask(() => {
+      if (!isActive) return;
+      setIsCapacityModalOpen(false);
+      setCapacityMeta(null);
+      setCapacityMix([]);
+      setCapacityLoading(false);
+      setCapacityError(null);
+    });
+
+    return () => {
+      isActive = false;
+    };
   }, [selectedLineId]);
 
   const openCapacityModal = useCallback(() => {
@@ -475,14 +488,15 @@ export default function LineDetailPanel() {
       
       <motion.div
         ref={constraintsRef}
-        className="fixed inset-0 z-[899] pointer-events-none"
+        className="fixed left-0 right-0 bottom-0 top-0 z-[899] pointer-events-none"
+        style={isDesktop ? { top: DESKTOP_TOP_SAFE_OFFSET } : undefined}
       >
         <motion.div
           ref={panelRef}
           drag={isDesktop ? true : "y"}
           dragListener={isDesktop ? false : true}
           dragControls={isDesktop ? dragControls : undefined}
-          dragConstraints={isDesktop ? false : { top: 0, bottom: 0 }}
+          dragConstraints={isDesktop ? constraintsRef : { top: 0, bottom: 0 }}
           dragElastic={isDesktop ? 0 : 0.2}
           dragMomentum={false}
           dragTransition={{ bounceStiffness: 600, bounceDamping: 20 }}
