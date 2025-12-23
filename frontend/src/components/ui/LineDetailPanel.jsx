@@ -14,7 +14,8 @@ import {
   Minimize2,
   RotateCcw,
   Clock,
-  Info
+  Info,
+  ChevronRight
 } from 'lucide-react';
 import TimeSlider from './TimeSlider';
 import CrowdChart from './CrowdChart';
@@ -914,8 +915,9 @@ export default function LineDetailPanel() {
                                       </span> <span className="text-gray-500">{t('passengers')}</span>
                                     </span>
                                     <div className="relative">
-                                      <span 
-                                        className="flex items-center gap-1 text-gray-400 cursor-pointer"
+                                      <button
+                                        type="button"
+                                        className="flex items-center gap-1 rounded-md px-1.5 py-0.5 text-gray-400 hover:bg-white/5 hover:text-gray-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
                                         onMouseEnter={() => isDesktop && setShowCapacityTooltip(true)}
                                         onMouseLeave={() => isDesktop && setShowCapacityTooltip(false)}
                                         onClick={(e) => {
@@ -923,11 +925,13 @@ export default function LineDetailPanel() {
                                           openCapacityModal();
                                           vibrate(5);
                                         }}
+                                        aria-label={t('maxCapacityTooltip')}
                                       >
                                         <span className="text-[9px] text-gray-500">{t('maxCapacity')}</span>
                                         <Users size={10} className="text-gray-500" /> 
                                         <span className="font-semibold text-gray-300">{currentHourData.max_capacity.toLocaleString()}</span>
-                                      </span>
+                                        <ChevronRight size={12} className="text-gray-600" />
+                                      </button>
                                       {showCapacityTooltip && (
                                         <div className="absolute right-0 bottom-full mb-2 px-2 py-1.5 bg-slate-800 border border-white/10 rounded-lg shadow-xl z-50 whitespace-nowrap">
                                           <p className="text-[10px] text-gray-300">{t('maxCapacityTooltip')}</p>
@@ -1073,7 +1077,7 @@ export default function LineDetailPanel() {
         />
       )}
 
-      {!isMetroLine && selectedLine && (
+      {selectedLine && (
         <CapacityModal
           isOpen={isCapacityModalOpen}
           onClose={() => setIsCapacityModalOpen(false)}

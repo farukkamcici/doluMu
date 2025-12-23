@@ -1,5 +1,6 @@
 'use client';
-import { X, Users, Bus, TrendingUp, Calendar } from 'lucide-react';
+import { createPortal } from 'react-dom';
+import { X, Users, Bus, TrendingUp, Calendar, TrainFront } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 
 function clampPercent(value) {
@@ -26,17 +27,25 @@ export default function CapacityModal({
   const predicted = currentHourData?.predicted_value ?? null;
   const tripsPerHour = currentHourData?.trips_per_hour ?? null;
 
+  const isRail =
+    lineCode === 'MARMARAY' ||
+    lineCode?.startsWith('M') ||
+    lineCode?.startsWith('T') ||
+    lineCode?.startsWith('F') ||
+    lineCode?.startsWith('TF');
+
   const metaNote = capacityMeta?.confidence === 'fallback' ? t('capacityFallbackNote') : null;
 
-  return (
-    <>
-      <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[999]" onClick={onClose} />
+  if (typeof document === 'undefined') return null;
 
-      <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4">
-        <div
-          className="bg-slate-900 rounded-xl border border-white/10 shadow-2xl max-w-2xl w-full max-h-[80vh] overflow-hidden"
-          onClick={(e) => e.stopPropagation()}
-        >
+  return createPortal(
+    <div className="fixed inset-0 z-[1700] flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onClose} />
+
+      <div
+        className="relative z-10 bg-slate-900 rounded-xl border border-white/10 shadow-2xl max-w-2xl w-full max-h-[80vh] overflow-hidden"
+        onClick={(e) => e.stopPropagation()}
+      >
           <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
             <div className="flex items-center gap-3">
               <div className="flex items-center justify-center w-10 h-10 rounded-full bg-sky-500/20">
@@ -89,12 +98,16 @@ export default function CapacityModal({
                   <div className="mt-3 flex items-center gap-4 text-xs">
                     <div className="flex items-center gap-1.5">
                       <Calendar size={12} className="text-gray-500" />
-                      <span className="text-gray-400">{t('capacityTripsPerHour')}:</span>
+                      <span className="text-gray-400">{isRail ? t('capacityTripsPerHourRail') : t('capacityTripsPerHour')}:</span>
                       <span className="font-semibold text-white">{tripsPerHour ?? '—'}</span>
                     </div>
                     <div className="flex items-center gap-1.5">
-                      <Bus size={12} className="text-gray-500" />
-                      <span className="text-gray-400">{t('capacityPerVehicle')}:</span>
+                      {isRail ? (
+                        <TrainFront size={12} className="text-gray-500" />
+                      ) : (
+                        <Bus size={12} className="text-gray-500" />
+                      )}
+                      <span className="text-gray-400">{isRail ? t('capacityPerDeparture') : t('capacityPerVehicle')}:</span>
                       <span className="font-semibold text-white">{expectedPerVehicle ? expectedPerVehicle.toLocaleString() : '—'}</span>
                     </div>
                   </div>
@@ -150,11 +163,6 @@ export default function CapacityModal({
                           tripsPerHour && modelCapacity ? tripsPerHour * modelCapacity : null;
                         const scenarioOcc =
                           predicted != null && scenarioCapacity ? clampPercent((predicted / scenarioCapacity) * 100) : null;
-                        
-                        const occupancyDelta = row.occupancy_delta_pct_vs_expected;
-                        const deltaDisplay = occupancyDelta != null ? 
-                          (occupancyDelta > 0 ? `+${occupancyDelta.toFixed(1)}%` : `${occupancyDelta.toFixed(1)}%`) : 
-                          null;
 
                         return (
                           <div key={idx} className="rounded-md border border-white/10 bg-slate-950/30 p-3">
@@ -172,17 +180,20 @@ export default function CapacityModal({
                                 </div>
                                 <div className="text-[11px] font-semibold text-sky-200">
                                   {scenarioOcc == null ? '—' : `${scenarioOcc}%`}
-                                  {deltaDisplay && (
-                                    <span className={`ml-1 ${occupancyDelta > 0 ? 'text-orange-400' : 'text-emerald-400'}`}>
-                                      ({deltaDisplay})
-                                    </span>
-                                  )}
                                 </div>
                               </div>
                             </div>
                           </div>
                         );
                       })}
+                    </div>
+                  </div>
+                )}
+
+                {(!capacityMix || capacityMix.length === 0) && (
+                  <div className="rounded-lg border border-white/10 bg-white/5 p-4">
+                    <div className="text-[11px] text-gray-400">
+                      {isRail ? t('capacityNoMixRail') : t('capacityNoMix')}
                     </div>
                   </div>
                 )}
@@ -198,9 +209,8 @@ export default function CapacityModal({
               {t('close')}
             </button>
           </div>
-        </div>
       </div>
-    </>
+    </div>,
+    document.body
   );
 }
-
