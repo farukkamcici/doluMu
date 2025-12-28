@@ -1,6 +1,330 @@
 # Project Logbook
 
-_Last updated: 2025-12-17_
+_Last updated: 2025-12-23_
+
+## Entry · 2025-12-23 18:50 (+03)
+
+### Commit
+- **Hash:** `21e0e3cddec3ed87ea83042fffe6e11c8e2f00c9`
+- **Message:** `feat: add Marmaray static schedule integration with dual-loop capacity calculation`
+
+### Summary
+- Added Marmaray static schedule support and integrated capacity-aware schedule handling in the batch forecast pipeline.
+
+### Details
+- Introduced `src/api/services/marmaray_service.py` and `frontend/public/data/marmaray_static_schedule.json` to provide a stable timetable payload when upstream schedule data is unavailable.
+- Updated `src/api/services/batch_forecast.py` to compute Marmaray trips-per-hour using a dual-loop approach and propagate the result into forecast capacity fields.
+- Extended `config/rail_capacity.yaml` and refreshed `frontend/src/components/ui/CapacityModal.jsx` to surface Marmaray capacity and schedule context in the UI.
+
+### Notes
+- Keep `config/rail_capacity.yaml` aligned with operational changes so capacity computations remain stable across deployments.
+
+## Entry · 2025-12-23 18:19 (+03)
+
+### Commit
+- **Hash:** `bea45f19e687c1e24431794a27bcbec24af56562`
+- **Message:** `fix design bugs`
+
+### Summary
+- Stabilized UI flows across admin, settings, alerts, and capacity views.
+
+### Details
+- Adjusted layout and state handling in `frontend/src/app/[locale]/admin/page.jsx` and `frontend/src/app/[locale]/settings/page.js`.
+- Fixed interaction edge cases in `frontend/src/components/ui/CapacityModal.jsx` and `frontend/src/components/ui/LineDetailPanel.jsx`.
+
+### Notes
+- Changes are UX-focused; no API contract changes.
+
+## Entry · 2025-12-23 03:20 (+03)
+
+### Commit
+- **Hash:** `31d9e7cb2369d6b859430ac40920aad67e966393`
+- **Message:** `ui: improve capacity affordance + enable metro capacity modal with blurred back drop`
+
+### Summary
+- Improved capacity discoverability and upgraded the capacity modal presentation.
+
+### Details
+- Updated `frontend/src/components/ui/LineDetailPanel.jsx` and `frontend/src/components/ui/CapacityModal.jsx` to improve affordance and backdrop behavior.
+- Extended i18n keys in `frontend/messages/tr.json` and `frontend/messages/en.json` for capacity-related labels.
+
+### Notes
+- Capacity UI now handles metro lines with a consistent modal experience.
+
+## Entry · 2025-12-23 02:59 (+03)
+
+### Commit
+- **Hash:** `99578230f940372805daaba951ed595779ae097c`
+- **Message:** `feat: update static rail capacities and derive rail trips/hour from metro timetable cache (terminus-only)`
+
+### Summary
+- Refined static rail capacities and aligned UI labels for derived trips-per-hour logic.
+
+### Details
+- Updated `config/rail_capacity.yaml` to reflect revised rail capacity assumptions.
+- Updated translations in `frontend/messages/tr.json` and `frontend/messages/en.json` to match capacity/trip derivation terminology.
+
+### Notes
+- Capacity derivation is terminus-based to avoid partial station schedule anomalies.
+
+## Entry · 2025-12-23 02:46 (+03)
+
+### Commit
+- **Hash:** `fbb14a7d9e91b8bf9fb8da6b4fdfbcece3550caa`
+- **Message:** `feat: add static rail capacities and derive rail trips/hour from metro timetable cache (terminus-only)`
+
+### Summary
+- Added a static rail capacity table and derived rail trips-per-hour from cached Metro timetables.
+
+### Details
+- Added `config/rail_capacity.yaml` and enhanced `src/api/services/capacity_store.py` with static rail overrides.
+- Extended `src/api/services/metro_schedule_cache.py` and `src/api/services/batch_forecast.py` to derive rail trips/hour from cached timetables (terminus-only).
+
+### Notes
+- Rail capacities are treated as per-departure vehicle capacity; aggregate max capacity uses trips-per-hour × vehicle capacity.
+
+## Entry · 2025-12-23 01:55 (+03)
+
+### Commit
+- **Hash:** `189c1f035a72d24af7a144258b76654631da49c2`
+- **Message:** `Revert "feat: add METROBUS pooled line to aggregate 34* variants and prevent zero-capacity forecasts"`
+
+### Summary
+- Reverted the METROBUS 34* pooled-line aggregation behavior.
+
+### Details
+- Rolled back pooled mapping logic affecting `src/api/routers/forecast.py`, `src/api/routers/lines.py`, and `src/api/services/status_service.py`.
+- Restored SearchBar behavior in `frontend/src/components/ui/SearchBar.jsx` to avoid confusing pooled results.
+
+### Notes
+- This revert supersedes the previous pooled-line experiment from 2025-12-23 01:40.
+
+## Entry · 2025-12-23 01:40 (+03)
+
+### Commit
+- **Hash:** `9573e7074a37eeb3978d0b22a5268c238f0ca616`
+- **Message:** `feat: add METROBUS pooled line to aggregate 34* variants and prevent zero-capacity forecasts`
+
+### Summary
+- Introduced a pooled METROBUS 34* line aggregation layer to smooth capacity/forecast gaps.
+
+### Details
+- Added pooled constants and routing behavior in `src/api/constants.py`, `src/api/routers/forecast.py`, `src/api/routers/lines.py`, and `src/api/services/status_service.py`.
+- Updated `src/api/routers/capacity.py` and `src/api/routers/schedule.py` to reflect pooled-line handling.
+- Updated `frontend/src/components/ui/SearchBar.jsx` to expose pooled search entries.
+
+### Notes
+- This change was later reverted (see 2025-12-23 01:55) due to product/UX considerations.
+
+## Entry · 2025-12-23 00:07 (+03)
+
+### Commit
+- **Hash:** `f01080054bacaa616a45678316b2b27dddb894b2`
+- **Message:** `feat: switch API default model to v7 + add blacklist-based split filtering`
+
+### Summary
+- Promoted model v7 as the API default and introduced blacklist-based filtering for split datasets.
+
+### Details
+- Added `config/data_filters.yaml` and extended `src/features/split_features.py` to filter lines/splits using a blacklist strategy.
+- Updated `src/model/config/v7.yaml` and `src/model/train_model.py` to support v7 training and evaluation artifacts.
+- Updated `src/api/main.py` and `src/api/README_API.md` so production boot loads `lgbm_transport_v7` by default.
+
+### Notes
+- Evaluation artifacts and reports were refreshed to include v7 metrics and feature importance outputs.
+
+## Entry · 2025-12-22 20:51 (+03)
+
+### Commit
+- **Hash:** `cb1ecce6afcef5e51264839088e54bb18ae25fb8`
+- **Message:** `fix bus schedule error in runtime`
+
+### Summary
+- Fixed runtime schedule fetching edge cases impacting forecast generation and admin tooling.
+
+### Details
+- Updated `src/api/services/schedule_service.py`, `src/api/services/batch_forecast.py`, and `src/api/scheduler.py` to prevent failures when schedule payloads are missing or malformed.
+- Adjusted admin scheduler display in `frontend/src/components/admin/SchedulerPanel.jsx`.
+
+### Notes
+- Improves resilience of daily forecast jobs when upstream schedule sources are unstable.
+
+## Entry · 2025-12-22 17:41 (+03)
+
+### Commit
+- **Hash:** `3836126dfb0b536482166840188cd1f9d3f542d8`
+- **Message:** `feat(capacity): store and display actual trips-per-hour data in forecasts`
+
+### Summary
+- Persisted and exposed trips-per-hour and vehicle capacity information alongside crowding forecasts.
+
+### Details
+- Added `migrations/add_capacity_columns_to_forecasts.sql` and extended `src/api/models.py` to store `trips_per_hour` and `vehicle_capacity` in `daily_forecasts`.
+- Updated `src/api/services/batch_forecast.py` and `src/api/routers/forecast.py` to compute, persist, and return the new capacity fields.
+- Updated `frontend/src/components/ui/CapacityModal.jsx` and translations (`frontend/messages/*`) to display derived trips/hour and capacities.
+
+### Notes
+- Capacity data enhances interpretability of occupancy metrics by explaining how max capacity is computed.
+
+## Entry · 2025-12-21 00:24 (+03)
+
+### Commit
+- **Hash:** `1c8cad262650ebbb5f9155fbdd853d8e6605b770`
+- **Message:** `feat: integrate bus capacity artifacts (effective max_capacity, capacity API, scheduler order, UI modal)`
+
+### Summary
+- Integrated bus capacity artifacts into the API and UI, and added a capacity inspection endpoint.
+
+### Details
+- Added ETL helpers `src/data_prep/build_bus_capacity_snapshots.py` and `src/data_prep/impute_no_data_line_capacities.py` to materialize capacity parquet snapshots.
+- Introduced `src/api/services/capacity_store.py` and `src/api/routers/capacity.py` for capacity lookup (`/api/capacity/{line_code}` + mix details).
+- Updated `src/api/services/store.py` and `src/api/services/batch_forecast.py` to use effective `max_capacity` based on capacity artifacts.
+- Added UI support in `frontend/src/components/ui/CapacityModal.jsx`, plus API integration in `frontend/src/lib/api.js`.
+
+### Notes
+- Scheduler order was adjusted so capacity artifacts are available before forecast jobs run.
+
+## Entry · 2025-12-19 23:14 (+03)
+
+### Commit
+- **Hash:** `f32e1358673c2c6da045d3a6f1d2b06941a9dee0`
+- **Message:** `fix(api): correct syntax error in lines search query`
+
+### Summary
+- Fixed a query syntax error in the line search endpoint.
+
+### Details
+- Updated `src/api/routers/lines.py` to correct the search query and restore endpoint stability.
+
+### Notes
+- Impacts `/api/lines/search` reliability for locale-aware search.
+
+## Entry · 2025-12-19 23:07 (+03)
+
+### Commit
+- **Hash:** `9e611b2c3f7a8fc70317a823d5414fae462290da`
+- **Message:** `fix(security): harden auth/db config, safer admin cleanup, and locale search fixes`
+
+### Summary
+- Hardened backend auth/database configuration and made admin cleanup safer.
+
+### Details
+- Updated `src/api/auth.py` and `src/api/db.py` to be stricter about configuration defaults and reduce risk of insecure runtime settings.
+- Updated `src/api/routers/admin.py` to make cleanup actions safer and more predictable.
+- Updated `src/api/routers/lines.py` and `frontend/src/components/ui/MapTopBar.jsx` to improve locale-aware search handling.
+
+### Notes
+- Review environment variables and secrets handling when deploying (do not commit populated `.env`).
+
+## Entry · 2025-12-18 16:56 (+03)
+
+### Commit
+- **Hash:** `b8b541120d9860f5be1af4fa1228f6597d5be061`
+- **Message:** `chore: ignore .DS_Store`
+
+### Summary
+- Added `.DS_Store` ignore patterns.
+
+### Details
+- Updated `.gitignore` and removed a checked-in `.DS_Store` artifact.
+
+### Notes
+- Housekeeping only.
+
+## Entry · 2025-12-18 16:56 (+03)
+
+### Commit
+- **Hash:** `e776041348c86d9b403c6a5a91ba456ae0f84034`
+- **Message:** `fix build error`
+
+### Summary
+- Fixed a frontend build/runtime issue in the admin bus cache panel.
+
+### Details
+- Updated `frontend/src/components/admin/BusCachePanel.jsx`.
+
+### Notes
+- Addresses deployment build stability.
+
+## Entry · 2025-12-18 16:46 (+03)
+
+### Commit
+- **Hash:** `124a99099b5a92c4f1b396e88bb70e610d943c05`
+- **Message:** `merge: vercel/react-server-components-cve-vu-igw79t`
+
+### Summary
+- Merged dependency updates addressing React Server Components CVE advisories.
+
+### Details
+- Merge commit for `frontend/package.json` / `frontend/package-lock.json` security updates.
+
+### Notes
+- See 2025-12-18 13:44 (+00) for the dependency patch commit.
+
+## Entry · 2025-12-18 13:44 (+00)
+
+### Commit
+- **Hash:** `29ad48da1638859187a2c8bbb4622475abaa6a05`
+- **Message:** `Fix React Server Components CVE vulnerabilities`
+
+### Summary
+- Updated frontend dependencies to remediate React Server Components vulnerabilities.
+
+### Details
+- Updated `frontend/package.json` and `frontend/package-lock.json` to pull patched versions.
+
+### Notes
+- Validate `npm run build` on CI/Vercel after dependency upgrades.
+
+## Entry · 2025-12-18 16:36 (+03)
+
+### Commit
+- **Hash:** `446926863557493fb513950f0d94703beff6be01`
+- **Message:** `add bus schedule prefetch`
+
+### Summary
+- Added a Postgres-backed cache to prefetch planned bus schedules and avoid runtime SOAP timeouts.
+
+### Details
+- Added migration `migrations/create_bus_schedule_cache.sql` and extended `src/api/models.py` with `BusScheduleCache`.
+- Introduced `src/api/services/bus_schedule_cache.py` and updated `src/api/services/schedule_service.py` to read/write cached schedules.
+- Added admin endpoints in `src/api/routers/admin.py` and scheduler integration in `src/api/scheduler.py`.
+- Updated admin UI in `frontend/src/components/admin/BusCachePanel.jsx`.
+
+### Notes
+- Prefetch targets all bus lines (`transport_type_id == 1`) and should run before peak usage windows.
+
+## Entry · 2025-12-17 19:46 (+03)
+
+### Commit
+- **Hash:** `34dd55e8d23dc817b141cd2242b7f97b5617cf89`
+- **Message:** `ui fix`
+
+### Summary
+- Small UI fixes for schedule modals and badge components.
+
+### Details
+- Updated `frontend/src/components/line-detail/MetroScheduleModal.jsx`, `frontend/src/components/line-detail/ScheduleModal.jsx`, and `frontend/src/components/ui/Nowcast.jsx`.
+- Adjusted `frontend/src/components/ui/TrafficBadge.jsx` interaction behavior.
+
+### Notes
+- Minor UX polish only.
+
+## Entry · 2025-12-17 19:07 (+03)
+
+### Commit
+- **Hash:** `36b68058d0c3939fd12a0046e001386e9adc5ee5`
+- **Message:** `update docs and fix MetroStationInfoCard.jsx position`
+
+### Summary
+- Refined documentation structure and resolved a Metro station info card positioning issue.
+
+### Details
+- Updated `README.md`, `README_TECHNICAL.md`, `frontend/README_UI.md`, `src/api/README_API.md`, and `docs/project-summary.md` to align documentation schemes.
+- Adjusted `frontend/src/components/map/MetroStationInfoCard.jsx` and `frontend/src/components/ui/LineDetailPanel.jsx` positioning to improve map UX.
+
+### Notes
+- Documentation updates should avoid minor design change tracking and focus on domain-level functionality.
 
 ## Entry · 2025-12-17 14:30 (+03)
 

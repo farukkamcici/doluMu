@@ -836,6 +836,7 @@ shap.summary_plot(shap_values, X_val.sample(5000), max_display=25)
 | **v4** | 2024-11 | + Rolling features, regularization | 1950 | +16.7% |
 | **v5** | 2024-11 | TSCV validation, early stopping tuning | 1890 | +19.2% |
 | **v6** | 2024-12 | Stronger regularization, removed short lags | **1847** | **+21.1%** |
+| **v7** | 2025-12 | Split blacklist filtering + production alignment | (see reports) | - |
 
 ### Model Selection Criteria
 
@@ -846,6 +847,8 @@ shap.summary_plot(shap_values, X_val.sample(5000), max_display=25)
 - ✅ Stable predictions across all line types
 - ✅ Interpretable feature importance (no single feature >50%)
 
+**Update (2025-12)**: Model `v7` is now the production default in the API (see `src/model/config/v7.yaml` and `src/api/main.py`).
+
 ---
 
 ## Reproducibility
@@ -853,6 +856,8 @@ shap.summary_plot(shap_values, X_val.sample(5000), max_display=25)
 ### Environment Setup
 
 **Python Version**: 3.10+
+
+Project target: Python 3.11 (backend).
 
 **requirements.txt**:
 ```
@@ -896,6 +901,11 @@ python src/features/split_features.py
 python src/model/train_model.py
 
 # Output: models/lgbm_transport_v6.txt
+
+# Train v7 model (production default)
+python src/model/train_model.py --config src/model/config/v7.yaml
+
+# Output: models/lgbm_transport_v7.txt
 ```
 
 **Step 3: Model Evaluation**

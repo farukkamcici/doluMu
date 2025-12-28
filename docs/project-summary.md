@@ -2,9 +2,15 @@
 
 This document captures delivery progress against the İstanbul Transit Crowding Platform product plan. Update it after each milestone that advances the PRD or technical design scope; focus on domain work (data pipelines, feature engineering, modeling, UI) and cite the related scripts or datasets rather than repository housekeeping changes.
 
-_Last updated: 2025-12-17_
+_Last updated: 2025-12-23_
 
 ## API & Deployment
+- 2025-12-18: Added a Postgres-backed bus schedule cache (prefetch + admin endpoints) to eliminate runtime SOAP timeouts (`migrations/create_bus_schedule_cache.sql`, `src/api/services/bus_schedule_cache.py`).
+- 2025-12-19: Hardened auth/database configuration and made admin cleanup safer (`src/api/auth.py`, `src/api/db.py`, `src/api/routers/admin.py`).
+- 2025-12-21: Introduced a capacity subsystem (capacity artifacts, `/api/capacity/*` endpoints, and UI modal) and wired it into batch forecasts.
+- 2025-12-22: Extended forecast persistence to store `trips_per_hour` and `vehicle_capacity` alongside `max_capacity` (`migrations/add_capacity_columns_to_forecasts.sql`).
+- 2025-12-23: Switched the API default model to `lgbm_transport_v7` and added blacklist-based split filtering via `config/data_filters.yaml`.
+- 2025-12-23: Added static rail capacity overrides (`config/rail_capacity.yaml`) and Marmaray static schedule integration (`src/api/services/marmaray_service.py`).
 - 2025-11-25: Developed the core backend API using FastAPI, with routers for `admin`, `forecast`, and `lines`.
 - 2025-11-25: Integrated the frontend admin dashboard with the backend API.
 - 2025-11-25: Configured the production deployment environment using Docker and Docker Compose.
@@ -44,6 +50,7 @@ iendly storage.
 rn` to support upcoming modeling work.
 
 ## Modeling & Evaluation
+- 2025-12-23: Trained and promoted model v7 (`src/model/config/v7.yaml`) and refreshed evaluation artifacts under `reports/` for production alignment.
 - 2025-11-05: Introduced `src/model/train_model.py`, a normalized LightGBM training pipeline that caps per-line outliers, derives `y_norm`, casts categorica
 l inputs, trains with early stopping, and saves the booster, metrics JSON, feature-importance CSV, and top-20 gain plot into `models/`, `reports/logs`, and
 `reports/figs` for reproducible v1 runs.
@@ -65,6 +72,9 @@ roving maintainability.
 models. The evaluation for this model has not been run yet.
 
 ## Frontend Development
+- 2025-12-21: Added a Capacity modal and surfaced per-line capacity/meta details to explain occupancy percentages, including vehicle mix summaries.
+- 2025-12-22: Displayed actual `trips_per_hour` and derived capacity values in the line detail UI for better interpretability.
+- 2025-12-23: Added Marmaray static schedule support and updated rail capacity/trips-per-hour messaging for metro/rail lines.
 - 2025-11-19: Established the initial frontend application with Next.js and Tailwind CSS, featuring a mobile-first, dark-themed UI. Key components include a map view, a functional search bar, a line detail 
 panel with data visualization, and a bottom navigation system. The frontend is powered by a Zustand store for state management and uses dummy data for now. Multi-page navigation for "Forecast" and "Settings
 " has been implemented.
@@ -78,6 +88,8 @@ panel with data visualization, and a bottom navigation system. The frontend is p
 - 2025-11-26: Enhanced weather service to include precipitation data in both API responses and fallback logic. Updated Nowcast component UI to display precipitation alongside temperature in hourly forecasts, providing more comprehensive weather context.
 
 ## Backend Performance & Operations
+- 2025-12-18: Added bus schedule prefetch job support and admin controls to keep cached schedules warm under load.
+- 2025-12-21: Updated scheduler ordering so capacity artifacts are available before daily forecast generation.
 - 2025-11-26: Implemented batch processing for model predictions, replacing row-by-row inference with single batch calls to significantly reduce execution time for daily forecast jobs (500+ lines × 24 hours).
 - 2025-11-26: Optimized Feature Store with batch lag loading and precomputed lookup caching in `services/store.py`, reducing database calls from O(n) per prediction to O(1) batch queries with in-memory cache for faster retrieval.
 - 2025-11-26: Hardened batch forecast job execution with dedicated database session management for background tasks, comprehensive error handling with traceback logging, and error message truncation to prevent database overflow.

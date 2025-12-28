@@ -48,6 +48,16 @@
 - A compact widget shows the next departures plus first/last trips; tapping it opens a full-day `MetroScheduleModal` with every train for the selected station/direction.
 - A built-in stale-while-revalidate cache keeps timetables available even if the upstream Metro API stalls, refreshing quietly whenever the network is reachable.
 
+
+
+### 🚌 **Capacity-Aware Forecasts**
+- Occupancy predictions are backed by per-line capacity metadata (`max_capacity`, and when available: `vehicle_capacity` and `trips_per_hour`) so crowd levels are easier to interpret.
+- A dedicated Capacity modal explains the assumptions behind capacity for buses (vehicle mix) and rail (static capacity tables).
+
+### 🚆 **Marmaray & Rail Capacity Support**
+- Marmaray uses a static schedule integration to avoid missing-schedule gaps, keeping service-hour and capacity logic consistent.
+- Metro/rail capacities can be overridden via a static rail capacity table used by the backend.
+
 ### 💡 **"Best Time to Travel" Suggestions**
 - Receive personalized recommendations for less crowded departure times
 - Compare multiple time slots to find your optimal travel window

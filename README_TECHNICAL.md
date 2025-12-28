@@ -10,6 +10,15 @@ This project implements a **LightGBM-based global forecasting model** for hourly
 
 ---
 
+## Recent Updates (2025-12)
+
+- **Model**: Promoted `lgbm_transport_v7` as the API default and added blacklist-based split filtering (`config/data_filters.yaml`, `src/model/config/v7.yaml`).
+- **Capacity**: Added capacity artifacts + `CapacityStore`, exposed `/api/capacity/*`, and persisted `trips_per_hour` / `vehicle_capacity` for explainable occupancy forecasts.
+- **Schedules**: Added Postgres-backed bus schedule prefetch caching and Marmaray static schedule integration; rail capacity overrides live in `config/rail_capacity.yaml`.
+
+---
+
+
 ## Project Architecture
 
 ### Directory Structure & Data Pipeline

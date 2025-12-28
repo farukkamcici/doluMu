@@ -53,6 +53,12 @@
 - **Hızlı Yükleme**: Service worker ile optimize edilmiş performans
 - **Platformlar Arası**: iOS, Android ve masaüstü destekli
 
+### 7. **Kapasite ve Sefer Sıklığı (Trips/Saat)**
+- Hat bazında `maksimum kapasite`, `araç kapasitesi` ve (varsa) `saatlik sefer sayısı` bilgilerini görüntüleyin.
+- Otobüs hatları için kapasite varsayımlarını ve araç karışımı özetini Capacity penceresinden inceleyin.
+- Raylı sistemlerde statik kapasite tablosu ve Marmaray için statik sefer entegrasyonu sayesinde kapasite/servis saati bilgisi daha kararlı çalışır.
+
+
 ---
 
 ## 🚀 Nasıl Çalışıyor?
