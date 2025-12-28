@@ -58,7 +58,6 @@
 - Otobüs hatları için kapasite varsayımlarını ve araç karışımı özetini Capacity penceresinden inceleyin.
 - Raylı sistemlerde statik kapasite tablosu ve Marmaray için statik sefer entegrasyonu sayesinde kapasite/servis saati bilgisi daha kararlı çalışır.
 
-
 ---
 
 ## 🚀 Nasıl Çalışıyor?
@@ -74,7 +73,7 @@
 - **Harita Görünümü**: 
   - İstanbul haritası üzerinde tüm toplu taşıma hatları
   - Metro hatları otomatik renklendirilmiş ve istasyonlarla gösterilmiş
-  - Otobüs/vapur hatları için arama sonrası güzergah gösterimi
+  - Otobüs hatları için arama sonrası güzergah gösterimi
 - **Alt Navigasyon**: 
   - Harita, Favoriler, Ayarlar bölümleri arası hızlı geçiş
 
@@ -83,7 +82,7 @@
 2. Arama sonuçları anlık olarak filtrelenir
 3. Her sonuçta:
    - Hat kodu (bold ve renkli)
-   - Taşıt türü etiketi (Otobüs/Metro/Vapur)
+   - Taşıt türü etiketi (Otobüs/Metro)
    - Hat açıklaması (arama terimleri vurgulanmış)
 4. Bir hata tıklayın, harita o hattı gösterecek şekilde güncellenir
 
@@ -197,7 +196,6 @@
 - **Hat Türü Renkleri**:
   - Metro: Mavi tonları
   - Otobüs: Yeşil-amber
-  - Vapur: Cyan-mavi
 
 ### Animasyonlar ve İnteraksiyonlar
 - **Framer Motion** ile:

@@ -23,7 +23,7 @@ Machine Learning-Powered Real-Time Transit Forecasting System
 
 ## System Overview
 
-The Istanbul Transport API is a high-performance FastAPI-based backend that delivers **24-hour crowding predictions** for Istanbul's public transportation network (metro, bus, and ferry lines). The system combines:
+The Istanbul Transport API is a high-performance FastAPI-based backend that delivers **24-hour crowding predictions** for Istanbul's public transportation network (metro and bus lines). The system combines:
 
 - **Machine Learning**: LightGBM gradient boosting model trained on historical passenger data
 - **Real-Time Data**: Weather forecasting and live metro schedules

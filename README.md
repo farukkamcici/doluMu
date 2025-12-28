@@ -8,7 +8,7 @@
 
 ## What is this Platform?
 
-**DoluMu** is a **multilingual, web-based AI prediction tool** that helps you avoid peak hours and plan more comfortable journeys on Istanbul's public transportation network covering Metro, Bus, Metrobus, and Ferry lines.
+**DoluMu** is a **multilingual, web-based AI prediction tool** that helps you avoid peak hours and plan more comfortable journeys on Istanbul's public transportation network covering Metro, Bus, Metrobus, and rail lines.
 
 **Important:** This platform uses **AI models trained on historical passenger data and weather forecasts** to predict crowding levels. It does **not** rely on real-time sensors or live passenger counting. All information shown represents **forecasted predictions** based on patterns learned from past data, weather conditions, and calendar factors.
 
@@ -17,7 +17,7 @@
 ## Key Features
 
 ### 🕐 **24-Hour Crowding Forecasts**
-- See predicted crowding levels for any metro line, bus route, or ferry service up to 24 hours ahead
+- See predicted crowding levels for any metro line or bus route up to 24 hours ahead
 - Plan your commute by checking the best departure times before you leave
 
 ### 🌦️ **Weather-Aware Predictions**
@@ -41,14 +41,12 @@
 ### 🚇 **Metro Network Mode**
 - Metro lines render with official colors, accessibility badges, and accurate station geometry sourced from Metro Istanbul APIs.
 - Station selectors automatically pull valid directions (e.g., Yenikapı → Havalimanı) and keep the forecast/time slider in sync with the chosen branch.
-- Dedicated MetroLayer overlays stops on the map alongside bus/ferry data so you can mix and match trips visually.
+- Dedicated MetroLayer overlays stops on the map alongside bus/metro data so you can mix and match trips visually.
 - M1 is exposed as separate `M1A` and `M1B` branches in search and selection so station lists and timetables remain consistent per branch.
 
 ### ⚡ **Instant Metro Timetables**
 - A compact widget shows the next departures plus first/last trips; tapping it opens a full-day `MetroScheduleModal` with every train for the selected station/direction.
 - A built-in stale-while-revalidate cache keeps timetables available even if the upstream Metro API stalls, refreshing quietly whenever the network is reachable.
-
-
 
 ### 🚌 **Capacity-Aware Forecasts**
 - Occupancy predictions are backed by per-line capacity metadata (`max_capacity`, and when available: `vehicle_capacity` and `trips_per_hour`) so crowd levels are easier to interpret.
@@ -155,7 +153,6 @@ The platform covers major Istanbul public transportation including:
 - Metro lines (M1, M2, M3, M4, M5, M6, M7, M11)
 - Metrobüs (BRT) routes
 - Major bus lines with sufficient historical data
-- Ferry services (selected routes)
 
 ### **Is my location data tracked?**
 The platform can use your location (if you permit it) only to show nearby transport options and provide relevant recommendations. Location data is not stored or tracked for advertising purposes.
@@ -176,7 +173,7 @@ Notification features are planned for future releases to alert you about:
 1. **Visit the Platform:** Access through your web browser on any device
 2. **Choose Your Language:** Select Turkish or English from Settings (⚙️)
 3. **Explore the Map:** Browse Istanbul's transport network and crowding patterns
-4. **Select Your Line:** Click on any metro, bus, or ferry route
+4. **Select Your Line:** Click on any metro or bus route
 5. **Choose Your Time:** Use the time slider to see predictions for different hours
 6. **Save Favorites:** Bookmark your regular routes for quick access
 7. **Plan Ahead:** Check predictions before starting your journey

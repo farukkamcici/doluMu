@@ -459,7 +459,7 @@ _Last updated: 2025-12-23_
 - Implemented Marmaray-specific bypasses in frontend to handle missing schedule data gracefully.
 
 ### Details
-- `ScheduleWidget.jsx`: Added Marmaray check before metro/ferry checks to show custom empty state ("Tarife bilgisi mevcut değil").
+- `ScheduleWidget.jsx`: Added Marmaray check before metro checks to show custom empty state ("Tarife bilgisi mevcut değil").
 - `ScheduleModal.jsx`: Added early return to prevent modal from opening for Marmaray.
 - `LineDetailPanel.jsx`: Added `isMarmaray` flag to force 24h chart display even without schedule data, bypassing `hasAnyInServiceHour` check.
 
@@ -671,7 +671,7 @@ _Last updated: 2025-12-23_
 - Extended Pydantic schemas and locale files to cover new schedule labels, making the entire workflow i18n-ready.
 
 ### Notes
-- After this change, metro lines behave identically to buses/ferries in the dashboard: select a line, view live departures, inspect the 24h crowd curve, and trust that state persists per direction.
+- After this change, metro lines behave identically to buses in the dashboard: select a line, view live departures, inspect the 24h crowd curve, and trust that state persists per direction.
 
 ## Entry · 2025-12-09 22:21 (+03)
 
@@ -1693,7 +1693,7 @@ _Last updated: 2025-12-23_
   - Added to Settings page with Globe icon for discoverability
 - **Transport Type Localization:**
   - Refactored `src/lib/transportTypes.js` to use `labelKey` instead of hardcoded `label` values
-  - Changed transport type labels to keys: `bus`, `metro`, `ferry`, `unknown`
+  - Changed transport type labels to keys: `bus`, `metro`, `unknown`
   - Created custom hook `src/hooks/useGetTransportLabel.js` for runtime translation lookup
   - Updated SearchBar and LineDetailPanel to use `getTransportLabel(transportType.labelKey)` for dynamic labels
 
@@ -1702,7 +1702,7 @@ _Last updated: 2025-12-23_
 - Middleware automatically redirects root path `/` to `/tr` (default locale)
 - All static text across 10+ components successfully localized without breaking functionality
 - Build verification successful with all routes generating correctly for both locales
-- Transport type badges (Bus/Otobüs, Metro, Ferry/Vapur) now dynamically translate based on selected language
+- Transport type badges (Bus/Otobüs, Metro) now dynamically translate based on selected language
 - Weather widget shows "Istanbul"/"İstanbul" based on locale
 - Custom hook pattern (`useGetTransportLabel`) provides reusable translation mechanism for computed values
 - next-intl v4.5.5 integrated with Next.js 16.0.3 and App Router architecture

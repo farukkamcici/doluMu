@@ -126,8 +126,8 @@ This document describes the complete **end-to-end machine learning pipeline** fo
     'transition_hour': int,         # Hour of day (0-23)
     'line_name': str,               # Transport line code (e.g., "M2", "500T")
     'number_of_passage': int,       # Passenger count for that hour
-    'transport_type_id': int,       # 1=Bus, 2=Metro, 3=Ferry, etc.
-    'road_type': str,               # 'metro', 'bus', 'ferry'
+    'transport_type_id': int,       # 1=Bus, 2=Metro, ...
+    'road_type': str,               # 'metro', 'bus', ...
     'line': str,                    # Full line description
     'town': str                     # District/borough
 }
@@ -746,7 +746,6 @@ Observation: Rush hour predictions have 6x higher error due to:
 ```
 Metro Lines:  MAE 1620  (more predictable, fixed capacity)
 Bus Lines:    MAE 1890  (weather-sensitive, traffic delays)
-Ferry Lines:  MAE 2340  (weather-dependent, tourism effects)
 ```
 
 **Top 10 Worst Predicted Lines** (Highest MAE):
@@ -808,7 +807,6 @@ shap.summary_plot(shap_values, X_val.sample(5000), max_display=25)
 1. **line_name × hour_of_day**: 
    - Metro lines show symmetric peaks (8AM and 6PM)
    - Bus lines show asymmetric peaks (8AM > 6PM)
-   - Ferry lines show flatter profiles (leisure travel)
 
 2. **lag_168h × is_holiday**:
    - Normal weeks: lag_168h SHAP = +500 to +1500
