@@ -1,9 +1,9 @@
 {
     "model_name": "lgbm_transport_v7",
     "dataset": "Unseen Test Set",
-    "timestamp": "2025-12-22 23:57:42",
+    "timestamp": "2026-01-01 02:30:51",
     "n_samples": 537198,
-    "prediction_time_sec": 5.293391942977905,
+    "prediction_time_sec": 6.481389999389648,
     "mae": 72.99351411761582,
     "rmse": 289.8494439004625,
     "smape": 0.448137811609563,
@@ -43,52 +43,505 @@
         "MARMARAY": {
             "mae": 2009.529293535449,
             "mean_volume": 23899.948412698413,
-            "nmae": 0.08408090506453791
+            "nmae": 0.08408090506450273
         },
         "34": {
             "mae": 1943.7476610319559,
             "mean_volume": 22283.94275802255,
-            "nmae": 0.08722638009524494
+            "nmae": 0.08722638009520581
         },
         "M2": {
             "mae": 1678.138953165159,
             "mean_volume": 16071.085354025217,
-            "nmae": 0.10441976482595475
+            "nmae": 0.10441976482588977
         },
         "T1": {
             "mae": 1508.7593221854406,
             "mean_volume": 15050.252016129032,
-            "nmae": 0.10024811016908791
+            "nmae": 0.1002481101690213
         },
         "M3": {
             "mae": 1469.7952260748255,
             "mean_volume": 5340.923232323233,
-            "nmae": 0.2751949732547426
+            "nmae": 0.27519497325422737
         },
         "M1": {
             "mae": 1119.7243713423047,
             "mean_volume": 12781.216163583253,
-            "nmae": 0.08760702870613109
+            "nmae": 0.08760702870606255
         },
         "M5": {
             "mae": 1020.2519950032696,
             "mean_volume": 11020.298928919183,
-            "nmae": 0.09257933941573497
+            "nmae": 0.09257933941565095
         },
         "M4": {
             "mae": 990.3251150532006,
             "mean_volume": 10817.09011627907,
-            "nmae": 0.09155189652740536
+            "nmae": 0.09155189652732071
         },
         "M7": {
             "mae": 811.4368722328127,
             "mean_volume": 8235.325853658536,
-            "nmae": 0.09853124049394263
+            "nmae": 0.09853124049382297
         },
         "T4": {
             "mae": 661.4231295668374,
             "mean_volume": 7034.893660531698,
-            "nmae": 0.09402034508036146
+            "nmae": 0.0940203450802278
+        }
+    },
+    "top10_busiest_lines": {
+        "MARMARAY": {
+            "mean_volume": 23899.948412698413,
+            "total_volume": 24091148.0,
+            "mae": 2009.529293535449,
+            "nmae": 0.08408090506450273,
+            "sample_count": 1008
+        },
+        "34": {
+            "mean_volume": 22283.94275802255,
+            "total_volume": 25693386.0,
+            "mae": 1943.7476610319559,
+            "nmae": 0.08722638009520581,
+            "sample_count": 1153
+        },
+        "M2": {
+            "mean_volume": 16071.085354025217,
+            "total_volume": 16569289.0,
+            "mae": 1678.138953165159,
+            "nmae": 0.10441976482588977,
+            "sample_count": 1031
+        },
+        "T1": {
+            "mean_volume": 15050.252016129032,
+            "total_volume": 14929850.0,
+            "mae": 1508.7593221854406,
+            "nmae": 0.1002481101690213,
+            "sample_count": 992
+        },
+        "M1": {
+            "mean_volume": 12781.216163583253,
+            "total_volume": 13126309.0,
+            "mae": 1119.7243713423047,
+            "nmae": 0.08760702870606255,
+            "sample_count": 1027
+        },
+        "M5": {
+            "mean_volume": 11020.298928919183,
+            "total_volume": 11317847.0,
+            "mae": 1020.2519950032696,
+            "nmae": 0.09257933941565095,
+            "sample_count": 1027
+        },
+        "M4": {
+            "mean_volume": 10817.09011627907,
+            "total_volume": 11163237.0,
+            "mae": 990.3251150532006,
+            "nmae": 0.09155189652732071,
+            "sample_count": 1032
+        },
+        "M7": {
+            "mean_volume": 8235.325853658536,
+            "total_volume": 8441209.0,
+            "mae": 811.4368722328127,
+            "nmae": 0.09853124049382297,
+            "sample_count": 1025
+        },
+        "T4": {
+            "mean_volume": 7034.893660531698,
+            "total_volume": 6880126.0,
+            "mae": 661.4231295668374,
+            "nmae": 0.0940203450802278,
+            "sample_count": 978
+        },
+        "M3": {
+            "mean_volume": 5340.923232323233,
+            "total_volume": 5287514.0,
+            "mae": 1469.7952260748255,
+            "nmae": 0.27519497325422737,
+            "sample_count": 990
+        }
+    },
+    "top10_worst_by_percentage": {
+        "KM30": {
+            "nmae": 2.578932399390595,
+            "mae": 36.10505361725765,
+            "mean_volume": 14.0,
+            "sample_count": 1
+        },
+        "36M": {
+            "nmae": 2.0757587611237103,
+            "mae": 24.70152927812974,
+            "mean_volume": 11.9,
+            "sample_count": 10
+        },
+        "19FB": {
+            "nmae": 1.8243950046231627,
+            "mae": 24.629332580656648,
+            "mean_volume": 13.5,
+            "sample_count": 10
+        },
+        "H-2": {
+            "nmae": 1.6191639091609613,
+            "mae": 21.33072455861648,
+            "mean_volume": 13.173913043478262,
+            "sample_count": 391
+        },
+        "MK53": {
+            "nmae": 1.6053669641096038,
+            "mae": 20.144766114074184,
+            "mean_volume": 12.548387096774194,
+            "sample_count": 217
+        },
+        "E-56": {
+            "nmae": 1.5821517559407392,
+            "mae": 26.5010419278289,
+            "mean_volume": 16.75,
+            "sample_count": 16
+        },
+        "UM13": {
+            "nmae": 1.4842631221788791,
+            "mae": 30.07488152799217,
+            "mean_volume": 20.2625,
+            "sample_count": 80
+        },
+        "17L": {
+            "nmae": 1.4672530419633447,
+            "mae": 16.165356514037747,
+            "mean_volume": 11.017429193899781,
+            "sample_count": 459
+        },
+        "41SM": {
+            "nmae": 1.462004830828971,
+            "mae": 16.05120916996597,
+            "mean_volume": 10.978902953586498,
+            "sample_count": 711
+        },
+        "E-10": {
+            "nmae": 1.4069682548441542,
+            "mae": 41.70452115605639,
+            "mean_volume": 29.641408751334044,
+            "sample_count": 937
+        }
+    },
+    "top10_best_lines": {
+        "MARMARAY": {
+            "nmae": 0.08408090506450273,
+            "mae": 2009.529293535449,
+            "mean_volume": 23899.948412698413,
+            "sample_count": 1008
+        },
+        "34": {
+            "nmae": 0.08722638009520581,
+            "mae": 1943.7476610319559,
+            "mean_volume": 22283.94275802255,
+            "sample_count": 1153
+        },
+        "M1": {
+            "nmae": 0.08760702870606255,
+            "mae": 1119.7243713423047,
+            "mean_volume": 12781.216163583253,
+            "sample_count": 1027
+        },
+        "M4": {
+            "nmae": 0.09155189652732071,
+            "mae": 990.3251150532006,
+            "mean_volume": 10817.09011627907,
+            "sample_count": 1032
+        },
+        "M5": {
+            "nmae": 0.09257933941565095,
+            "mae": 1020.2519950032696,
+            "mean_volume": 11020.298928919183,
+            "sample_count": 1027
+        },
+        "T4": {
+            "nmae": 0.0940203450802278,
+            "mae": 661.4231295668374,
+            "mean_volume": 7034.893660531698,
+            "sample_count": 978
+        },
+        "M7": {
+            "nmae": 0.09853124049382297,
+            "mae": 811.4368722328127,
+            "mean_volume": 8235.325853658536,
+            "sample_count": 1025
+        },
+        "T1": {
+            "nmae": 0.1002481101690213,
+            "mae": 1508.7593221854406,
+            "mean_volume": 15050.252016129032,
+            "sample_count": 992
+        },
+        "M2": {
+            "nmae": 0.10441976482588977,
+            "mae": 1678.138953165159,
+            "mean_volume": 16071.085354025217,
+            "sample_count": 1031
+        },
+        "97": {
+            "nmae": 0.10759734919565817,
+            "mae": 118.60101599491122,
+            "mean_volume": 1102.2670807453417,
+            "sample_count": 966
+        }
+    },
+    "error_distribution": {
+        "mean": 72.99351411761582,
+        "std": 280.50783772680717,
+        "median": 29.08399214881944,
+        "p25": 12.63988019421046,
+        "p75": 61.196227097050894,
+        "p90": 117.70251129349529,
+        "p95": 178.16328015399145,
+        "p99": 987.4886915964577,
+        "max": 18604.584151344166,
+        "min": 0.00016034632673900262
+    },
+    "prediction_bias": {
+        "mean_residual": -9.569684013009107,
+        "over_prediction_count": 262386,
+        "under_prediction_count": 274812,
+        "exact_count": 0,
+        "over_prediction_pct": 48.84344319971407,
+        "under_prediction_pct": 51.15655680028593,
+        "bias_direction": "Under-predicting"
+    },
+    "by_day_of_week": {
+        "Tuesday": {
+            "mae": 79.13437114291135,
+            "nmae": 0.15131712878156126,
+            "mean_volume": 522.9703456482786,
+            "sample_count": 73109
+        },
+        "Wednesday": {
+            "mae": 75.88276990691041,
+            "nmae": 0.14831328400249671,
+            "mean_volume": 511.6383904232737,
+            "sample_count": 86209
+        },
+        "Thursday": {
+            "mae": 71.7355338358428,
+            "nmae": 0.14250576729305275,
+            "mean_volume": 503.3868817877302,
+            "sample_count": 86277
+        },
+        "Friday": {
+            "mae": 66.17901250012743,
+            "nmae": 0.13039251670267718,
+            "mean_volume": 507.5368907076608,
+            "sample_count": 74287
+        },
+        "Saturday": {
+            "mae": 69.43148187019055,
+            "nmae": 0.1374047604532834,
+            "mean_volume": 505.30623276638727,
+            "sample_count": 73258
+        },
+        "Sunday": {
+            "mae": 67.16108335850775,
+            "nmae": 0.14711473783059273,
+            "mean_volume": 456.52178936942886,
+            "sample_count": 66638
+        },
+        "Day 7": {
+            "mae": 80.30868793748904,
+            "nmae": 0.2000162914782344,
+            "mean_volume": 401.51073366055283,
+            "sample_count": 77420
+        }
+    },
+    "peak_vs_offpeak": {
+        "peak_hours": {
+            "mae": 83.99950784574403,
+            "nmae": 0.13173783925195326,
+            "mean_volume": 637.6262759538255
+        },
+        "off_peak_hours": {
+            "mae": 67.39440077426705,
+            "nmae": 0.16379652319169496,
+            "mean_volume": 411.45196161310344
+        }
+    },
+    "dataset_coverage": {
+        "unique_lines": 764,
+        "total_samples": 537198,
+        "samples_per_line_avg": 703.1387434554974,
+        "date_range_start": "2024-06-30",
+        "date_range_end": "2024-09-30"
+    },
+    "model_info": {
+        "num_trees": 2000,
+        "num_features": 18,
+        "best_iteration": -1
+    },
+    "prediction_accuracy_thresholds": {
+        "within_5_passengers": 10.136485988406509,
+        "within_10_passengers": 20.015152699749443,
+        "within_20_passengers": 37.49585813796775,
+        "within_50_passengers": 68.7167487593029
+    },
+    "end_user_stats": {
+        "crowd_level_accuracy": 77.0427291240846,
+        "crowd_level_adjacent_accuracy": 99.74404223396215,
+        "predictions_within_5_passengers": 10.136485988406509,
+        "predictions_within_10_passengers": 20.015152699749443,
+        "predictions_within_20_passengers": 37.49585813796775,
+        "predictions_within_50_passengers": 68.7167487593029,
+        "crowd_breakdown": {
+            "Empty": {
+                "accuracy": 73.57055801449707,
+                "samples": 171483
+            },
+            "Light": {
+                "accuracy": 79.19884142257739,
+                "samples": 174697
+            },
+            "Moderate": {
+                "accuracy": 76.85654878201797,
+                "samples": 111578
+            },
+            "Crowded": {
+                "accuracy": 76.5925278248356,
+                "samples": 54897
+            },
+            "Very Crowded": {
+                "accuracy": 87.80915128549893,
+                "samples": 24543
+            }
+        },
+        "morning_rush_crowd_accuracy": 74.0313035783419,
+        "morning_rush_adjacent_accuracy": 99.70466235274597,
+        "evening_rush_crowd_accuracy": 77.74042806445213,
+        "evening_rush_adjacent_accuracy": 99.98346815967554,
+        "useful_prediction_rate": 57.23252878826801
+    },
+    "by_transport_mode": {
+        "Bus": {
+            "mae": 55.93198806580722,
+            "nmae": 0.17114220559445933,
+            "mean_volume": 326.81586561197486,
+            "sample_count": 340447,
+            "volume_share_pct": 42.466951546899814,
+            "crowd_accuracy": 76.47798335717454
+        },
+        "Commuter Rail": {
+            "mae": 2009.529293535449,
+            "nmae": 0.08408090506450273,
+            "mean_volume": 23899.948412698413,
+            "sample_count": 1008,
+            "volume_share_pct": 9.195089041166998,
+            "crowd_accuracy": 90.17857142857143
+        },
+        "Funicular": {
+            "mae": 53.40105988348246,
+            "nmae": 0.18843607349635047,
+            "mean_volume": 283.39085447263017,
+            "sample_count": 2996,
+            "volume_share_pct": 0.32406048912336544,
+            "crowd_accuracy": 77.0026702269693
+        },
+        "Metro": {
+            "mae": 936.1607648204018,
+            "nmae": 0.11779830228023326,
+            "mean_volume": 7947.149888392857,
+            "sample_count": 8960,
+            "volume_share_pct": 27.178022715711318,
+            "crowd_accuracy": 85.56919642857143
+        },
+        "Other": {
+            "mae": 39.043797953501304,
+            "nmae": 0.2314387893509402,
+            "mean_volume": 168.70032054991088,
+            "sample_count": 172828,
+            "volume_share_pct": 11.12829053234166,
+            "crowd_accuracy": 77.31791144953364
+        },
+        "Tram": {
+            "mae": 259.9356863876213,
+            "nmae": 0.1120015533254908,
+            "mean_volume": 2320.822155306141,
+            "sample_count": 10959,
+            "volume_share_pct": 9.70758567475684,
+            "crowd_accuracy": 82.0786568117529
+        }
+    },
+    "statistical_confidence": {
+        "mae_95_ci_lower": 72.31973263844911,
+        "mae_95_ci_upper": 73.76894169140108,
+        "mae_std_error": 0.3741215520437696,
+        "n_bootstrap_samples": 1000
+    },
+    "by_volume_segment": {
+        "1_Very Low (\u226450)": {
+            "mae": 25.85092919672002,
+            "nmae": 1.1509761211689784,
+            "mean_volume": 22.46000478181511,
+            "sample_count": 171483,
+            "sample_pct": 31.921749522522425
+        },
+        "2_Low (51-200)": {
+            "mae": 35.05802827700321,
+            "nmae": 0.32132062237113657,
+            "mean_volume": 109.10606364161949,
+            "sample_count": 174697,
+            "sample_pct": 32.520039166191985
+        },
+        "3_Medium (201-500)": {
+            "mae": 63.27602366063149,
+            "nmae": 0.19417061682326417,
+            "mean_volume": 325.8784706662604,
+            "sample_count": 111578,
+            "sample_pct": 20.77036772288802
+        },
+        "4_High (501-1000)": {
+            "mae": 99.21772657256679,
+            "nmae": 0.14445813067178156,
+            "mean_volume": 686.826875785562,
+            "sample_count": 54897,
+            "sample_pct": 10.219137077948913
+        },
+        "5_Very High (1001-5000)": {
+            "mae": 238.98264609558257,
+            "nmae": 0.14370075669021617,
+            "mean_volume": 1663.0576734493748,
+            "sample_count": 16316,
+            "sample_pct": 3.0372413895807506
+        },
+        "6_Extreme (>5000)": {
+            "mae": 1488.7849741400933,
+            "nmae": 0.0888273480360182,
+            "mean_volume": 16760.434787893522,
+            "sample_count": 8227,
+            "sample_pct": 1.5314651208679109
+        }
+    },
+    "model_stability": {
+        "hourly_mae_std": 24.717497529823337,
+        "hourly_mae_cv": 0.3048561808544601,
+        "max_hourly_mae": 157.14026264178634,
+        "min_hourly_mae": 44.56462079790015,
+        "hourly_mae_range": 112.57564184388619
+    },
+    "extreme_error_analysis": {
+        "threshold_used": "p99",
+        "extreme_error_count": 5372,
+        "extreme_error_pct": 1.0000037230220515,
+        "extreme_error_mean": 2287.691001757,
+        "most_affected_lines": {
+            "MARMARAY": 669,
+            "M3": 631,
+            "34": 629,
+            "M2": 589,
+            "T1": 565
+        },
+        "most_affected_hours": {
+            "17": 416,
+            "18": 409,
+            "19": 359,
+            "8": 344,
+            "7": 339
         }
     }
 }

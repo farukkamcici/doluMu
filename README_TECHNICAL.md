@@ -6,7 +6,9 @@
 
 ## Technical Abstract
 
-This project implements a **LightGBM-based global forecasting model** for hourly public transportation ridership prediction in Istanbul, leveraging **24+ exogenous features** including weather data (Open-Meteo), calendar dimensions, and engineered lag/rolling window features. The system deploys a **FastAPI microservice architecture** with **Polars-optimized feature store**, **PostgreSQL persistence**, **APScheduler-based automated forecast generation**, and a **React/Next.js Progressive Web Application** with **Framer Motion animations**, **JWT authentication**, and **IETT SOAP API integration** for real-time bus stop geometries and route visualization. The platform provides **interactive Leaflet maps** with **45,000+ bus stops** and **500+ line routes**, **Recharts time-series analytics**, **multi-year seasonal lag fallback** strategy, and **locale-aware UI** (Turkish/English) with **favorites system** and **haptic feedback** for mobile users.
+This project implements a **LightGBM-based global forecasting model** for hourly public transportation ridership prediction in Istanbul. The current production model (`lgbm_transport_v7`) uses a stable **18-column feature set** (lags/rolling stats + weather + calendar + categorical line code) and is served by a **FastAPI** backend with **PostgreSQL persistence**, a **Polars-backed FeatureStore**, and **APScheduler** jobs for automated forecast generation and cache prefetch.
+
+The UI is a **Next.js PWA** using **React Leaflet** for map-based exploration, **Recharts** for 24h charts, **Framer Motion** for gestures/animations, **next-intl** for TR/EN localization, and a local **favorites** store with optional **haptic feedback** (`navigator.vibrate`). Route/stop geometry data is ingested via **IETT SOAP endpoints** and shipped as static JSON assets under `frontend/public/data/`.
 
 ---
 
@@ -29,8 +31,8 @@ The codebase follows a **modular data science architecture** with clear separati
 ├── src/
 │   ├── data_prep/          # Raw → Interim data processing (Polars ETL)
 │   ├── features/           # Feature engineering & dimensionality pipeline  
-│   ├── model/              # Training, validation & hyperparameter configs
-│   └── api/                # FastAPI microservice & database layer
+│   ├── model/              # Training, evaluation & versioned YAML configs
+│   └── api/                # FastAPI service & database layer
 ├── data/
 │   ├── raw/                # İBB transport CSV + holiday calendars
 │   ├── interim/            # Aggregated parquet outputs  
@@ -45,16 +47,20 @@ The codebase follows a **modular data science architecture** with clear separati
 **Raw → Processed → Training → API Deployment:**
 
 1. **ETL Phase** (`src/data_prep/`):
-   - `load_raw.py`: Aggregates İBB CSV files → `transport_hourly.parquet` 
-   - `clean_data.py`: Missing value handling, outlier winsorization
-   - `explore_data.py`: EDA and data quality profiling
+   - `load_raw.py`: Extracts line metadata to `data/processed/transport_meta.parquet`.
+     - Note: the hourly aggregation to `data/interim/transport_hourly.parquet` exists as commented scaffold in the same file and must be enabled or produced externally.
+   - `clean_data.py`: Minimal example cleaner for district-level parquet (drops missing `town`).
+   - `explore_data.py`: Small helper to print basic null counts/shape.
 
 2. **Feature Engineering** (`src/features/`):
    - `build_calendar_dim.py`: Holiday calendars + school term encodings
-   - `build_weather_dim.py`: Open-Meteo API integration (historical + forecast)
-   - `build_log_rolling_transport_data.py`: Lag/rolling window feature generation  
-   - `build_final_features.py`: **Polars-based joins** → unified feature matrix
-   - `split_features.py`: Time-based train/validation/test splits
+   - `build_weather_dim.py`: Open-Meteo archive fetch → `data/processed/weather_dim.parquet`
+   - `build_log_roliing_transport_data.py`: Lag/rolling window features from `data/interim/transport_hourly.parquet` → `data/processed/lag_rolling_transport_hourly.parquet`
+     - Note: filename contains a typo (`roliing`) and is referenced as-is.
+   - `build_final_features.py`: **Polars joins** → `data/processed/features_pl.parquet`
+   - `convert_features_to_pandas.py`: Converts to `data/processed/features_pd.parquet` (input for splitting/training)
+   - `split_features.py`: Time-based train/val/test split to `data/processed/split_features/*.parquet` (optionally applies `config/data_filters.yaml`)
+   - `check_features_quality.py`: Writes a quality log to `docs/data_quality_log.txt`
 
 3. **Modeling Pipeline** (`src/model/`):
    - `train_model.py`: YAML-configured LightGBM training with early stopping
@@ -64,7 +70,7 @@ The codebase follows a **modular data science architecture** with clear separati
 4. **API Service** (`src/api/`):
    - `main.py`: FastAPI app with model loading, CORS, and JWT authentication
    - `auth.py`: JWT token generation, bcrypt password hashing, protected route dependencies
-   - `scheduler.py`: APScheduler integration with 3 automated cron jobs (forecast/cleanup/quality-check)
+   - `scheduler.py`: APScheduler integration with 5 automated cron jobs (bus schedule prefetch, metro timetable prefetch, forecast generation, cleanup, quality-check)
    - `services/store.py`: **Feature Store** with multi-year seasonal lag fallback strategy
    - `services/batch_forecast.py`: Batch prediction service with retry logic and fallback statistics
    - `routers/`: RESTful endpoints for forecasting, nowcasting, admin operations, line search, and traffic proxy
@@ -77,11 +83,11 @@ The codebase follows a **modular data science architecture** with clear separati
 
 | **Source** | **Format** | **Features Extracted** | **Update Frequency** |
 |------------|------------|------------------------|----------------------|
-| **İBB Open Data** | Hourly passenger CSV | `passenger_count`, `line_name`, `datetime` | Static (historical) |
+| **İBB Passenger Data** | CSV files | `transition_date`, `transition_hour`, `number_of_passage`, `line_name` | Static (historical) |
 | **Open-Meteo API** | JSON (Historical + Forecast) | `temperature_2m`, `precipitation`, `wind_speed_10m` | Hourly |
 | **Turkish Holiday Calendar** | Manual CSV | `is_holiday`, `holiday_win_m1/p1`, `is_school_term` | Annual |
-| **IETT SOAP API** | XML (DurakDetay_GYY) | 45,000+ bus stop geometries with lat/lng coordinates | On-demand |
-| **IETT Route API** | XML (getGuzergah_json) | 500+ bus line routes with ordered stop sequences | On-demand |
+| **IETT SOAP API (Stops)** | SOAP/XML (GetDurak_json) | Stop coordinates + metadata, exported as JSON for the frontend | On-demand / batch ingestion |
+| **IETT SOAP API (Routes)** | SOAP/XML (GetHat_json + DurakDetay_GYY) | Per-line ordered stop sequences (G/D directions), exported as JSON | On-demand / batch ingestion |
 | **İBB Traffic API** | JSON (TrafficIndex_Sc1_Cont) | `TI` (traffic index), `TI_Av` (average index) | Real-time (5-min cache) |
 
 ### Feature Engineering Justification
@@ -110,24 +116,17 @@ The codebase follows a **modular data science architecture** with clear separati
 - **`roll_mean_24h`**: 24-hour moving average (trend smoothing)
 - **`roll_std_24h`**: Rolling volatility (demand uncertainty quantification)
 
-**Anti-overfitting consideration**: No short-term lags (1h, 2h, 3h) in production model v6 to prevent **temporal leakage** and improve **generalization**.
+**Anti-overfitting consideration**: No short-term lags (1h, 2h, 3h) in production model v7 to prevent **temporal leakage** and improve **generalization**.
 
 ### Data Aggregation Logic
 
-**Transport Hourly Aggregation:**
-```sql
-SELECT 
-  DATE_TRUNC('hour', timestamp) as datetime,
-  line_name,
-  SUM(passenger_count) as passage_sum,
-  EXTRACT(hour FROM timestamp) as transition_hour
-FROM raw_transport 
-GROUP BY datetime, line_name, transition_hour
-```
+**Hourly aggregation** is expected to produce `data/interim/transport_hourly.parquet` with at least:
+- `transition_date` (YYYY-MM-DD)
+- `transition_hour` (0-23)
+- `line_name`
+- `passage_sum` (hourly sum)
 
-**Timezone Handling**: All timestamps normalized to `Europe/Istanbul` to handle **DST transitions** correctly.
-
-**Outlier Management**: **Z-score winsorization** applied per transport line (cap at ±3σ) to handle anomalous events without data loss.
+`src/data_prep/load_raw.py` includes a Polars aggregation template for this, but it is currently commented out in the repository.
 
 ---
 
@@ -156,9 +155,9 @@ GROUP BY datetime, line_name, transition_hour
 
 **Trade-off**: Slight accuracy reduction for low-frequency lines vs. **significant operational benefits**.
 
-### Hyperparameter Configuration (Model v6)
+### Hyperparameter Configuration (Model v7)
 
-**Final Production Configuration** (`src/model/config/v6.yaml`):
+**Production Configuration (current default)** (`src/model/config/v7.yaml`):
 
 ```yaml
 params:
@@ -217,46 +216,57 @@ params:
 
 ---
 
-## Crowd Scoring Algorithm
+## Occupancy & Crowd Levels
 
-### Mathematical Formulation
+### Capacity-Aware Occupancy
 
-**Objective**: Convert raw ridership predictions into **interpretable crowd density levels** (0-100 scale).
+The backend stores **raw ridership predictions** (`predicted_value`) and derives **capacity-aware occupancy** fields during batch generation.
 
-**Two-Component Scoring System**:
+**Batch computation** (`src/api/services/batch_forecast.py`):
 
-1. **Percentile Ranking** (`percentile_rank`):
-   ```python
-   percentile_rank = scipy.stats.percentileofscore(
-       historical_data[(line_name, hour_of_day)], 
-       prediction_value
-   ) / 100
-   ```
+```python
+prediction = max(0, model_pred)
+trips_effective = max(1, int(trips_per_hour[hour]))
+vehicle_capacity = capacity_store.get_capacity_meta(line_code).expected_capacity_weighted_int
+max_capacity = max(1, vehicle_capacity * trips_effective)
 
-2. **Peak Index** (`peak_index`):  
-   ```python
-   peak_index = prediction_value / historical_max_by_line[line_name]
-   ```
+occupancy_pct = min(100, round((prediction / max_capacity) * 100))
+```
 
-3. **Composite Crowd Score**:
-   ```python
-   crowd_score = 0.6 * percentile_rank + 0.4 * peak_index
-   ```
+### Crowd Level Labels
 
-### Score Interpretation Logic
+Crowd levels are derived from the **occupancy rate** against the same `max_capacity` used above.
 
-| **Score Range** | **Crowd Level** | **UI Color** | **Semantic Meaning** |
-|-----------------|-----------------|--------------|----------------------|
-| 0.00 - 0.20 | Very Low | 🟢 Green | Comfortable, seats available |
-| 0.20 - 0.40 | Low | 🟢 Light Green | Minor crowding, mostly seated |
-| 0.40 - 0.60 | Medium | 🟡 Yellow | Moderate density, standing room |  
-| 0.60 - 0.80 | High | 🟠 Orange | Crowded, limited standing space |
-| 0.80 - 1.00 | Very High | 🔴 Red | Packed, uncomfortable conditions |
+**Threshold mapping** (`src/api/services/store.py:get_crowd_level`):
 
-**Design Rationale**: 
-- **Contextual Scoring**: "High" means high *for that specific line and hour*, not absolute capacity
-- **Dual Perspective**: Percentile captures **relative unusualness**; peak index captures **absolute utilization**
-- **Weighted Average**: 60/40 weighting empirically optimized for user feedback alignment
+- `occupancy_rate < 0.30` → `Low`
+- `occupancy_rate < 0.60` → `Medium`
+- `occupancy_rate < 0.90` → `High`
+- otherwise → `Very High`
+
+### Where Capacity Inputs Come From
+
+During the batch job, `trips_per_hour` is computed per line/hour using cached schedule sources:
+
+- **Bus lines**: Postgres-backed IETT planned schedule cache (`src/api/services/bus_schedule_cache.py`), aggregated across `G` + `D`.
+- If a cached schedule is missing, the batch job falls back to a conservative pattern (1 trip/hour) so capacity math stays defined.
+- **Metro/rail lines**: Postgres-backed Metro timetable cache (`src/api/services/metro_schedule_cache.py`), derived using **terminus-only** departures to avoid inflating counts.
+- **Marmaray**: Static schedule integration (`src/api/services/marmaray_service.py`) reading `frontend/public/data/marmaray_static_schedule.json`.
+
+`vehicle_capacity` is sourced from `CapacityStore`:
+
+- **Bus capacity artifacts**: parquet snapshots under `data/processed/bus_capacity_snapshots/`.
+- **Static rail overrides**: `config/rail_capacity.yaml`.
+- **Fallback**: safe default per-vehicle capacity when artifacts are missing.
+
+### Service-Hours Masking (API Response)
+
+The forecast API marks hours outside service windows as **Out of Service** and nulls the predicted fields.
+
+- Service windows are derived from **metro topology** (`first_time`/`last_time`) for rail, and from cached IETT schedules for buses.
+- For out-of-service hours, the API returns `predicted_value: null`, `occupancy_pct: null`, `crowd_level: "Out of Service"`, while keeping the stored capacity fields for interpretability.
+
+
 
 ---
 
@@ -266,52 +276,54 @@ params:
 
 **Cron Job Architecture** (`src/api/scheduler.py`):
 
-The platform implements a comprehensive automated forecast generation system using **AsyncIOScheduler** for FastAPI compatibility:
+The platform runs an **AsyncIOScheduler** (timezone: `Europe/Istanbul`) and schedules jobs in an order that keeps schedule caches warm before forecast generation.
 
-**Recent Enhancements (2025-12-13)**:
-- Multi-day batch forecast support for proactive data availability
-- Enhanced job execution tracking with target date columns
-- Admin UI controls for scheduling forecasts beyond T+1
-- Database migration support for new JobExecution schema
+**Scheduled jobs (default times):**
 
-**Job 1: Multi-Day Forecast Generation** (02:00 Europe/Istanbul)
-- Generates forecasts for configurable number of days ahead (default T+1, supports multi-day scheduling)
-- Supports batch generation for T+1, T+2, etc. via `days_ahead` parameter in admin API
-- Generates predictions for all transport lines (500+ lines × 24 hours × N days)
-- Implements 3-attempt retry logic with exponential backoff (1min → 2min → 4min)
-- Batch prediction optimization reduces execution time from O(n) to O(1) per line
-- Tracks `target_date` in `job_executions` table for monitoring each day's generation
+1. **Bus schedule prefetch** (`prefetch_bus_schedules`) — **00:10**
+   - Prefetches and persists IETT planned schedules into Postgres (`bus_schedules`) for the forecast horizon.
 
-**Job 2: Forecast Cleanup** (03:00)
-- Maintains rolling 3-day window (T-1, T, T+1) by deleting forecasts older than 3 days
-- Enforces minimum 3-day retention to prevent accidental data loss
-- Automatically rotates: new T+1 generated at 02:00, old T-3 deleted at 03:00
+2. **Metro timetable prefetch** (`prefetch_metro_schedules`) — **02:30**
+   - Prefetches and persists Metro Istanbul timetables into Postgres (`metro_schedules`).
+   - Maintains a retry loop for failed station/direction pairs.
 
-**Job 3: Data Quality Check** (04:00)
-- Verifies forecast coverage, Feature Store health, and fallback statistics
-- Logs warnings but doesn't block operations (proactive issue detection)
-- Monitors zero fallback rate with alerts when exceeding 5%
+3. **Daily forecast generation** (`generate_daily_forecast`) — **04:00**
+   - Runs `run_daily_forecast_job()` for **T+1..T+2** by default (configurable).
+   - Batch-predicts all `(line, hour)` pairs and persists forecasts into `daily_forecasts`.
+   - Stores `max_capacity`, `trips_per_hour`, and `vehicle_capacity` alongside `predicted_value` to make occupancy explainable.
+   - Includes retry scheduling with exponential backoff on failures.
 
-**Robustness Features:**
-- **Misfire grace time**: 1-2 hours - allows jobs to run even if scheduled time missed due to server downtime
-- **Job coalescing**: Multiple missed schedules combine into single execution, avoiding duplicate work
-- **Graceful shutdown**: Waits for running jobs to complete before stopping
+4. **Cleanup old forecasts** (`cleanup_old_forecasts`) — **04:15**
+   - Maintains a rolling retention window (minimum 3 days).
+
+5. **Data quality check** (`data_quality_check`) — **04:30**
+   - Verifies forecast coverage, missing hours, and fallback rates.
+
+**Robustness features:**
+- `misfire_grace_time` (typically 1 hour) + `coalesce=True` to avoid duplicate backfills after downtime.
+- Background retries for forecast generation (separate one-off scheduled jobs).
 
 ### Admin Control APIs
 
-**Scheduler Management Endpoints:**
-- `GET /admin/scheduler/status` - View scheduler state and all job information
-- `POST /admin/scheduler/pause` / `POST /admin/scheduler/resume` - Maintenance control
-- `POST /admin/scheduler/trigger/{job_type}` - Manual job execution (forecast/cleanup/quality-check)
-- `POST /admin/forecast/batch-multi-day` - Generate forecasts for multiple days ahead with configurable `days_ahead` parameter
-- `DELETE /admin/forecasts/date/{date}` - Delete all forecasts for specific date
-- `GET /admin/forecasts/coverage` - 7-day forecast availability summary with status indicators
-- `DELETE /admin/database/cleanup-all` - Bulk deletion of forecasts and job history with confirmation workflow
+**Scheduler management**:
+- `GET /api/admin/scheduler/status`
+- `POST /api/admin/scheduler/pause`
+- `POST /api/admin/scheduler/resume`
+- `POST /api/admin/scheduler/trigger/forecast` (params: `target_date`, `num_days`)
+- `POST /api/admin/scheduler/trigger/cleanup` (param: `days_to_keep`)
+- `POST /api/admin/scheduler/trigger/quality-check`
 
-**Feature Store Monitoring:**
-- `GET /admin/feature-store/stats` - Fallback statistics (seasonal match %, hour fallback %, zero fallback %)
-- `POST /admin/feature-store/reset-stats` - Reset counters for fresh tracking
-- `POST /admin/forecast/test` - Performance testing with configurable line/hour counts
+**Manual forecast trigger (background task)**:
+- `POST /api/admin/forecast/trigger` (params: `target_date`, `num_days`)
+
+**Schedule cache operations**:
+- Metro: `GET /api/admin/metro/cache/status`, `POST /api/admin/metro/cache/refresh`, `POST /api/admin/metro/cache/cleanup`
+- Bus: `GET /api/admin/bus/cache/status`, `POST /api/admin/bus/cache/refresh`, `POST /api/admin/bus/cache/cleanup`
+
+**Job recovery**:
+- `POST /api/admin/jobs/reset` (marks stuck RUNNING jobs as FAILED)
+
+
 
 ---
 
@@ -320,18 +332,18 @@ The platform implements a comprehensive automated forecast generation system usi
 ### JWT-Based Admin Authentication
 
 **Backend Security** (`src/api/auth.py`):
-- **Token Configuration**: HS256 algorithm, 24-hour expiration, secret key from `ADMIN_SECRET_KEY` env var
+- **Token Configuration**: `JWT_SECRET_KEY` (required), `JWT_ALGORITHM` (default: HS256), `JWT_ACCESS_TOKEN_EXPIRE_MINUTES` (default: 1440)
 - **Password Hashing**: bcrypt via passlib with 72-byte truncation for compatibility
 - **Protected Routes**: `get_current_user()` FastAPI dependency validates JWT and returns authenticated user
 - **Database Schema**: `admin_users` table with username, hashed_password, created_at, last_login columns
 
 **Admin User Management APIs:**
-- `POST /admin/login` - Accepts username/password, returns JWT access token
-- `GET /admin/users` - List all admin users with usernames and last login timestamps
-- `GET /admin/users/me` - Return authenticated admin's profile
-- `POST /admin/users` - Create new admin user with password hashing
-- `POST /admin/users/change-password` - Update password for existing user
-- `DELETE /admin/users/{username}` - Remove admin user (prevents deletion of last admin)
+- `POST /api/admin/login` - Accepts username/password, returns JWT access token
+- `GET /api/admin/users` - List all admin users with usernames and last login timestamps
+- `GET /api/admin/users/me` - Return authenticated admin's profile
+- `POST /api/admin/users` - Create new admin user with password hashing
+- `POST /api/admin/users/change-password` - Update password for existing user
+- `DELETE /api/admin/users/{username}` - Remove admin user (prevents deletion of last admin)
 
 **Frontend Authentication** (`frontend/src/contexts/AuthContext.jsx`):
 - **React Context**: Global admin session management with `login()`, `logout()`, `isLoading` states
@@ -346,19 +358,15 @@ The platform implements a comprehensive automated forecast generation system usi
 ### IETT SOAP API Integration
 
 **Bus Stop Geometry Ingestion** (`src/data_prep/fetch_geometries.py`):
-- Fetches 45,000+ unique bus stop records from IETT's `DurakDetay_GYY` SOAP service
-- Multi-step flow: (1) Get all stop codes via `getHatDurakListesi_json`, (2) Batch process 100 stops at a time, (3) Extract geometry from `getKoordinatGetir_json`
-- Data structure: `{stop_code: {name, lat, lng, district, type}}`
-- Implements retry mechanism with exponential backoff (2s → 4s → 8s delays)
-- Caching strategy for fault tolerance during batch processing
-- Output: `frontend/public/data/stops_geometry.json` (90MB+ structured JSON)
+- Fetches all bus stops from IETT's `GetDurak_json` SOAP endpoint and parses coordinates into Leaflet-friendly `{code: {name, lat, lng, district}}` JSON.
+- Output: `frontend/public/data/stops_geometry.json`
 
 **Line Routes Ingestion** (`src/data_prep/fetch_line_routes.py`):
-- Fetches ordered stop sequences for 500+ bus lines from `getGuzergah_json` SOAP endpoint
+- Fetches line codes from `GetHat_json`, then ordered stop sequences per line from `DurakDetay_GYY`.
 - Handles bidirectional routes: "G" (gidiş/outbound) and "D" (dönüş/return)
 - Multi-level structure: `{line_code: {direction: [ordered_stop_codes]}}`
 - Validation for empty routes, missing directions, and malformed responses
-- Output: `frontend/public/data/line_routes.json` (67MB+ structured JSON)
+- Output: `frontend/public/data/line_routes.json`
 
 ### Frontend Route System
 
@@ -443,7 +451,7 @@ export default function Home() {
 **MapView.jsx**: Leaflet integration with Istanbul-centered view
 - **Base Layer**: CartoDB light tiles for mobile-optimized rendering
 - **User Location**: GPS integration with animated position marker (pulsing blue dot)
-- **Route Visualization**: Polyline rendering for 500+ bus lines with 45,000+ stop markers
+- **Route Visualization**: Polyline + stop-marker rendering based on ingested IETT route/stop JSON assets
 - **Interactive Markers**: CircleMarker components with tooltips, distinctive start (green)/end (red) styling
 - **Auto-Fit Bounds**: Automatic map panning/zooming when routes displayed
 - **Custom Controls**: LocateButton with dynamic positioning based on panel state
@@ -569,12 +577,13 @@ const useAppStore = create(
 **HTTP Client** (`lib/api.js`):
 ```typescript
 const apiClient = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL,  // Environment-based backend URL
+  baseURL: process.env.NEXT_PUBLIC_API_URL || 'https://ibb-transport.onthewifi.com/api',
   headers: { 'Content-Type': 'application/json' },
+  timeout: 10000,
 });
 
 // Primary forecast endpoint
-export const getForecast = async (lineName, date) => {
+export const getForecast = async (lineName, date, direction = null) => {
   const dateString = format(date, 'yyyy-MM-dd');
   const response = await apiClient.get(`/forecast/${lineName}?target_date=${dateString}`);
   return response.data;  // Returns: HourlyForecast[]
@@ -604,9 +613,12 @@ export const getForecast = async (lineName, date) => {
 
 **Advanced Features**:
 - **Favorites**: Save frequently used lines for quick access
-- **Notifications**: PWA push notifications for high-crowd alerts
-- **Offline Mode**: Cached predictions available without internet
-- **Geolocation**: GPS integration for location-based line recommendations
+- **Geolocation**: Map locate control for user positioning
+
+**Planned / Not Implemented Yet**:
+- Push notifications for high-crowd alerts
+- Offline caching for forecast API responses (beyond static asset caching)
+- Location-based line recommendations
 
 ---
 
@@ -618,23 +630,38 @@ export const getForecast = async (lineName, date) => {
 
 ```bash
 # 1. Raw data preparation
-python src/data_prep/load_raw.py          # CSV → Parquet aggregation
-python src/data_prep/clean_data.py        # Outlier handling & quality control
+(
+  cd src/data_prep && python load_raw.py
+)  # Writes `data/processed/transport_meta.parquet`
+# Optional: enable hourly aggregation in `src/data_prep/load_raw.py` to create `data/interim/transport_hourly.parquet`
 
 # 2. Feature engineering  
-python src/features/build_calendar_dim.py    # Holiday calendar generation
-python src/features/build_weather_dim.py     # Open-Meteo API integration  
-python src/features/build_log_rolling_transport_data.py  # Lag/rolling features
-python src/features/build_final_features.py  # Multi-table joins → unified matrix
+(
+  cd src/features && python build_calendar_dim.py
+)  # Holiday calendar generation
+(
+  cd src/features && python build_weather_dim.py
+)  # Open-Meteo API integration
+(
+  cd src/features && python build_log_roliing_transport_data.py
+)  # Lag/rolling features
+(
+  cd src/features && python build_final_features.py
+)  # Multi-table joins → unified matrix
+(
+  cd src/features && python convert_features_to_pandas.py
+)  # features_pl.parquet -> features_pd.parquet
 
 # 3. Data validation
-python src/features/check_features_quality.py   # Quality assurance reporting
+(
+  cd src/features && python check_features_quality.py
+)  # Quality assurance reporting
 
 # 4. Train/test splitting  
 python src/features/split_features.py       # Time-based dataset partitioning
 
 # 5. Model training & evaluation
-python src/model/train_model.py            # LightGBM training with YAML configs  
+python src/model/train_model.py --version v7  # LightGBM training with YAML configs
 python src/model/eval_model.py             # SHAP analysis & baseline comparison
 python src/model/test_model.py             # Hold-out test evaluation
 
@@ -647,7 +674,8 @@ cd frontend && npm run dev                       # Next.js development server
 
 **YAML-based Hyperparameter Control** (`src/model/config/`):
 - **`common.yaml`**: Shared settings (paths, feature definitions)
-- **`v6.yaml`**: Production model configuration with anti-overfitting parameters
+- **`v7.yaml`**: Production model configuration (current API default)
+- **`v6.yaml`**: Prior production configuration (kept for reproducibility)
 - **Versioning**: Clear model evolution tracking for academic reproducibility
 
 ### Docker Deployment
@@ -679,7 +707,7 @@ docker-compose up --build     # Builds API + PostgreSQL services
 1. **Global Model Architecture**: Demonstration of single-model superiority vs. line-specific models for transportation forecasting
 2. **Lag Feature Engineering**: Systematic evaluation of temporal window selection for urban transit prediction
 3. **Weather Integration**: Quantification of meteorological impact on public transportation demand  
-4. **Crowd Scoring Algorithm**: Novel percentile + peak index composite scoring for user-interpretable density levels
+4. **Capacity-Aware Interpretability**: Persisting trips-per-hour and vehicle capacity to make occupancy and crowd levels explainable in the UI
 
 ### Datasets for Academic Validation
 

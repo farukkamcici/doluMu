@@ -35,19 +35,23 @@ This document describes the complete **end-to-end machine learning pipeline** fo
                    │
                    ▼
 ┌─────────────────────────────────────────────────────────────┐
-│              STEP 1: ETL & DATA PREPARATION                 │
+│          STEP 0: ETL & INTERIM PREPARATION                  │
 ├─────────────────────────────────────────────────────────────┤
-│  load_raw.py          → Aggregate raw CSVs                  │
-│  clean_data.py        → Remove outliers, nulls             │
+│  src/data_prep/load_raw.py                                  │
+│    ├─ Always: write line metadata                            │
+│    │    Output: data/processed/transport_meta.parquet         │
+│    └─ Optional: uncomment hourly aggregation scaffold         │
+│         Output: data/interim/transport_hourly.parquet         │
 │                                                             │
-│  Output: data/interim/transport_hourly.parquet             │
+│  Note: src/data_prep/clean_data.py is a minimal example       │
+│        cleaner for district-level parquet, not the main ETL.  │
 └──────────────────┬──────────────────────────────────────────┘
                    │
                    ▼
 ┌─────────────────────────────────────────────────────────────┐
-│           STEP 2: FEATURE ENGINEERING                       │
+│              STEP 1: FEATURE ENGINEERING                    │
 ├─────────────────────────────────────────────────────────────┤
-│  build_log_rolling_transport_data.py                        │
+│  build_log_roliing_transport_data.py                         │
 │    └─ Lag features (24h, 48h, 168h)                        │
 │    └─ Rolling statistics (mean, std)                        │
 │                                                             │
@@ -60,11 +64,15 @@ This document describes the complete **end-to-end machine learning pipeline** fo
 │  build_final_features.py                                    │
 │    └─ Join all feature tables                              │
 │                                                             │
-│  split_features.py                                          │
-│    └─ Time-based train/val split                           │
+│  convert_features_to_pandas.py                               │
+│    └─ features_pl.parquet -> features_pd.parquet             │
 │                                                             │
-│  Output: data/processed/features_pl.parquet                │
-│          data/processed/split_features/*.parquet           │
+│  split_features.py                                           │
+│    └─ Time-based train/val/test split                        │
+│                                                             │
+│  Output: data/processed/features_pl.parquet                  │
+│          data/processed/features_pd.parquet                  │
+│          data/processed/split_features/*.parquet             │
 └──────────────────┬──────────────────────────────────────────┘
                    │
                    ▼
@@ -74,10 +82,9 @@ This document describes the complete **end-to-end machine learning pipeline** fo
 │  train_model.py                                             │
 │    ├─ Time-Series Cross-Validation (TSCV)                  │
 │    ├─ LightGBM gradient boosting                           │
-│    ├─ Hyperparameter optimization                          │
 │    └─ MLflow experiment tracking                           │
 │                                                             │
-│  Output: models/lgbm_transport_v6.txt                       │
+│  Output: models/lgbm_transport_v7.txt (or v6, v5...)         │
 │          mlruns/ (MLflow artifacts)                         │
 └──────────────────┬──────────────────────────────────────────┘
                    │
@@ -94,6 +101,16 @@ This document describes the complete **end-to-end machine learning pipeline** fo
 │                                                             │
 │  Output: reports/logs/*.json                                │
 │          reports/figs/*.png                                 │
+└──────────────────┬──────────────────────────────────────────┘
+                   │
+                   ▼
+┌─────────────────────────────────────────────────────────────┐
+│              STEP 5: MODEL TEST / GATES                     │
+├─────────────────────────────────────────────────────────────┤
+│  test_model.py                                              │
+│    └─ Hold-out test metrics + sanity checks                 │
+│                                                             │
+│  (Optional / Planned) API contract tests via pytest          │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -115,9 +132,9 @@ This document describes the complete **end-to-end machine learning pipeline** fo
 ### 1. IBB Passenger Count Data
 
 **Source**: Istanbul Metropolitan Municipality (IBB) Internal Data  
-**Format**: Multiple CSV files (2022-2024)  
+**Format**: Multiple CSV files (multi-year)  
 **Granularity**: Line-level, hourly passenger counts  
-**Size**: ~50M rows, covering 512 transport lines
+**Size**: Dataset-dependent (large, multi-year)
 
 **Schema**:
 ```python
@@ -134,10 +151,10 @@ This document describes the complete **end-to-end machine learning pipeline** fo
 ```
 
 **Data Quality Issues**:
-- Missing values in `town` column (~2% of rows)
-- Outliers due to special events (concerts, protests, sports games)
-- Service disruptions causing zero counts during operational hours
-- Duplicate records from data pipeline errors
+The pipeline assumes the raw feed may contain:
+- Missing values in descriptive columns (e.g. `town`)
+- Duplicate records that need hourly aggregation
+- Zeros from genuine low demand or service disruptions
 
 ### 2. Weather Data (Open-Meteo Archive API)
 
@@ -190,39 +207,44 @@ This document describes the complete **end-to-end machine learning pipeline** fo
 
 ### Phase 1: Raw Data Loading (`src/data_prep/load_raw.py`)
 
-**Purpose**: Aggregate multiple CSV files into a single unified dataset
+**Purpose**:
+- Always: extract per-line metadata to support filtering and API lookups.
+- Optional: generate an hourly aggregated parquet (`data/interim/transport_hourly.parquet`) if you enable the scaffold.
 
 **Process**:
 
 ```python
-# 1. Scan all CSV files in data/raw/
-files = sorted(Path("data/raw").glob("*.csv"))
+# NOTE: In the current repository state, the hourly aggregation is present
+# in `src/data_prep/load_raw.py` but commented out.
 
-# 2. Lazy loading with Polars (memory-efficient streaming)
+files = sorted(Path("../../data/raw").glob("*.csv"))
 df = pl.concat([pl.scan_csv(f) for f in files])
 
-# 3. Group by line and hour (aggregate duplicate records)
-agg = (df
-    .select(['transition_date', 'transition_hour', 'number_of_passage', 'line_name'])
-    .group_by(['transition_date', 'transition_hour', 'line_name'])
-    .agg(pl.sum('number_of_passage').alias('passage_sum'))
+# Line meta-data (ACTIVE)
+district_meta = (
+    df.select(['transport_type_id', 'road_type', 'line', 'line_name'])
+      .unique(subset=['line_name'])
 )
+district_meta.sink_parquet("../../data/processed/transport_meta.parquet")
 
-# 4. Write to interim storage
-agg.collect(engine="streaming").write_parquet("data/interim/transport_hourly.parquet")
+# Hourly line aggregation (SCAFFOLD - currently commented in code)
+# agg = (
+#     df.select(['transition_date', 'transition_hour', 'number_of_passage', 'line_name'])
+#       .group_by(['transition_date', 'transition_hour', 'line_name'])
+#       .agg(pl.sum('number_of_passage').alias('passage_sum'))
+# )
+# agg.collect(engine="streaming").write_parquet("../../data/interim/transport_hourly.parquet")
 ```
 
 **Output**:
-- `data/interim/transport_hourly.parquet`: Aggregated hourly passenger counts
 - `data/processed/transport_meta.parquet`: Line metadata (types, descriptions)
-
-**Performance**: Processes ~50M rows in <5 minutes using Polars streaming engine
+- `data/interim/transport_hourly.parquet`: (optional) Aggregated hourly passenger counts, required by `build_log_roliing_transport_data.py`
 
 ---
 
 ### Phase 2: Data Cleaning (`src/data_prep/clean_data.py`)
 
-**Purpose**: Remove invalid records and handle missing values
+**Purpose**: Minimal example cleaner for district-level parquet.
 
 **Cleaning Steps**:
 
@@ -231,16 +253,7 @@ agg.collect(engine="streaming").write_parquet("data/interim/transport_hourly.par
    df = df.dropna(subset=["town"])
    ```
 
-2. **Outlier Detection (Winsorization)**:
-   - Calculate per-line 99th percentile
-   - Cap extreme values to 3 standard deviations
-   - Preserve legitimate spikes (rush hours, events)
-
-3. **Zero-Value Handling**:
-   - Keep zeros during operational hours (valid low traffic)
-   - Flag consecutive zeros as potential service disruptions
-
-**Output**: `data/processed/transport_district_hourly_clean.parquet`
+**Output**: `data/processed/transport_district_hourly_clean.parquet` (if the input `data/processed/transport_district_hourly.parquet` exists)
 
 ---
 
@@ -257,18 +270,18 @@ lags = [24, 48, 168]              # 1 day, 2 days, 1 week
 windows = [24]                     # 24-hour rolling window
 
 # For each transport line:
-lag_24h   = passenger_count.shift(24)     # Yesterday same hour
-lag_48h   = passenger_count.shift(48)     # 2 days ago same hour
-lag_168h  = passenger_count.shift(168)    # Last week same hour
+lag_24h   = passage_sum.shift(24)     # Yesterday same hour
+lag_48h   = passage_sum.shift(48)     # 2 days ago same hour
+lag_168h  = passage_sum.shift(168)    # Last week same hour
 
-roll_mean_24h = passenger_count.rolling(24).mean()  # 24h moving average
-roll_std_24h  = passenger_count.rolling(24).std()   # 24h volatility
+roll_mean_24h = passage_sum.rolling(24).mean()  # 24h moving average
+roll_std_24h  = passage_sum.rolling(24).std()   # 24h volatility
 ```
 
 **Warm-up Period**: 
 - First 168 rows per line discarded (insufficient lag history)
 - Ensures no null values in lag features
-- Total data loss: ~3% of dataset
+- Proportion of dropped rows depends on dataset/line coverage
 
 **Polars Implementation** (grouped operations):
 ```python
@@ -307,10 +320,10 @@ for window in windows:
 | `is_weekend` | bool | 0/1 | Lower weekday traffic |
 | `month` | int | 1-12 | Seasonal variations |
 | `season` | categorical | Spring/Summer/Fall/Winter | Tourism, weather effects |
-| `is_school_term` | bool | 0/1 if Jun/Jul/Aug | 30% traffic reduction in summer |
-| `is_holiday` | bool | 0/1 | 50-70% traffic drop on holidays |
-| `holiday_win_m1` | bool | Day before holiday | Early departures (traffic spike) |
-| `holiday_win_p1` | bool | Day after holiday | Late returns (traffic spike) |
+| `is_school_term` | bool | 0/1 (months 6-8 treated as out-of-term) | School term proxy |
+| `is_holiday` | bool | 0/1 | Public holiday indicator |
+| `holiday_win_m1` | bool | Day before holiday | Holiday spillover feature |
+| `holiday_win_p1` | bool | Day after holiday | Holiday spillover feature |
 
 **Holiday Processing**:
 ```python
@@ -382,15 +395,7 @@ for start_date, end_date in batches:
     # Process and store...
 ```
 
-**Weather Impact on Ridership**:
-- **Temperature**: Non-linear effect (discomfort at extremes)
-  - < 5°C: +15% metro usage (avoid cold)
-  - 15-25°C: Baseline
-  - > 35°C: +20% metro usage (AC refuge)
-- **Precipitation**: Strong negative correlation with bus ridership
-  - Light rain (0-5mm): -10% bus, +5% metro
-  - Heavy rain (>10mm): -30% bus, +15% metro
-- **Wind Speed**: Minimal impact (<5% variation)
+**Note on impact**: The pipeline only defines weather feature columns; the model learns any relationships from data. This document avoids hardcoding behavioral assumptions or percentage effects.
 
 **Output**: `data/processed/weather_dim.parquet`
 
@@ -440,7 +445,7 @@ features.write_parquet("data/processed/features_pl.parquet")
 ```python
 {
     'datetime': datetime,           # Timestamp
-    'line_name': str,               # Categorical (512 categories)
+    'line_name': str,               # Categorical line code
     'y': float,                     # Target: passenger count
     'hour_of_day': int,             # 0-23
     'lag_24h': float,               # Time-series features
@@ -454,7 +459,7 @@ features.write_parquet("data/processed/features_pl.parquet")
     'day_of_week': int,             # Calendar features
     'is_weekend': int8,
     'month': int,
-    'season': str,                  # Categorical (4 categories)
+    'season': str,                  # Categorical (Winter/Spring/Summer/Fall)
     'is_school_term': int8,
     'is_holiday': int8,
     'holiday_win_m1': int8,
@@ -462,33 +467,29 @@ features.write_parquet("data/processed/features_pl.parquet")
 }
 ```
 
-**Dataset Size**: ~45M rows, 2.3 GB parquet file
-
 **Output**: `data/processed/features_pl.parquet`
 
 ---
 
-### Step 5: Train/Val Split (`src/features/split_features.py`)
+### Step 5: Train/Val/Test Split (`src/features/split_features.py`)
 
 **Purpose**: Create time-based splits for time-series cross-validation
 
-**Split Strategy**:
+**Split Strategy** (as implemented):
 ```python
-# Time-based split (NO random shuffling)
-split_date = "2024-07-01"
+# Reads data/processed/features_pd.parquet
+features["datetime"] = pd.to_datetime(features["datetime"])
 
-train = features.filter(pl.col("datetime") < split_date)
-val   = features.filter(pl.col("datetime") >= split_date)
+train_df = features[features["datetime"] <= "2024-04-30"]
+val_df = features[(features["datetime"] > "2024-04-30") & (features["datetime"] <= "2024-06-30")]
+test_df = features[features["datetime"] > "2024-06-30"]
 
-# Save splits
-train.write_parquet("data/processed/split_features/train_features.parquet")
-val.write_parquet("data/processed/split_features/val_features.parquet")
+train_df.to_parquet("data/processed/split_features/train_features.parquet", index=False)
+val_df.to_parquet("data/processed/split_features/val_features.parquet", index=False)
+test_df.to_parquet("data/processed/split_features/test_features.parquet", index=False)
 ```
 
-**Split Statistics**:
-- **Training Set**: 2022-01-01 to 2024-06-30 (~38M rows, 85%)
-- **Validation Set**: 2024-07-01 to 2024-09-30 (~7M rows, 15%)
-- **No data leakage**: Strict temporal ordering maintained
+**No leakage**: The split is purely time-based (no random shuffling).
 
 ---
 
@@ -507,38 +508,42 @@ src/model/config/
 ├── common.yaml          # Shared settings (paths, preprocessing)
 ├── v1.yaml              # Initial baseline model
 ├── v2.yaml              # Feature additions
-├── v3.yaml              # Hyperparameter tuning
+├── v3.yaml              # DART boosting variant
 ├── v4.yaml              # Regularization improvements
 ├── v5.yaml              # TSCV validation added
-└── v6.yaml              # Production model (current)
+├── v6.yaml              # Previous production default
+└── v7.yaml              # Current API default
 ```
 
-**v6.yaml Configuration** (Production Model):
+**v7.yaml Configuration** (Current API default):
 ```yaml
 model:
-  name: "lgbm_transport_v6"
-  description: "Anti-overfit model. No short-term lags. TSCV-validated."
+  name: "lgbm_transport_v7"
+  description: "Same as v6 params/features; excludes out-of-scope line_name list at split stage."
   num_boost_round: 2000
-  final_model_name: "lgbm_transport_v6.txt"
+  final_model_name: "lgbm_transport_v7.txt"
 
 params:
   objective: "regression"
-  metric: ["l1", "l2"]              # MAE and RMSE
+  metric: ["l1", "l2"]
   boosting_type: "gbdt"
-  learning_rate: 0.03               # Conservative learning rate
-  num_leaves: 31                    # Reduced from 63 (prevent overfit)
-  min_data_in_leaf: 500             # Regularization (was 100)
-  feature_fraction: 0.8             # Column sampling
-  bagging_fraction: 0.8             # Row sampling
+  learning_rate: 0.03
+  n_jobs: -1
+  verbose: -1
+  deterministic: true
+  num_leaves: 31
+  min_data_in_leaf: 500
+  feature_fraction: 0.8
+  bagging_fraction: 0.8
   bagging_freq: 1
-  lambda_l1: 0.1                    # L1 regularization
-  lambda_l2: 1.0                    # L2 regularization
-  deterministic: true               # Reproducible results
+  lambda_l1: 0.1
+  lambda_l2: 1.0
 
 train:
   early_stopping_rounds: 100
   eval_freq: 100
-  n_splits: 3                       # 3-fold TSCV
+  n_splits: 3
+  baseline_mae_target: 273.0
   datetime_sort_col: "datetime"
   target_col: "y"
 
@@ -603,9 +608,9 @@ for fold, (train_index, val_index) in enumerate(tscv.split(X_all)):
     # Train fold model
     model = lgb.train(
         params,
-        lgb.Dataset(X_train, y_train, categorical_feature=cat_features),
+        lgb.Dataset(X_train, label=y_train, categorical_feature=cat_features),
         num_boost_round=2000,
-        valid_sets=[lgb.Dataset(X_val, y_val)],
+        valid_sets=[lgb.Dataset(X_val, label=y_val)],
         callbacks=[lgb.early_stopping(100)]
     )
     
@@ -614,7 +619,7 @@ for fold, (train_index, val_index) in enumerate(tscv.split(X_all)):
     fold_scores.append(fold_mae)
 
 # Compute "honest" cross-validated MAE
-avg_mae = np.mean(fold_scores)  # ~1850 passengers (v6)
+avg_mae = np.mean(fold_scores)
 ```
 
 **TSCV Visualization**:
@@ -636,7 +641,7 @@ final_model = lgb.train(
 )
 
 # Save model
-final_model.save_model("models/lgbm_transport_v6.txt")
+final_model.save_model("models/lgbm_transport_v7.txt")
 ```
 
 **Step 4: MLflow Experiment Tracking**
@@ -647,7 +652,7 @@ import mlflow.lightgbm
 mlflow.set_tracking_uri("file://mlruns")
 mlflow.set_experiment("IstanbulCrowdingForecast")
 
-with mlflow.start_run(run_name="lgbm_transport_v6_TSCV"):
+with mlflow.start_run(run_name="lgbm_transport_v7_TSCV"):
     # Log hyperparameters
     mlflow.log_params(params)
     mlflow.log_param("n_splits", 3)
@@ -657,14 +662,8 @@ with mlflow.start_run(run_name="lgbm_transport_v6_TSCV"):
     
     # Log final model
     mlflow.lightgbm.log_model(final_model, "final_model")
-    mlflow.log_artifact("models/lgbm_transport_v6.txt")
+    mlflow.log_artifact("models/lgbm_transport_v7.txt")
 ```
-
-**Training Performance**:
-- **Total Runtime**: ~25 minutes (M1 Pro, 8 cores)
-- **Memory Usage**: ~12 GB peak
-- **Best Iteration**: ~1200 rounds (early stopping triggered)
-- **Validation MAE**: 1847 passengers (v6)
 
 ---
 
@@ -712,140 +711,40 @@ worst_lines = mae_by_line.tail(10)
 
 ---
 
-### v6 Model Performance (Production)
+### Feature Importance & SHAP
 
-**Overall Metrics** (Validation Set: Jul-Sep 2024):
-```
-MAE:   1847 passengers   (vs 2130 lag-24h baseline → 13.3% improvement)
-RMSE:  3214 passengers
-SMAPE: 0.47 (47% average error relative to scale)
+`src/model/eval_model.py` generates model diagnostics from the validation split:
+- Gain-based feature importance plot
+- SHAP summary plot using `shap.TreeExplainer` on a sampled subset of validation rows
 
-Baseline Comparisons:
-  Lag-24h:        2130 MAE  →  13.3% worse than model
-  Lag-168h:       2456 MAE  →  24.8% worse than model
-  Line-Hour Mean: 2089 MAE  →  11.6% worse than model
-```
+Outputs are written under `reports/` (filenames include the model name), for example:
+- `reports/figs/feature_importance_<model>.png`
+- `reports/figs/shap_summary_<model>.png`
 
-**Performance by Hour**:
-```
-Best Hours:
-  03:00-05:00 → MAE 520  (low traffic, predictable)
-  23:00-01:00 → MAE 680  (late night, stable)
-
-Worst Hours:
-  08:00-09:00 → MAE 3420  (morning rush, high variance)
-  17:00-19:00 → MAE 3180  (evening rush, unpredictable)
-
-Observation: Rush hour predictions have 6x higher error due to:
-  - Event-driven spikes (concerts, sports)
-  - Weather sensitivity (rain → metro surge)
-  - Day-to-day volatility
-```
-
-**Performance by Line Type**:
-```
-Metro Lines:  MAE 1620  (more predictable, fixed capacity)
-Bus Lines:    MAE 1890  (weather-sensitive, traffic delays)
-```
-
-**Top 10 Worst Predicted Lines** (Highest MAE):
-```
-1. M1 (Metro):      MAE 8947  (busiest line, high baseline variance)
-2. 500T (Bus):      MAE 6234  (airport line, tourism/travel peaks)
-3. 34 (Bus):        MAE 5821  (major corridor, event-sensitive)
-4. M2 (Metro):      MAE 5412  (second busiest metro)
-5. 15F (Bus):       MAE 4980  (tourist route, seasonal)
-...
-```
-
----
-
-### Feature Importance Analysis
-
-**Top 15 Features by Gain** (v6):
-```
-1.  line_name          45.2%  (categorical encoding of 512 lines)
-2.  hour_of_day        18.7%  (peak hours dominate predictions)
-3.  lag_168h           12.3%  (weekly patterns strongest)
-4.  roll_mean_24h       7.8%  (moving average smooths noise)
-5.  day_of_week         4.2%  (weekday vs weekend split)
-6.  lag_24h             3.9%  (yesterday's value)
-7.  temperature_2m      2.1%  (weather impact moderate)
-8.  is_holiday          1.8%  (holiday effect binary)
-9.  month               1.3%  (seasonal trends)
-10. season              0.9%  (Winter/Spring/Summer/Fall)
-11. is_weekend          0.7%  (redundant with day_of_week)
-12. lag_48h             0.5%  (weaker than 24h and 168h)
-13. precipitation       0.3%  (rain effect small but real)
-14. is_school_term      0.2%  (summer vacation impact)
-15. roll_std_24h        0.1%  (volatility measure)
-```
-
-**Key Insights**:
-- **line_name** dominates (45%) → Line-specific patterns are critical
-- **hour_of_day** (19%) → Time-of-day is second most important
-- **lag_168h** (12%) beats **lag_24h** (4%) → Weekly patterns > daily
-- **Weather** features contribute ~2.5% total → Moderate impact
-- **Holiday** features combine for ~2% → Important for special days
-
----
-
-### SHAP Analysis
-
-**Global Feature Impact**:
-```python
-import shap
-
-explainer = shap.TreeExplainer(model)
-shap_values = explainer.shap_values(X_val.sample(5000))
-
-shap.summary_plot(shap_values, X_val.sample(5000), max_display=25)
-```
-
-**SHAP Insights** (Feature Interactions):
-
-1. **line_name × hour_of_day**: 
-   - Metro lines show symmetric peaks (8AM and 6PM)
-   - Bus lines show asymmetric peaks (8AM > 6PM)
-
-2. **lag_168h × is_holiday**:
-   - Normal weeks: lag_168h SHAP = +500 to +1500
-   - Holiday weeks: lag_168h SHAP = -800 to -300 (pattern breaks)
-
-3. **temperature_2m × hour_of_day**:
-   - High temp (>30°C) at rush hours → +200 passengers (metro AC refuge)
-   - High temp (>30°C) at midday → -150 passengers (people stay indoors)
-
-4. **precipitation × road_type**:
-   - Rain + Bus → SHAP = -400 (people avoid buses)
-   - Rain + Metro → SHAP = +300 (people prefer underground)
-
+These plots depend on the trained model and the dataset used; this document intentionally avoids hardcoding numeric importances.
 ---
 
 ## Model Versioning
 
 ### Version History
 
-| Version | Date | Key Changes | Val MAE | Improvement |
-|---------|------|-------------|---------|-------------|
-| **v1** | 2024-10 | Baseline: Basic features, high learning rate | 2340 | - |
-| **v2** | 2024-10 | + Weather features | 2180 | +6.8% |
-| **v3** | 2024-11 | + Holiday windows, tuned hyperparams | 2050 | +12.4% |
-| **v4** | 2024-11 | + Rolling features, regularization | 1950 | +16.7% |
-| **v5** | 2024-11 | TSCV validation, early stopping tuning | 1890 | +19.2% |
-| **v6** | 2024-12 | Stronger regularization, removed short lags | **1847** | **+21.1%** |
-| **v7** | 2025-12 | Split blacklist filtering + production alignment | (see reports) | - |
+Versions are tracked via YAML configs under `src/model/config/`.
+
+| Version | Config | Notes |
+|---------|--------|-------|
+| `v1` | `src/model/config/v1.yaml` | Early baseline |
+| `v2` | `src/model/config/v2.yaml` | Variant iteration |
+| `v3` | `src/model/config/v3.yaml` | DART boosting variant |
+| `v4` | `src/model/config/v4.yaml` | Regularization/feature iteration |
+| `v5` | `src/model/config/v5.yaml` | Adds TSCV in `train_model.py` |
+| `v6` | `src/model/config/v6.yaml` | Previous production default |
+| `v7` | `src/model/config/v7.yaml` | Current API default + split filtering support |
 
 ### Model Selection Criteria
 
-**v6 chosen as production model**:
-- ✅ Best cross-validated MAE (1847)
-- ✅ 13.3% improvement over lag-24h baseline
-- ✅ No overfitting (train MAE = 1780, val MAE = 1847, diff = 3.6%)
-- ✅ Stable predictions across all line types
-- ✅ Interpretable feature importance (no single feature >50%)
+**Current default**: Model `v7` is the API default (see `src/model/config/v7.yaml` and `src/api/main.py`).
 
-**Update (2025-12)**: Model `v7` is now the production default in the API (see `src/model/config/v7.yaml` and `src/api/main.py`).
+You can override the loaded booster by setting `MODEL_PATH` when starting the API.
 
 ---
 
@@ -877,17 +776,25 @@ pyyaml==6.0.1
 
 **Step 1: Data Preparation**
 ```bash
-# 1. Load raw CSV files
-python src/data_prep/load_raw.py
+# NOTE: ETL/feature scripts under `src/data_prep/` and `src/features/` use
+# relative `../../data/...` paths, so run them from their own directories.
 
-# 2. Clean data
-python src/data_prep/clean_data.py
+# 1. Load raw CSV files (writes `data/processed/transport_meta.parquet`)
+(cd src/data_prep && python load_raw.py)
+
+# 2. Ensure `data/interim/transport_hourly.parquet` exists
+#    - `src/data_prep/load_raw.py` contains an hourly aggregation scaffold (currently commented)
+#    - alternatively, generate the parquet externally as long as it matches the expected schema
 
 # 3. Build features
-python src/features/build_log_roliing_transport_data.py
-python src/features/build_calendar_dim.py
-python src/features/build_weather_dim.py
-python src/features/build_final_features.py
+(cd src/features && python build_log_roliing_transport_data.py)
+(cd src/features && python build_calendar_dim.py)
+(cd src/features && python build_weather_dim.py)
+(cd src/features && python build_final_features.py)
+(cd src/features && python convert_features_to_pandas.py)
+
+# (Optional) sanity checks + log
+(cd src/features && python check_features_quality.py)
 
 # 4. Split train/val
 python src/features/split_features.py
@@ -895,13 +802,13 @@ python src/features/split_features.py
 
 **Step 2: Model Training**
 ```bash
-# Train v6 model with TSCV
+# Train v6 model with TSCV (default)
 python src/model/train_model.py
 
 # Output: models/lgbm_transport_v6.txt
 
 # Train v7 model (production default)
-python src/model/train_model.py --config src/model/config/v7.yaml
+python src/model/train_model.py --version v7
 
 # Output: models/lgbm_transport_v7.txt
 ```
@@ -957,40 +864,21 @@ params = {
 
 ## Performance Metrics
 
-### Data Processing Performance
+This repository does not store canonical runtime/throughput benchmarks because they vary heavily by:
+- Hardware (CPU cores, RAM, disk)
+- Dataset size and parquet layout
+- Whether Polars/LightGBM can use multithreading effectively
 
-| Stage | Input Size | Output Size | Runtime | Memory |
-|-------|-----------|-------------|---------|--------|
-| Load Raw | 50M rows (CSV) | 45M rows | 4 min | 8 GB |
-| Clean Data | 45M rows | 44M rows | 30 sec | 4 GB |
-| Lag/Rolling | 44M rows | 42M rows | 8 min | 12 GB |
-| Calendar Dim | N/A | 3,652 days | 1 sec | 10 MB |
-| Weather Dim | API calls | 24,000 hours | 2 min | 50 MB |
-| Join Features | 42M rows | 42M rows | 5 min | 10 GB |
-| Split Train/Val | 42M rows | Train: 36M, Val: 6M | 30 sec | 6 GB |
-| **Total Pipeline** | **50M rows** | **42M rows** | **20 min** | **12 GB peak** |
+To benchmark your environment, use simple wall-clock timing around each stage (and record your machine specs):
 
-### Model Training Performance
-
-**Hardware**: Apple M1 Pro (8-core CPU, 16 GB RAM)
-
-| Task | Runtime | Memory | Iterations |
-|------|---------|--------|-----------|
-| Single Fold Training | 6 min | 10 GB | ~1200 |
-| 3-Fold TSCV | 18 min | 10 GB | 3×1200 |
-| Final Model Training | 7 min | 12 GB | ~1250 |
-| **Total Training Time** | **25 min** | **12 GB** | **4,850 total** |
-
-### Inference Performance
-
-**Batch Prediction** (500 lines × 24 hours = 12,000 predictions):
-- **Latency**: 4.2 seconds
-- **Throughput**: 2,857 predictions/second
-- **Memory**: 800 MB
-
-**Single Prediction** (1 line, 1 hour):
-- **Latency**: <5 milliseconds
-- **Throughput**: >200 predictions/second
+```bash
+time (cd src/features && python build_log_roliing_transport_data.py)
+time (cd src/features && python build_final_features.py)
+time python src/features/split_features.py
+time python src/model/train_model.py --version v7
+time python src/model/eval_model.py
+time python src/model/test_model.py
+```
 
 ---
 
@@ -1002,7 +890,6 @@ params = {
 - **Lag Feature**: Historical value from X hours ago
 - **Rolling Feature**: Moving statistics over a time window
 - **SHAP**: SHapley Additive exPlanations - Model interpretation technique
-- **Winsorization**: Outlier capping at percentiles
 - **Polars**: High-performance DataFrame library (Rust-based)
 - **MLflow**: Experiment tracking and model registry platform
 
@@ -1017,7 +904,7 @@ ibb-transport/
 │   │   └── split_features/     # Train/val splits
 │   └── cache/                  # Weather API cache
 ├── models/                     # Trained model files
-│   └── lgbm_transport_v6.txt
+│   └── lgbm_transport_v7.txt
 ├── reports/
 │   ├── logs/                   # Evaluation metrics JSON
 │   └── figs/                   # Plots and visualizations
