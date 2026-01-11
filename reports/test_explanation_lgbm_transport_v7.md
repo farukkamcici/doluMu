@@ -1,6 +1,6 @@
 # 📊 Model Performance & Methodology Report
 **Model Version:** lgbm_transport_v7  
-**Date:** 2026-01-01 02:30:51
+**Date:** 2026-01-11 22:13:40
 
 ---
 
@@ -11,8 +11,9 @@ This means that relative to the total passenger volume, our average error margin
 ### Key Highlights
 - **Test Set Size:** 537,198 samples across 764 unique lines
 - **Model Complexity:** 2000 trees, 18 features
-- **Improvement over Baseline:** 76.1% better than naive lag-24h approach
-- **Prediction Speed:** 6.481 seconds for entire test set
+- **Improvement over Lag-24h Baseline:** 76.1% better than naive lag-24h approach
+- **Improvement over Lag-168h Baseline:** 74.6% better than naive lag-168h approach
+- **Prediction Speed:** 4.634 seconds for entire test set
 
 ---
 
@@ -68,10 +69,15 @@ The opposite of error. It represents our confidence level in meeting the total p
 If we simply assumed "Today will be exactly like Yesterday" (Naive Approach), our error would be **306** passengers.  
 By using this model, we reduced the error by **76.1%**.
 
+If we instead assumed "This hour will be exactly like the same hour last week" (Lag-168h), our error would be **287** passengers.  
+By using this model, we reduced the error by **74.6%**.
+
 **Error Rate Comparison:**  
 - **Naive Baseline (Lag-24h) NMAE:** 62.7%  
+- **Naive Baseline (Lag-168h) NMAE:** 58.9%  
 - **Our Model NMAE:** 15.0%  
-- **Improvement:** Our model reduces the global error rate from 62.7% down to 15.0%.
+- **Improvement vs Lag-24h:** Our model reduces the global error rate from 62.7% down to 15.0%.  
+- **Improvement vs Lag-168h:** Our model reduces the global error rate from 58.9% down to 15.0%.
 
 ---
 
@@ -419,11 +425,12 @@ How close are our passenger count predictions?
 ## 15. Conclusion
 
 This model demonstrates strong predictive performance with a **85.0% accuracy rate** when weighted by passenger volume.  
-The **76.1% improvement** over naive baseline methods validates the use of machine learning for public transportation demand forecasting.
+The **76.1% improvement** over naive baseline methods validates the use of machine learning for public transportation demand forecasting.  
+Against the weekly repeat baseline (Lag-168h), the model still achieves a **74.6% improvement**.
 
 ### Key Findings:
 1. **High Accuracy:** The model achieves 85.0% volume-weighted accuracy
-2. **Significant Improvement:** 76.1% better than naive baseline
+2. **Significant Improvement:** 76.1% better than lag-24h and 74.6% better than lag-168h
 3. **Balanced Predictions:** The model shows under-predicting tendency with mean residual of -9.57
 4. **Robust Performance:** 90% of predictions are within 118 passengers of actual values
 5. **User-Ready:** 100% crowd level accuracy enables practical trip planning
@@ -432,7 +439,7 @@ The **76.1% improvement** over naive baseline methods validates the use of machi
 ### Thesis Highlights:
 - **Multi-modal coverage:** Model successfully handles 6 different transport modes
 - **Volume scalability:** Consistent NMAE across traffic segments shows robust generalization
-- **Production-ready:** 6.481s inference time for 537,198 samples
+- **Production-ready:** 4.634s inference time for 537,198 samples
 
 **Tested on:** 537,198 samples  
-**Prediction Time:** 6.481 seconds
+**Prediction Time:** 4.634 seconds

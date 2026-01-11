@@ -1,9 +1,9 @@
 {
     "model_name": "lgbm_transport_v7",
     "dataset": "Unseen Test Set",
-    "timestamp": "2026-01-01 02:30:51",
+    "timestamp": "2026-01-11 22:13:40",
     "n_samples": 537198,
-    "prediction_time_sec": 6.481389999389648,
+    "prediction_time_sec": 4.6344640254974365,
     "mae": 72.99351411761582,
     "rmse": 289.8494439004625,
     "smape": 0.448137811609563,
@@ -12,7 +12,10 @@
     "test_set_mean_volume": 487.71618658297314,
     "baseline_mae_lag24": 305.7806618788603,
     "baseline_nmae_lag24": 0.6269643499454352,
+    "baseline_mae_lag168": 287.16659654870716,
+    "baseline_nmae_lag168": 0.5887985768129774,
     "improvement_over_lag24_pct": 76.12879975172095,
+    "improvement_over_lag168_pct": 74.5814746579569,
     "by_hour_mae": {
         "0": 110.41205332852567,
         "1": 114.52680675614866,

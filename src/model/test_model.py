@@ -152,9 +152,14 @@ def main(version: str):
     # --- 6. Calculate Baselines & Segment-Level Errors ---
     baseline_mae_lag24 = mae(y_test, test_df["lag_24h"])
     baseline_nmae_lag24 = baseline_mae_lag24 / y_test_mean if y_test_mean > 0 else np.nan
+    baseline_mae_lag168 = mae(y_test, test_df["lag_168h"])
+    baseline_nmae_lag168 = baseline_mae_lag168 / y_test_mean if y_test_mean > 0 else np.nan
     report["baseline_mae_lag24"] = baseline_mae_lag24
     report["baseline_nmae_lag24"] = baseline_nmae_lag24
+    report["baseline_mae_lag168"] = baseline_mae_lag168
+    report["baseline_nmae_lag168"] = baseline_nmae_lag168
     report["improvement_over_lag24_pct"] = improvement(baseline_mae_lag24, report["mae"])
+    report["improvement_over_lag168_pct"] = improvement(baseline_mae_lag168, report["mae"])
 
     results_df = test_df[["hour_of_day", "line_name"]].copy()
     results_df['y_true'] = y_test
@@ -525,7 +530,9 @@ def main(version: str):
     print(f"  Volume-Weighted Accuracy: {report['volume_weighted_accuracy']:.4f} ({report['volume_weighted_accuracy']*100:.2f}%)")
     print(f"\n  Baseline Comparison:")
     print(f"    Baseline NMAE (Lag-24h): {report['baseline_nmae_lag24']:.4f} ({report['baseline_nmae_lag24']*100:.2f}%)")
+    print(f"    Baseline NMAE (Lag-168h): {report['baseline_nmae_lag168']:.4f} ({report['baseline_nmae_lag168']*100:.2f}%)")
     print(f"    Improvement over Lag 24h: {report['improvement_over_lag24_pct']:.2f}%")
+    print(f"    Improvement over Lag 168h: {report['improvement_over_lag168_pct']:.2f}%")
     print("-------------------")
 
     output_path = REPORT_DIR / f"test_report_{model_name}.json"
@@ -579,7 +586,8 @@ This means that relative to the total passenger volume, our average error margin
 ### Key Highlights
 - **Test Set Size:** {report['n_samples']:,} samples across {report['dataset_coverage']['unique_lines']} unique lines
 - **Model Complexity:** {report['model_info']['num_trees']} trees, {report['model_info']['num_features']} features
-- **Improvement over Baseline:** {report['improvement_over_lag24_pct']:.1f}% better than naive lag-24h approach
+- **Improvement over Lag-24h Baseline:** {report['improvement_over_lag24_pct']:.1f}% better than naive lag-24h approach
+- **Improvement over Lag-168h Baseline:** {report['improvement_over_lag168_pct']:.1f}% better than naive lag-168h approach
 - **Prediction Speed:** {report['prediction_time_sec']:.3f} seconds for entire test set
 
 ---
@@ -636,10 +644,15 @@ The opposite of error. It represents our confidence level in meeting the total p
 If we simply assumed "Today will be exactly like Yesterday" (Naive Approach), our error would be **{report['baseline_mae_lag24']:.0f}** passengers.  
 By using this model, we reduced the error by **{report['improvement_over_lag24_pct']:.1f}%**.
 
+If we instead assumed "This hour will be exactly like the same hour last week" (Lag-168h), our error would be **{report['baseline_mae_lag168']:.0f}** passengers.  
+By using this model, we reduced the error by **{report['improvement_over_lag168_pct']:.1f}%**.
+
 **Error Rate Comparison:**  
 - **Naive Baseline (Lag-24h) NMAE:** {report['baseline_nmae_lag24']*100:.1f}%  
+- **Naive Baseline (Lag-168h) NMAE:** {report['baseline_nmae_lag168']*100:.1f}%  
 - **Our Model NMAE:** {report['nmae']*100:.1f}%  
-- **Improvement:** Our model reduces the global error rate from {report['baseline_nmae_lag24']*100:.1f}% down to {report['nmae']*100:.1f}%.
+- **Improvement vs Lag-24h:** Our model reduces the global error rate from {report['baseline_nmae_lag24']*100:.1f}% down to {report['nmae']*100:.1f}%.  
+- **Improvement vs Lag-168h:** Our model reduces the global error rate from {report['baseline_nmae_lag168']*100:.1f}% down to {report['nmae']*100:.1f}%.
 
 ---
 
@@ -889,11 +902,12 @@ How close are our passenger count predictions?
 ## 15. Conclusion
 
 This model demonstrates strong predictive performance with a **{report['volume_weighted_accuracy']*100:.1f}% accuracy rate** when weighted by passenger volume.  
-The **{report['improvement_over_lag24_pct']:.1f}% improvement** over naive baseline methods validates the use of machine learning for public transportation demand forecasting.
+The **{report['improvement_over_lag24_pct']:.1f}% improvement** over naive baseline methods validates the use of machine learning for public transportation demand forecasting.  
+Against the weekly repeat baseline (Lag-168h), the model still achieves a **{report['improvement_over_lag168_pct']:.1f}% improvement**.
 
 ### Key Findings:
 1. **High Accuracy:** The model achieves {report['volume_weighted_accuracy']*100:.1f}% volume-weighted accuracy
-2. **Significant Improvement:** {report['improvement_over_lag24_pct']:.1f}% better than naive baseline
+2. **Significant Improvement:** {report['improvement_over_lag24_pct']:.1f}% better than lag-24h and {report['improvement_over_lag168_pct']:.1f}% better than lag-168h
 3. **Balanced Predictions:** The model shows {report['prediction_bias']['bias_direction'].lower()} tendency with mean residual of {report['prediction_bias']['mean_residual']:.2f}
 4. **Robust Performance:** 90% of predictions are within {report['error_distribution']['p90']:.0f} passengers of actual values
 5. **User-Ready:** {report['end_user_stats']['crowd_level_adjacent_accuracy']:.0f}% crowd level accuracy enables practical trip planning
