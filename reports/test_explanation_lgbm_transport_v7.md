@@ -1,6 +1,6 @@
 # 📊 Model Performance & Methodology Report
 **Model Version:** lgbm_transport_v7  
-**Date:** 2026-01-11 22:13:40
+**Date:** 2026-01-12 00:26:55
 
 ---
 
@@ -13,7 +13,7 @@ This means that relative to the total passenger volume, our average error margin
 - **Model Complexity:** 2000 trees, 18 features
 - **Improvement over Lag-24h Baseline:** 76.1% better than naive lag-24h approach
 - **Improvement over Lag-168h Baseline:** 74.6% better than naive lag-168h approach
-- **Prediction Speed:** 4.634 seconds for entire test set
+- **Prediction Speed:** 5.063 seconds for entire test set
 
 ---
 
@@ -99,6 +99,16 @@ A percentage-based metric that normalizes errors symmetrically. Can appear high 
 
 * **Context:**  
   While the SMAPE (44.8%) might look high due to low-volume night hours, the Volume-Weighted Accuracy (85.0%) confirms the system is reliable for high-capacity planning.
+
+### MAPE (Mean Absolute Percentage Error)
+**What is it?**  
+Per-sample percentage error, excluding zero-demand samples.
+
+* **Our Model's Result:**  
+  **130.2%** (Coverage: 100.0% of samples)
+
+* **Comparison with NMAE:**  
+  NMAE uses the global mean as the scale, while MAPE scales each sample by its own true value, which can inflate errors during low-volume hours.
 
 ---
 
@@ -439,7 +449,7 @@ Against the weekly repeat baseline (Lag-168h), the model still achieves a **74.6
 ### Thesis Highlights:
 - **Multi-modal coverage:** Model successfully handles 6 different transport modes
 - **Volume scalability:** Consistent NMAE across traffic segments shows robust generalization
-- **Production-ready:** 4.634s inference time for 537,198 samples
+- **Production-ready:** 5.063s inference time for 537,198 samples
 
 **Tested on:** 537,198 samples  
-**Prediction Time:** 4.634 seconds
+**Prediction Time:** 5.063 seconds

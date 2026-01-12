@@ -143,10 +143,12 @@ def load_datasets():
 
 
 def generate_feature_importance(model, model_name, X_val):
-    """Generates and saves a feature importance plot and CSV."""
+    """Generates and saves feature importance plots and CSVs."""
     print(f"  -> Generating feature importance for {model_name}...")
     csv_path = REPORT_DIR / f"feature_importance_{model_name}.csv"
     fig_path = FIG_DIR / f"feature_importance_{model_name}.png"
+    topk_path = FIG_DIR / f"feature_importance_{model_name}_top5.png"
+    tail_path = FIG_DIR / f"feature_importance_{model_name}_after_top5.png"
 
     importance = model.feature_importance(importance_type="gain")
     imp_df = pd.DataFrame(
@@ -154,20 +156,73 @@ def generate_feature_importance(model, model_name, X_val):
     ).sort_values("importance", ascending=False)
     imp_df.to_csv(csv_path, index=False)
 
-    plt.figure(figsize=(10, 12))
-    lgb.plot_importance(model, max_num_features=25, importance_type="gain", figsize=(10, 12))
+    plt.figure(figsize=(12, 14))
+    lgb.plot_importance(model, max_num_features=25, importance_type="gain", figsize=(12, 14))
     plt.title(f"Feature Importance (Gain) — {model_name}", fontsize=16)
     plt.tight_layout()
     plt.savefig(fig_path)
     plt.close()
 
-    return csv_path, fig_path
+    # Top-K and long-tail plots for better readability
+    top_k = 5
+    imp_top = imp_df.head(top_k)
+    imp_tail = imp_df.iloc[top_k:]
+
+    plt.figure(figsize=(10, 8))
+    top_vals = imp_top["importance"][::-1].values
+    top_feats = imp_top["feature"][::-1].values
+    bars = plt.barh(top_feats, top_vals)
+    top_max = float(top_vals.max()) if len(top_vals) else 0.0
+    plt.xlim(0, top_max * 1.1 if top_max > 0 else 1.0)
+    plt.title(
+        f"Top {top_k} Feature Importance (Gain) — {model_name} (max={top_max:.5f})",
+        fontsize=14,
+    )
+    for bar, val in zip(bars, top_vals):
+        plt.text(
+            bar.get_width(),
+            bar.get_y() + bar.get_height() / 2,
+            f"{val:.5f}",
+            va="center",
+            ha="left",
+            fontsize=9,
+        )
+    plt.tight_layout()
+    plt.savefig(topk_path)
+    plt.close()
+
+    plt.figure(figsize=(10, 8))
+    tail_vals = imp_tail["importance"][::-1].values
+    tail_feats = imp_tail["feature"][::-1].values
+    bars = plt.barh(tail_feats, tail_vals)
+    tail_max = float(tail_vals.max()) if len(tail_vals) else 0.0
+    plt.xlim(0, tail_max * 1.1 if tail_max > 0 else 1.0)
+    plt.title(
+        f"After Top {top_k} Feature Importance (Gain) — {model_name} (max={tail_max:.5f})",
+        fontsize=14,
+    )
+    for bar, val in zip(bars, tail_vals):
+        plt.text(
+            bar.get_width(),
+            bar.get_y() + bar.get_height() / 2,
+            f"{val:.5f}",
+            va="center",
+            ha="left",
+            fontsize=9,
+        )
+    plt.tight_layout()
+    plt.savefig(tail_path)
+    plt.close()
+
+    return csv_path, fig_path, topk_path, tail_path
 
 
 def generate_shap(model, model_name, X_val):
-    """Generates and saves a SHAP summary plot."""
+    """Generates and saves SHAP summary plots (top-K and long-tail)."""
     print(f"  -> Generating SHAP summary plot for {model_name}...")
     shap_path = FIG_DIR / f"shap_summary_{model_name}.png"
+    shap_topk_path = FIG_DIR / f"shap_summary_{model_name}_top5.png"
+    shap_tail_path = FIG_DIR / f"shap_summary_{model_name}_after_top5.png"
 
     # SHAP can be slow, so we use a sample of the data
     sample_size = min(5000, len(X_val))
@@ -176,13 +231,52 @@ def generate_shap(model, model_name, X_val):
     explainer = shap.TreeExplainer(model)
     shap_values = explainer.shap_values(sample_X)
 
-    plt.figure()
+    plt.figure(figsize=(12, 12))
     shap.summary_plot(shap_values, sample_X, max_display=25, show=False)
+    ax = plt.gca()
+    xmin, xmax = ax.get_xlim()
+    tick_start = int(np.floor(xmin / 2500.0) * 2500)
+    tick_end = int(np.ceil(xmax / 2500.0) * 2500)
+    ax.set_xticks(np.arange(tick_start, tick_end + 1, 2500))
     plt.tight_layout()
     plt.savefig(shap_path)
     plt.close()
 
-    return shap_path
+    # Top-K beeswarm for clear directionality
+    top_k = 5
+    plt.figure(figsize=(12, 10))
+    shap.summary_plot(shap_values, sample_X, max_display=top_k, show=False)
+    ax = plt.gca()
+    xmin, xmax = ax.get_xlim()
+    tick_start = int(np.floor(xmin / 5000.0) * 5000)
+    tick_end = int(np.ceil(xmax / 5000.0) * 5000)
+    ax.set_xticks(np.arange(tick_start, tick_end + 1, 5000))
+    plt.tight_layout()
+    plt.savefig(shap_topk_path)
+    plt.close()
+
+    # After top-K beeswarm: drop top-K features and tighten x-limits by quantile
+    mean_abs = np.abs(shap_values).mean(axis=0)
+    top_idx = np.argsort(mean_abs)[::-1][:top_k]
+    keep_idx = [i for i in range(sample_X.shape[1]) if i not in set(top_idx)]
+    if keep_idx:
+        shap_tail = shap_values[:, keep_idx]
+        X_tail = sample_X.iloc[:, keep_idx]
+        q_low, q_high = np.quantile(shap_tail, [0.01, 0.99])
+        plt.figure(figsize=(12, 10))
+        shap.summary_plot(shap_tail, X_tail, max_display=min(25, X_tail.shape[1]), show=False)
+        ax = plt.gca()
+        ax.set_xlim(float(q_low), float(q_high))
+        tick_start = int(np.floor(q_low / 500.0) * 500)
+        tick_end = int(np.ceil(q_high / 500.0) * 500)
+        ax.set_xticks(np.arange(tick_start, tick_end + 1, 500))
+        plt.tight_layout()
+        plt.savefig(shap_tail_path)
+        plt.close()
+    else:
+        shap_tail_path = None
+
+    return shap_path, shap_topk_path, shap_tail_path
 
 
 # ==============================================================================
@@ -272,12 +366,17 @@ def evaluate_model(model_name, model, train_df, val_df, cfg):
     metrics["improvement_over_linehour"] = improvement(base_mae_linehour, metrics["mae"])
 
     # --- 5. Generate and Save Artifacts ---
-    fi_csv, fi_plot = generate_feature_importance(model, model_name, X_val)
-    shap_plot = generate_shap(model, model_name, X_val)
+    fi_csv, fi_plot, fi_topk, fi_tail = generate_feature_importance(model, model_name, X_val)
+    shap_plot, shap_topk, shap_tail = generate_shap(model, model_name, X_val)
 
     metrics["feature_importance_csv"] = str(fi_csv)
     metrics["feature_importance_plot"] = str(fi_plot)
+    metrics["feature_importance_top5_plot"] = str(fi_topk)
+    metrics["feature_importance_after_top5_plot"] = str(fi_tail)
     metrics["shap_plot"] = str(shap_plot)
+    metrics["shap_top5_plot"] = str(shap_topk)
+    if shap_tail is not None:
+        metrics["shap_after_top5_plot"] = str(shap_tail)
 
     # Save the detailed metrics for this model
     metrics_json_path = REPORT_DIR / f"metrics_{model_name}.json"

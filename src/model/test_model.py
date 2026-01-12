@@ -43,6 +43,16 @@ def smape(y_true, y_pred):
     denominator = (np.abs(y_true) + np.abs(y_pred)) / 2.0
     return float(np.mean(numerator / (denominator + 1e-8)))
 
+def mape(y_true, y_pred):
+    """Calculates Mean Absolute Percentage Error, excluding zero targets."""
+    y_true = np.asarray(y_true)
+    y_pred = np.asarray(y_pred)
+    mask = y_true != 0
+    if not np.any(mask):
+        return np.nan, 0
+    pct_errors = np.abs((y_true[mask] - y_pred[mask]) / y_true[mask])
+    return float(np.mean(pct_errors)), int(mask.sum())
+
 def improvement(base, model):
     """Calculates the percentage improvement of a model over a baseline."""
     if base == 0:
@@ -135,6 +145,7 @@ def main(version: str):
     nmae_value = mae_value / y_test_mean if y_test_mean > 0 else np.nan
     accuracy_value = 1.0 - nmae_value if not np.isnan(nmae_value) else np.nan
     
+    mape_value, mape_count = mape(y_test, y_pred)
     report = {
         "model_name": model_name,
         "dataset": "Unseen Test Set",
@@ -144,6 +155,9 @@ def main(version: str):
         "mae": mae_value,
         "rmse": rmse(y_test, y_pred),
         "smape": smape(y_test, y_pred),
+        "mape": mape_value,
+        "mape_samples": mape_count,
+        "mape_coverage_pct": float(mape_count / len(y_test) * 100) if len(y_test) else 0.0,
         "nmae": nmae_value,
         "volume_weighted_accuracy": accuracy_value,
         "test_set_mean_volume": y_test_mean,
@@ -526,6 +540,7 @@ def main(version: str):
     print(f"  MAE: {report['mae']:.2f}")
     print(f"  RMSE: {report['rmse']:.2f}")
     print(f"  SMAPE: {report['smape']:.4f}")
+    print(f"  MAPE: {report['mape']:.4f} (coverage {report['mape_coverage_pct']:.2f}%)")
     print(f"  NMAE (Normalized MAE): {report['nmae']:.4f} ({report['nmae']*100:.2f}%)")
     print(f"  Volume-Weighted Accuracy: {report['volume_weighted_accuracy']:.4f} ({report['volume_weighted_accuracy']*100:.2f}%)")
     print(f"\n  Baseline Comparison:")
@@ -674,6 +689,16 @@ A percentage-based metric that normalizes errors symmetrically. Can appear high 
 
 * **Context:**  
   While the SMAPE ({report['smape']*100:.1f}%) might look high due to low-volume night hours, the Volume-Weighted Accuracy ({report['volume_weighted_accuracy']*100:.1f}%) confirms the system is reliable for high-capacity planning.
+
+### MAPE (Mean Absolute Percentage Error)
+**What is it?**  
+Per-sample percentage error, excluding zero-demand samples.
+
+* **Our Model's Result:**  
+  **{report['mape']*100:.1f}%** (Coverage: {report['mape_coverage_pct']:.1f}% of samples)
+
+* **Comparison with NMAE:**  
+  NMAE uses the global mean as the scale, while MAPE scales each sample by its own true value, which can inflate errors during low-volume hours.
 
 ---
 
