@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import axios from 'axios';
-import { format, addDays } from 'date-fns';
+import { format } from 'date-fns';
 import {
   Activity,
   ShieldCheck,
@@ -88,8 +88,7 @@ function AdminDashboardContent() {
   const [schedulerStatus, setSchedulerStatus] = useState(null);
   const [forecastCoverage, setForecastCoverage] = useState(null);
   const [selectedDate, setSelectedDate] = useState(() => {
-    const tomorrow = addDays(new Date(), 1);
-    return tomorrow.toISOString().split('T')[0];
+    return format(new Date(), 'yyyy-MM-dd');
   });
   const [numDays, setNumDays] = useState(2);
   const [showCleanupModal, setShowCleanupModal] = useState(false);
@@ -419,9 +418,9 @@ function AdminDashboardContent() {
                     onChange={(e) => setNumDays(Number(e.target.value))}
                     className="w-full bg-slate-950/60 text-white px-3 py-2 rounded-lg border border-white/10 focus:outline-none focus:ring-2 focus:ring-blue-600"
                   >
-                    <option value={1}>1 day (T+1)</option>
-                    <option value={2}>2 days (T+1, T+2)</option>
-                    <option value={3}>3 days (T+1, T+2, T+3)</option>
+                    <option value={1}>1 day (T)</option>
+                    <option value={2}>2 days (T, T+1)</option>
+                    <option value={3}>3 days (T, T+1, T+2)</option>
                   </select>
                 </div>
 

@@ -701,7 +701,7 @@ replacements = {
   "jobs": [
     {
       "id": "daily_forecast",
-      "name": "Generate Forecasts (T+1, T+2)",
+      "name": "Generate Forecasts (T, T+1)",
       "next_run": "2025-01-16T02:00:00+03:00",
       "trigger": "cron[hour='2', minute='0']",
       "last_run": "2025-01-15T02:00:05+03:00",
@@ -961,14 +961,14 @@ CREATE INDEX idx_line_search
 - **Schedule**: Every day at 02:00 AM
 - **Function**: `generate_daily_forecast()`
 - **Duration**: ~15 seconds
-- **Output**: 12,000+ forecast records (T+1, T+2 days)
+- **Output**: 12,000+ forecast records (T, T+1 days)
 - **Retry**: 3 attempts with exponential backoff (1min, 2min, 4min)
 - **Monitoring**: JobExecution table + job_stats dict
 
 **Process**:
 ```python
 1. Fetch all line names from database
-2. Determine target dates (tomorrow, day after tomorrow)
+2. Determine target dates (today, tomorrow)
 3. Batch-load calendar features (holidays, weekends)
 4. Fetch weather forecast (Open-Meteo API)
 5. Retrieve lag features (Feature Store)

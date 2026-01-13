@@ -161,11 +161,11 @@ def trigger_forecast_job(
     Trigger batch forecast job for multiple days.
     
     Args:
-        target_date: Starting date for forecast (default: tomorrow)
-        num_days: Number of consecutive days to forecast (default: 2 for T+1 and T+2)
+        target_date: Starting date for forecast (default: today, Istanbul time)
+        num_days: Number of consecutive days to forecast (default: 2 for T and T+1)
     """
     if target_date is None:
-        target_date = date.today() + timedelta(days=1)
+        target_date = bus_schedule_cache_service.today_istanbul()
 
     end_date = target_date + timedelta(days=num_days - 1)
     print(f"Adding forecast job for {num_days} day(s) ({target_date} to {end_date}) to background tasks.")
@@ -235,11 +235,11 @@ def trigger_forecast_manually(
     Manually trigger forecast generation (bypasses schedule).
     
     Args:
-        target_date: Starting date for forecast (default: tomorrow)
-        num_days: Number of consecutive days to forecast (default: 2 for T+1 and T+2)
+        target_date: Starting date for forecast (default: today, Istanbul time)
+        num_days: Number of consecutive days to forecast (default: 2 for T and T+1)
     """
     if target_date is None:
-        target_date = date.today() + timedelta(days=1)
+        target_date = bus_schedule_cache_service.today_istanbul()
     
     end_date = target_date + timedelta(days=num_days - 1)
     sched.trigger_forecast_now(target_date, num_days)
@@ -453,7 +453,7 @@ def test_forecast_quick(
     from ..state import COLUMN_ORDER
     import pandas as pd
     
-    target_date = (date.today() + timedelta(days=1))
+    target_date = bus_schedule_cache_service.today_istanbul()
     date_str = target_date.strftime("%Y-%m-%d")
     
     timing = {}

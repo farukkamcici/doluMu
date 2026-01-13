@@ -59,21 +59,21 @@ bus_cache_state: Dict[str, Optional[Dict]] = {
 
 def generate_daily_forecast(target_date: Optional[date] = None, num_days: int = 2, retry_count: int = 0):
     """
-    Generate forecast for target date and subsequent days (default: T+1 and T+2).
+    Generate forecast for target date and subsequent days (default: T and T+1).
     Implements retry logic with exponential backoff.
     
     Args:
-        target_date: Starting date to generate forecast for (defaults to tomorrow)
-        num_days: Number of consecutive days to forecast (default: 2 for T+1 and T+2)
+        target_date: Starting date to generate forecast for (defaults to today, Istanbul time)
+        num_days: Number of consecutive days to forecast (default: 2 for T and T+1)
         retry_count: Current retry attempt number
     """
     job_name = 'daily_forecast'
     max_retries = 3
     
     try:
-        # Default: tomorrow's forecast
+        # Default: today's forecast (produce T and T+1 when num_days=2)
         if target_date is None:
-            target_date = date.today() + timedelta(days=1)
+            target_date = bus_schedule_cache_service.today_istanbul()
         
         end_date = target_date + timedelta(days=num_days - 1)
         logger.info(f"🚀 [CRON] Starting daily forecast generation for {num_days} day(s) ({target_date} to {end_date})")
@@ -538,11 +538,11 @@ def prefetch_bus_schedules(target_date: Optional[date] = None, num_days: int = 2
     Prefetches schedules for ALL dates in the horizon, not just unique day_types.
     This ensures forecast job has cached schedules for every target date.
     
-    Example: If forecasting T+1 (Mon) and T+2 (Tue), both are weekday (I) but we
+    Example: If forecasting T (Mon) and T+1 (Tue), both are weekday (I) but we
     still need separate cache entries for each date to avoid SOAP calls.
     """
     job_name = 'bus_schedule_prefetch'
-    start_date = target_date or (bus_schedule_cache_service.today_istanbul() + timedelta(days=1))
+    start_date = target_date or bus_schedule_cache_service.today_istanbul()
     horizon_dates = [start_date + timedelta(days=offset) for offset in range(max(1, num_days))]
 
     # Prefetch for ALL dates in horizon (not just unique day_types)
@@ -818,12 +818,12 @@ def start_scheduler():
         coalesce=True
     )
 
-    # JOB 3: Daily Forecast (T+1..T+N)
+    # JOB 3: Daily Forecast (T..T+N-1)
     scheduler.add_job(
         generate_daily_forecast,
         trigger=CronTrigger(hour=4, minute=0, timezone="Europe/Istanbul"),
         id="daily_forecast",
-        name="Generate Forecasts (T+1, T+2)",
+        name="Generate Forecasts (T, T+1)",
         replace_existing=True,
         misfire_grace_time=3600,
         coalesce=True
@@ -933,11 +933,11 @@ def trigger_forecast_now(target_date: Optional[date] = None, num_days: int = 2):
     Manually trigger forecast generation (bypasses schedule).
     
     Args:
-        target_date: Starting date to generate forecast for (default: tomorrow)
-        num_days: Number of consecutive days to forecast (default: 2 for T+1 and T+2)
+        target_date: Starting date to generate forecast for (default: today, Istanbul time)
+        num_days: Number of consecutive days to forecast (default: 2 for T and T+1)
     """
     if target_date is None:
-        target_date = date.today() + timedelta(days=1)
+        target_date = bus_schedule_cache_service.today_istanbul()
     end_date = target_date + timedelta(days=num_days - 1)
     logger.info(f"🎯 Manual trigger: Generating forecast for {num_days} day(s) ({target_date} to {end_date})")
     scheduler.add_job(

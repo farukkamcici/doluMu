@@ -268,7 +268,7 @@ export default function SchedulerPanel({ schedulerStatus, onPauseResume, getAuth
               <Sparkles className="h-4 w-4 text-blue-200" />
             </div>
             <div className="text-sm font-semibold text-blue-200">Generate Forecast</div>
-            <div className="text-xs text-gray-500 mt-1">Run forecast for next 2 days (T+1, T+2)</div>
+            <div className="text-xs text-gray-500 mt-1">Run forecast for 2 days (T, T+1)</div>
           </button>
 
           <button
