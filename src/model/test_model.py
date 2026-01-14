@@ -180,8 +180,25 @@ def main(version: str):
     results_df['y_pred'] = y_pred
     results_df['abs_error'] = np.abs(results_df['y_true'] - results_df['y_pred'])
 
-    mae_by_hour = results_df.groupby('hour_of_day')['abs_error'].mean()
-    report['by_hour_mae'] = {str(k): v for k, v in mae_by_hour.to_dict().items()}
+    hour_stats = results_df.groupby("hour_of_day").agg(
+        mae=("abs_error", "mean"),
+        mean_volume=("y_true", "mean"),
+        sample_count=("y_true", "count"),
+        total_volume=("y_true", "sum"),
+    ).sort_index()
+    hour_stats["nmae"] = hour_stats["mae"] / (hour_stats["mean_volume"] + 1e-8)
+
+    report["by_hour"] = {
+        str(int(hour)): {
+            "mae": float(row["mae"]),
+            "nmae": float(row["nmae"]),
+            "mean_volume": float(row["mean_volume"]),
+            "total_volume": float(row["total_volume"]),
+            "sample_count": int(row["sample_count"]),
+        }
+        for hour, row in hour_stats.iterrows()
+    }
+    report["by_hour_mae"] = {k: v["mae"] for k, v in report["by_hour"].items()}
 
     line_stats = results_df.groupby('line_name').agg(
         mae=('abs_error', 'mean'),
@@ -424,20 +441,30 @@ def main(version: str):
     
     # 1. Transport Mode Analysis (extract mode from line_name patterns)
     def get_transport_mode(line_name):
-        """Classify transport mode from line name."""
-        line_upper = str(line_name).upper()
-        if line_upper == 'MARMARAY':
-            return 'Commuter Rail'
-        elif line_upper.startswith('M') and line_upper[1:].isdigit():
-            return 'Metro'
-        elif line_upper.startswith('T') and len(line_upper) <= 3:
-            return 'Tram'
-        elif line_upper.startswith('F'):
-            return 'Funicular'
-        elif line_upper.isdigit() or (line_upper[:-1].isdigit() and line_upper[-1].isalpha()):
-            return 'Bus'
-        else:
-            return 'Other'
+        """
+        Classify transport mode from line_name patterns.
+
+        Rules:
+        - MARMARAY => Commuter Rail
+        - M<digits> => Metro (e.g., M1, M2)
+        - T<digits> => Tram (e.g., T1, T4)
+        - F<digits> => Funicular (e.g., F1, F2)
+        - Everything else => Bus (e.g., 34, 34A, KM30, H-2, E-10)
+        """
+        if pd.isna(line_name):
+            return "Unknown"
+        line_upper = str(line_name).strip().upper()
+        if not line_upper:
+            return "Unknown"
+        if line_upper == "MARMARAY":
+            return "Commuter Rail"
+        if line_upper.startswith("M") and line_upper[1:].isdigit():
+            return "Metro"
+        if line_upper.startswith("T") and line_upper[1:].isdigit():
+            return "Tram"
+        if line_upper.startswith("F") and line_upper[1:].isdigit():
+            return "Funicular"
+        return "Bus"
     
     results_df['transport_mode'] = results_df['line_name'].apply(get_transport_mode)
     mode_stats = results_df.groupby('transport_mode').agg(
@@ -461,6 +488,33 @@ def main(version: str):
         }
         for mode, row in mode_stats.iterrows()
     }
+
+    # Export test-set line_name list grouped by the same transport_mode logic.
+    try:
+        line_mode_df = test_df.groupby("line_name", dropna=False).agg(
+            sample_count=("y", "count"),
+            mean_volume=("y", "mean"),
+            total_volume=("y", "sum"),
+        ).reset_index()
+        line_mode_df["transport_mode"] = line_mode_df["line_name"].apply(get_transport_mode)
+        line_mode_df = line_mode_df.sort_values(
+            ["transport_mode", "total_volume", "sample_count"],
+            ascending=[True, False, False],
+        )
+        line_mode_csv_path = REPORT_DIR / f"test_set_line_names_by_mode_{model_name}.csv"
+        line_mode_df.to_csv(line_mode_csv_path, index=False, encoding="utf-8")
+        report["test_set_line_names_by_mode_csv"] = str(line_mode_csv_path)
+
+        unique_lines_by_mode = (
+            line_mode_df.groupby("transport_mode")["line_name"]
+            .nunique(dropna=False)
+            .sort_values(ascending=False)
+        )
+        report["test_set_unique_lines_by_transport_mode"] = {
+            str(mode): int(count) for mode, count in unique_lines_by_mode.items()
+        }
+    except Exception as e:
+        report["test_set_line_names_by_mode_export_error"] = f"{type(e).__name__}: {e}"
     
     # 2. Statistical Confidence Intervals (Bootstrap-based)
     n_bootstrap = 1000
@@ -775,9 +829,9 @@ High MAE often correlates with high passenger volume:
 ### Performance by Hour of Day
 The model shows varying accuracy across different hours:
 
-| Hour | MAE |
-|------|-----|
-{chr(10).join([f'| {hour}:00 | {mae_val:.1f} |' for hour, mae_val in sorted(report['by_hour_mae'].items(), key=lambda x: int(x[0]))])}
+| Hour | MAE | NMAE | Avg Volume | Samples |
+|------|-----|------|------------|---------|
+{chr(10).join([f'| {hour}:00 | {stats["mae"]:.1f} | {stats["nmae"]*100:.1f}% | {stats["mean_volume"]:,.0f} | {stats["sample_count"]:,} |' for hour, stats in sorted(report.get("by_hour", {}).items(), key=lambda x: int(x[0]))])}
 
 ---
 
@@ -863,6 +917,9 @@ How close are our passenger count predictions?
 ## 11. 🚇 Performance by Transport Mode
 
 *Critical for thesis: How does the model perform across different transport types?*
+
+*Mode classification (from `line_name`):* `MARMARAY` → Commuter Rail, `M<digits>` → Metro, `T<digits>` → Tram, `F<digits>` → Funicular, otherwise → Bus.  
+*Full test-set line list:* `reports/test_set_line_names_by_mode_{model_name}.csv`
 
 | Mode | MAE | NMAE | Avg Volume | Volume Share | Crowd Accuracy | Samples |
 |------|-----|------|------------|--------------|----------------|---------|

@@ -1,6 +1,6 @@
 # 📊 Model Performance & Methodology Report
 **Model Version:** lgbm_transport_v7  
-**Date:** 2026-01-12 00:26:55
+**Date:** 2026-01-14 18:58:54
 
 ---
 
@@ -13,7 +13,7 @@ This means that relative to the total passenger volume, our average error margin
 - **Model Complexity:** 2000 trees, 18 features
 - **Improvement over Lag-24h Baseline:** 76.1% better than naive lag-24h approach
 - **Improvement over Lag-168h Baseline:** 74.6% better than naive lag-168h approach
-- **Prediction Speed:** 5.063 seconds for entire test set
+- **Prediction Speed:** 4.581 seconds for entire test set
 
 ---
 
@@ -354,14 +354,16 @@ How close are our passenger count predictions?
 
 *Critical for thesis: How does the model perform across different transport types?*
 
+*Mode classification (from `line_name`):* `MARMARAY` → Marmaray, `M<digits>` → Metro, `T<digits>` → Tram, `F<digits>` → Funicular, otherwise → Bus.  
+*Full test-set line list:* `reports/test_set_line_names_by_mode_lgbm_transport_v7.csv`
+
 | Mode | MAE | NMAE | Avg Volume | Volume Share | Crowd Accuracy | Samples |
 |------|-----|------|------------|--------------|----------------|---------|
-| Bus | 55.9 | 17.1% | 327 | 42.5% | 76.5% | 340,447 |
-| Commuter Rail | 2009.5 | 8.4% | 23,900 | 9.2% | 90.2% | 1,008 |
-| Funicular | 53.4 | 18.8% | 283 | 0.3% | 77.0% | 2,996 |
+| Bus | 49.9 | 18.4% | 271 | 54.0% | 76.8% | 521,862 |
+| Marmaray | 2009.5 | 8.4% | 23,900 | 9.2% | 90.2% | 1,008 |
+| Funicular | 75.1 | 16.6% | 451 | 0.3% | 82.2% | 1,734 |
 | Metro | 936.2 | 11.8% | 7,947 | 27.2% | 85.6% | 8,960 |
-| Other | 39.0 | 23.1% | 169 | 11.1% | 77.3% | 172,828 |
-| Tram | 259.9 | 11.2% | 2,321 | 9.7% | 82.1% | 10,959 |
+| Tram | 721.3 | 10.7% | 6,747 | 9.4% | 83.5% | 3,634 |
 
 ---
 
@@ -447,9 +449,9 @@ Against the weekly repeat baseline (Lag-168h), the model still achieves a **74.6
 6. **Statistically Reliable:** 95% CI for MAE: [72.3, 73.8]
 
 ### Thesis Highlights:
-- **Multi-modal coverage:** Model successfully handles 6 different transport modes
+- **Multi-modal coverage:** Model successfully handles 5 different transport modes
 - **Volume scalability:** Consistent NMAE across traffic segments shows robust generalization
-- **Production-ready:** 5.063s inference time for 537,198 samples
+- **Production-ready:** 4.581s inference time for 537,198 samples
 
 **Tested on:** 537,198 samples  
-**Prediction Time:** 5.063 seconds
+**Prediction Time:** 4.581 seconds

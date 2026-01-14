@@ -1,9 +1,9 @@
 {
     "model_name": "lgbm_transport_v7",
     "dataset": "Unseen Test Set",
-    "timestamp": "2026-01-12 00:26:55",
+    "timestamp": "2026-01-14 21:42:07",
     "n_samples": 537198,
-    "prediction_time_sec": 5.063161134719849,
+    "prediction_time_sec": 4.836441993713379,
     "mae": 72.99351411761582,
     "rmse": 289.8494439004625,
     "smape": 0.448137811609563,
@@ -19,6 +19,176 @@
     "baseline_nmae_lag168": 0.5887985768129774,
     "improvement_over_lag24_pct": 76.12879975172095,
     "improvement_over_lag168_pct": 74.5814746579569,
+    "by_hour": {
+        "0": {
+            "mae": 110.41205332852567,
+            "nmae": 1.2760108030852302,
+            "mean_volume": 86.52908976068495,
+            "total_volume": 1232953.0,
+            "sample_count": 14249
+        },
+        "1": {
+            "mae": 114.52680675614866,
+            "nmae": 0.5018467316734806,
+            "mean_volume": 228.21072555205046,
+            "total_volume": 361714.0,
+            "sample_count": 1585
+        },
+        "2": {
+            "mae": 123.25783284554149,
+            "nmae": 0.5853613814527788,
+            "mean_volume": 210.5670731707317,
+            "total_volume": 172665.0,
+            "sample_count": 820
+        },
+        "3": {
+            "mae": 157.14026264178634,
+            "nmae": 1.2414610938069233,
+            "mean_volume": 126.57687253613666,
+            "total_volume": 96325.0,
+            "sample_count": 761
+        },
+        "4": {
+            "mae": 100.49751809643543,
+            "nmae": 1.6975219068955656,
+            "mean_volume": 59.202486678507995,
+            "total_volume": 99993.0,
+            "sample_count": 1689
+        },
+        "5": {
+            "mae": 44.56462079790015,
+            "nmae": 0.6141654007680419,
+            "mean_volume": 72.56126889601465,
+            "total_volume": 1267210.0,
+            "sample_count": 17464
+        },
+        "6": {
+            "mae": 62.80588718118995,
+            "nmae": 0.2211254245016447,
+            "mean_volume": 284.0283396652634,
+            "total_volume": 8298456.0,
+            "sample_count": 29217
+        },
+        "7": {
+            "mae": 86.78560918555159,
+            "nmae": 0.14415646139570856,
+            "mean_volume": 602.0237202263455,
+            "total_volume": 18299113.0,
+            "sample_count": 30396
+        },
+        "8": {
+            "mae": 88.152771345172,
+            "nmae": 0.13781375860621098,
+            "mean_volume": 639.65145596008,
+            "total_volume": 19484423.0,
+            "sample_count": 30461
+        },
+        "9": {
+            "mae": 71.04271929647429,
+            "nmae": 0.15555059924925765,
+            "mean_volume": 456.71774739407067,
+            "total_volume": 13495096.0,
+            "sample_count": 29548
+        },
+        "10": {
+            "mae": 60.905947403147195,
+            "nmae": 0.1548198714591269,
+            "mean_volume": 393.39877257086096,
+            "total_volume": 11089518.0,
+            "sample_count": 28189
+        },
+        "11": {
+            "mae": 62.25047241596328,
+            "nmae": 0.14963491306654603,
+            "mean_volume": 416.01569539311146,
+            "total_volume": 11450416.0,
+            "sample_count": 27524
+        },
+        "12": {
+            "mae": 65.2199817851095,
+            "nmae": 0.1376653423479904,
+            "mean_volume": 473.7574517402484,
+            "total_volume": 13080917.0,
+            "sample_count": 27611
+        },
+        "13": {
+            "mae": 69.34523351993417,
+            "nmae": 0.13739620128902277,
+            "mean_volume": 504.70997646206774,
+            "total_volume": 13937566.0,
+            "sample_count": 27615
+        },
+        "14": {
+            "mae": 69.6373295202776,
+            "nmae": 0.13057557012662432,
+            "mean_volume": 533.3105530494086,
+            "total_volume": 15014292.0,
+            "sample_count": 28153
+        },
+        "15": {
+            "mae": 70.31123126568306,
+            "nmae": 0.1303853655691259,
+            "mean_volume": 539.2570781043872,
+            "total_volume": 15942057.0,
+            "sample_count": 29563
+        },
+        "16": {
+            "mae": 69.63208484420589,
+            "nmae": 0.12109115067170595,
+            "mean_volume": 575.0385924713585,
+            "total_volume": 17567429.0,
+            "sample_count": 30550
+        },
+        "17": {
+            "mae": 87.26833665118974,
+            "nmae": 0.12497374737983136,
+            "mean_volume": 698.2933494400731,
+            "total_volume": 21388027.0,
+            "sample_count": 30629
+        },
+        "18": {
+            "mae": 96.16328090660275,
+            "nmae": 0.12174734137709395,
+            "mean_volume": 789.8593909129735,
+            "total_volume": 24042530.0,
+            "sample_count": 30439
+        },
+        "19": {
+            "mae": 73.92987414357596,
+            "nmae": 0.11672311554556429,
+            "mean_volume": 633.3781770376862,
+            "total_volume": 18789797.0,
+            "sample_count": 29666
+        },
+        "20": {
+            "mae": 62.87717065735212,
+            "nmae": 0.13460408513707614,
+            "mean_volume": 467.1267635894865,
+            "total_volume": 13044982.0,
+            "sample_count": 27926
+        },
+        "21": {
+            "mae": 60.657984292627496,
+            "nmae": 0.15301371996143173,
+            "mean_volume": 396.4218653489809,
+            "total_volume": 10268912.0,
+            "sample_count": 25904
+        },
+        "22": {
+            "mae": 72.29513897780147,
+            "nmae": 0.18061462197846315,
+            "mean_volume": 400.272902515146,
+            "total_volume": 8721146.0,
+            "sample_count": 21788
+        },
+        "23": {
+            "mae": 66.22083093470687,
+            "nmae": 0.21076364915248635,
+            "mean_volume": 314.19474467671995,
+            "total_volume": 4854623.0,
+            "sample_count": 15451
+        }
+    },
     "by_hour_mae": {
         "0": 110.41205332852567,
         "1": 114.52680675614866,
@@ -425,12 +595,12 @@
     },
     "by_transport_mode": {
         "Bus": {
-            "mae": 55.93198806580722,
-            "nmae": 0.17114220559445933,
-            "mean_volume": 326.81586561197486,
-            "sample_count": 340447,
-            "volume_share_pct": 42.466951546899814,
-            "crowd_accuracy": 76.47798335717454
+            "mae": 49.91179990411278,
+            "nmae": 0.18420701063204548,
+            "mean_volume": 270.9549421111328,
+            "sample_count": 521862,
+            "volume_share_pct": 53.96984795734476,
+            "crowd_accuracy": 76.8084282818063
         },
         "Commuter Rail": {
             "mae": 2009.529293535449,
@@ -441,12 +611,12 @@
             "crowd_accuracy": 90.17857142857143
         },
         "Funicular": {
-            "mae": 53.40105988348246,
-            "nmae": 0.18843607349635047,
-            "mean_volume": 283.39085447263017,
-            "sample_count": 2996,
-            "volume_share_pct": 0.32406048912336544,
-            "crowd_accuracy": 77.0026702269693
+            "mae": 75.1170020978735,
+            "nmae": 0.16643183362912614,
+            "mean_volume": 451.3379469434833,
+            "sample_count": 1734,
+            "volume_share_pct": 0.2987097412459595,
+            "crowd_accuracy": 82.23760092272204
         },
         "Metro": {
             "mae": 936.1607648204018,
@@ -456,22 +626,22 @@
             "volume_share_pct": 27.178022715711318,
             "crowd_accuracy": 85.56919642857143
         },
-        "Other": {
-            "mae": 39.043797953501304,
-            "nmae": 0.2314387893509402,
-            "mean_volume": 168.70032054991088,
-            "sample_count": 172828,
-            "volume_share_pct": 11.12829053234166,
-            "crowd_accuracy": 77.31791144953364
-        },
         "Tram": {
-            "mae": 259.9356863876213,
-            "nmae": 0.1120015533254908,
-            "mean_volume": 2320.822155306141,
-            "sample_count": 10959,
-            "volume_share_pct": 9.70758567475684,
-            "crowd_accuracy": 82.0786568117529
+            "mae": 721.2545990871299,
+            "nmae": 0.10689898486958439,
+            "mean_volume": 6747.066868464502,
+            "sample_count": 3634,
+            "volume_share_pct": 9.358330544530965,
+            "crowd_accuracy": 83.54430379746836
         }
+    },
+    "test_set_line_names_by_mode_csv": "/Users/farukkamcici/PycharmProjects/ibb-transport/reports/test_set_line_names_by_mode_lgbm_transport_v7.csv",
+    "test_set_unique_lines_by_transport_mode": {
+        "Bus": 748,
+        "Metro": 9,
+        "Tram": 4,
+        "Funicular": 2,
+        "Commuter Rail": 1
     },
     "statistical_confidence": {
         "mae_95_ci_lower": 72.31973263844911,

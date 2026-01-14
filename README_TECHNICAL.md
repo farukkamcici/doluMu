@@ -288,7 +288,7 @@ The platform runs an **AsyncIOScheduler** (timezone: `Europe/Istanbul`) and sche
    - Maintains a retry loop for failed station/direction pairs.
 
 3. **Daily forecast generation** (`generate_daily_forecast`) — **04:00**
-   - Runs `run_daily_forecast_job()` for **T+1..T+2** by default (configurable).
+   - Runs `run_daily_forecast_job()` for **T...T+1** by default (configurable).
    - Batch-predicts all `(line, hour)` pairs and persists forecasts into `daily_forecasts`.
    - Stores `max_capacity`, `trips_per_hour`, and `vehicle_capacity` alongside `predicted_value` to make occupancy explainable.
    - Includes retry scheduling with exponential backoff on failures.
