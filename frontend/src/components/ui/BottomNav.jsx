@@ -64,7 +64,7 @@ export default function BottomNav() {
     <div className="fixed bottom-0 left-0 right-0 z-[1000] pointer-events-none pb-safe">
       {/* Blur & occlusion layer - only affects nav footprint */}
       <div className="absolute inset-x-0 bottom-0 h-[88px] pb-safe">
-        <div className="absolute inset-0 backdrop-blur-xl" />
+        <div className="absolute inset-0 backdrop-blur-xl md:backdrop-blur-none" />
       </div>
       
       {/* Floating nav container */}
