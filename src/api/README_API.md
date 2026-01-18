@@ -1,7 +1,18 @@
 # Istanbul Transport Crowding Prediction API
 
 **Backend API Documentation**  
-Machine Learning-Powered Real-Time Transit Forecasting System
+Machine Learning-Powered Transit Forecasting System
+
+---
+
+## Document Scope
+
+This file documents the **backend API** (FastAPI + Postgres + model inference + schedulers).
+
+For other docs, see:
+- Project quickstart: `README.md`
+- Technical overview (pipeline + architecture): `README_TECHNICAL.md`
+- Frontend dev guide: `frontend/README_TECHNICAL_UI.md`
 
 ---
 
@@ -93,7 +104,7 @@ The Istanbul Transport API is a high-performance FastAPI-based backend that deli
 | **Database** | PostgreSQL 15+ | Persistent storage with SQLAlchemy ORM |
 | **Caching** | TTLCache (in-memory) | Fast lookup for frequently accessed data |
 | **Scheduling** | APScheduler | Automated batch jobs and maintenance |
-| **HTTP Client** | httpx | Async external API calls |
+| **HTTP Clients** | httpx, requests | External API calls (async + sync) |
 | **Validation** | Pydantic v2 | Request/response schema validation |
 
 ---
@@ -113,9 +124,21 @@ The Istanbul Transport API is a high-performance FastAPI-based backend that deli
 ```python
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup: Load model, initialize Feature Store, start scheduler
-    AppState.model = lgb.Booster(model_file=os.getenv('MODEL_PATH', 'models/lgbm_transport_v7.txt'))
+    # Startup: init DB, load model + stores, load route shapes, start scheduler
+    db = SessionLocal()
+    try:
+        init_db(db)
+    finally:
+        db.close()
+
+    model_path = os.getenv("MODEL_PATH", "models/lgbm_transport_v7.txt")
+    try:
+        AppState.model = lgb.Booster(model_file=model_path)
+    except lgb.basic.LightGBMError:
+        AppState.model = None
     AppState.store = FeatureStore()
+    AppState.capacity_store = CapacityStore()
+
     route_service.load_data()
     start_scheduler()
     
@@ -125,6 +148,7 @@ async def lifespan(app: FastAPI):
     shutdown_scheduler()
     AppState.model = None
     AppState.store = None
+    AppState.capacity_store = None
 ```
 
 **Security & Configuration:**
@@ -1299,7 +1323,7 @@ GET /v1/forecast?latitude=41.0082&longitude=28.9784
   - Return 504 Gateway Timeout if no cache available
 
 ### 3. Model Prediction Errors
-- **Model Loading Failure**: Application startup fails (critical)
+- **Model Loading Failure**: App can start, but prediction endpoints will error until `MODEL_PATH` points to a valid booster
 - **Prediction Error**: Log error, skip line, continue batch job
 - **Invalid Input**: Pydantic validation raises 422 Unprocessable Entity
 
@@ -1315,8 +1339,12 @@ GET /v1/forecast?latitude=41.0082&longitude=28.9784
 ### Environment Variables
 
 ```bash
-# Database
-DATABASE_URL=postgresql://user:pass@localhost:5432/ibb_transport
+# Database (required; used by `src/api/db.py`)
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=postgres
+POSTGRES_HOST=db
+POSTGRES_PORT=5432
+POSTGRES_DB=ibb_transport
 
 # CORS (optional)
 CORS_ALLOW_ORIGINS=http://localhost:3000,https://dolumu.app
@@ -1326,7 +1354,18 @@ WEATHER_API_URL=https://api.open-meteo.com/v1/forecast
 
 # Model Path (optional)
 MODEL_PATH=models/lgbm_transport_v7.txt
+
+# Admin auth (required; `src/api/auth.py` raises if missing)
+JWT_SECRET_KEY=change-me
+
+# Optional admin bootstrap
+ADMIN_USERNAME=admin
+ADMIN_PASSWORD=admin123
 ```
+
+Notes:
+- `.env` is loaded via `python-dotenv` (imported in `src/api/db.py`).
+- For running the API on your host machine against Docker Postgres, set `POSTGRES_HOST=localhost`.
 
 ### Docker Deployment
 
@@ -1335,7 +1374,7 @@ MODEL_PATH=models/lgbm_transport_v7.txt
 docker build -t ibb-transport-api .
 
 # Run with docker-compose
-docker-compose up -d
+docker-compose up --build
 
 # Health check
 curl http://localhost:8000/
@@ -1348,10 +1387,10 @@ curl http://localhost:8000/
 pip install -r requirements.txt
 
 # Initialize database
-uvicorn src.api.main:app --reload
+POSTGRES_HOST=localhost uvicorn src.api.main:app --reload
 
-# Run tests (if implemented)
-pytest src/api/tests/
+# Run tests (if present)
+python -m pytest src/api
 ```
 
 ---
@@ -1400,8 +1439,3 @@ pytest src/api/tests/
 - Open-Meteo API: https://open-meteo.com/en/docs
 - Polars Guide: https://pola-rs.github.io/polars-book/
 
----
-
-**Last Updated**: December 2024  
-**API Version**: 1.0  
-**Model Version**: v6

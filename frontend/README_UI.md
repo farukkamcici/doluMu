@@ -1,252 +1,252 @@
-# DoluMu - İstanbul Toplu Taşıma Doluluk Tahmin Platformu
+# DoluMu - Istanbul Public Transit Crowding Prediction Platform
 
-**DoluMu**, İstanbul'daki toplu taşıma hatlarının yoğunluğunu 24 saat önceden tahmin eden, yapay zeka destekli bir web uygulamasıdır. Yola çıkmadan önce otobüsünüzün, metronuzun veya vapurunuzun ne kadar kalabalık olacağını öğrenebilir, yolculuğunuzu daha konforlu planlayabilirsiniz.
-
----
-
-## 🎯 Neler Sunuyor?
-
-### 1. **Gerçek Zamanlı Yoğunluk Tahminleri**
-- **24 Saat Önceden Tahmin**: Herhangi bir hat için bugünün ve yarının her saatine ait yoğunluk tahminlerini görüntüleyin
-- **Anlaşılır Yoğunluk Seviyeleri**: "Düşük", "Orta", "Yüksek", "Çok Yüksek" şeklinde renklerle kodlanmış görsel göstergeler
-- **Doluluk Yüzdesi**: Her saat için tahmini doluluk oranını (% olarak) ve yolcu sayısını görün
-- **Akıllı Tahminler**: Geçmiş yolcu verileri, hava durumu ve takvim özelliklerini birleştiren makine öğrenmesi modeli
-
-### 2. **İnteraktif Harita Deneyimi**
-- **Canlı Hat Görselleştirme**: 
-  - Otobüs hatları için başlangıç-bitiş durakları ve güzergah polyline'ları
-- **Konum Bazlı Hizmetler**: 
-  - Mevcut konumunuzu haritada görün
-  - Size yakın hatları kolayca bulun
-- **Gelişmiş Harita Özellikleri**:
-  - Pürüzsüz yakınlaştırma ve kaydırma
-  - Metro istasyonları için olanaklar bilgisi (asansör, yürüyen merdiven, WC)
-  - Renkli hat göstergeleri ve durak işaretleyicileri
-
-### 3. **Sefer Bilgileri ve Planlama**
-- **Gerçek Zamanlı Sefer Saatleri**:
-  - Metro İstanbul API entegrasyonu ile canlı sefer bilgileri
-  - Sonraki 5 seferin dakika bazında bilgisi
-  - "Peronda" ve "X dakika içinde" gibi anlık bildirimler
-- **Tam Sefer Programı**:
-  - Günlük ilk ve son sefer saatleri
-  - Yön bazlı sefer bilgileri (Gidiş/Dönüş)
-  - Hizmet dışı saatler için bilgilendirme
-- **Servis Saati Takibi**: Hat hizmet saatleri dışındayken otomatik uyarı
-
-### 4. **Favoriler Sistemi**
-- **Hızlı Erişim**: Sık kullandığınız hatları favorilere ekleyin
-- **Favori Hat Kartları**: 
-  - Her favori hat için mevcut doluluk durumunu gösterir
-  - Anlık yolcu sayısı ve yoğunluk göstergeleri
-  - Tek dokunuşla detaylı bilgiye erişim
-- **Kalıcı Kayıt**: Favorileriniz tarayıcınızda saklanır
-
-### 5. **Çok Dilli Destek**
-- **Türkçe ve İngilizce**: Tam lokalizasyon desteği
-- **Akıllı Dil Algılama**: Tarayıcı dilinize göre otomatik dil seçimi
-- **Kolay Dil Değiştirme**: Ayarlar sayfasından tek tıkla dil değiştirin
-
-### 6. **Progresif Web App (PWA)**
-- **Ana Ekrana Ekleme**: Uygulamayı telefonunuzun ana ekranına ekleyerek native uygulama gibi kullanın
-- **Çevrimdışı Destek**: Temel özellikler internetsiz çalışır
-- **Hızlı Yükleme**: Service worker ile optimize edilmiş performans
-- **Platformlar Arası**: iOS, Android ve masaüstü destekli
-
-### 7. **Kapasite ve Sefer Sıklığı (Trips/Saat)**
-- Hat bazında `maksimum kapasite`, `araç kapasitesi` ve (varsa) `saatlik sefer sayısı` bilgilerini görüntüleyin.
-- Otobüs hatları için kapasite varsayımlarını ve araç karışımı özetini Capacity penceresinden inceleyin.
-- Raylı sistemlerde statik kapasite tablosu ve Marmaray için statik sefer entegrasyonu sayesinde kapasite/servis saati bilgisi daha kararlı çalışır.
+**DoluMu** is an AI-powered web app that predicts crowding levels on Istanbul public transit **up to 24 hours ahead**. Before you leave, you can check how crowded your bus, metro, or ferry is likely to be and plan a more comfortable trip.
 
 ---
 
-## 🚀 Nasıl Çalışıyor?
+## 🎯 What Does It Offer?
 
-### Ana Sayfa: Harita ve Arama
+### 1. **24-Hour Crowding Forecasts (Model)**
+- **Forecast up to 24 hours ahead**: See predicted crowding for any line for every hour of today and tomorrow
+- **Easy-to-read crowd levels**: Clear, color-coded levels ("Low", "Medium", "High", "Very High")
+- **Occupancy percentage**: View estimated occupancy (%) and passenger volume for each hour
+- **Smart predictions**: A machine learning model combining historical ridership, weather, and calendar features
+- **Important**: These values are **not real-time sensor measurements** — they are **forecasts** learned from past patterns.
 
-**Başlangıç ekranında sizi karşılayan:**
-- **Üst Çubuk**: 
-  - Akıllı arama çubuğu (hat kodu veya açıklamaya göre arama)
-  - **Trafik Yoğunluğu Widget'ı**: İstanbul geneli trafik yoğunluğu endeksi (%0-100)
-  - **Hava Durumu Widget'ı**: Anlık sıcaklık ve 6 saatlik tahmin
-  - Dil değiştirici
-- **Harita Görünümü**: 
-  - İstanbul haritası üzerinde tüm toplu taşıma hatları
-  - Metro hatları otomatik renklendirilmiş ve istasyonlarla gösterilmiş
-  - Otobüs hatları için arama sonrası güzergah gösterimi
-- **Alt Navigasyon**: 
-  - Harita, Favoriler, Ayarlar bölümleri arası hızlı geçiş
+### 2. **Interactive Map Experience**
+- **Line visualization**:
+  - Bus routes rendered on the map with start/end stops and route polylines
+- **Location-based features**:
+  - See your current location on the map
+  - Find nearby lines more easily
+- **Map UX enhancements**:
+  - Smooth zoom and pan
+  - Metro station amenity badges (elevator, escalator, WC)
+  - Distinct line and stop styling for fast recognition
 
-**Arama Deneyimi:**
-1. Arama çubuğuna hat kodu yazın (örn: "M2", "500T", "15F")
-2. Arama sonuçları anlık olarak filtrelenir
-3. Her sonuçta:
-   - Hat kodu (bold ve renkli)
-   - Taşıt türü etiketi (Otobüs/Metro)
-   - Hat açıklaması (arama terimleri vurgulanmış)
-4. Bir hata tıklayın, harita o hattı gösterecek şekilde güncellenir
+### 3. **Schedules & Trip Planning**
+- **Live timetable info**:
+  - Metro Istanbul API integration for live schedule data
+  - Next 5 departures with minute-level countdowns
+  - “On platform” / “in X minutes” style status messages
+- **Full-day timetable**:
+  - First/last departures
+  - Direction-aware schedules (outbound/inbound)
+  - Clear messaging for out-of-service hours
+- **Service-hour awareness**: Automatic warnings when a line is outside service hours
 
-### Hat Detay Paneli: Bilginin Merkezi
+### 4. **Favorites**
+- **Quick access**: Save frequently used lines
+- **Favorite line cards**:
+  - Show current-hour crowding summary
+  - One-tap access to details
+- **Persistent storage**: Favorites are stored locally in your browser
 
-**Bir hat seçtiğinizde açılan akıllı panel:**
+### 5. **Multi-language Support**
+- **Turkish + English**: Full localization support
+- **Smart language detection**: Uses browser language by default
+- **Easy switching**: Change language from the Settings page
 
-#### Mobil Görünüm:
-- **Aşağıdan Yukarı Açılan Panel** (Bottom Sheet):
-  - Yukarı kaydırarak genişletin
-  - Aşağı kaydırarak küçültün
-  - Kapatma butonu sağ üstte
+### 6. **Progressive Web App (PWA)**
+- **Add to Home Screen**: Use like a native app
+- **Offline support**: Core UI keeps working without network
+- **Fast loading**: Service worker caching for smoother performance
+- **Cross-platform**: iOS, Android, and desktop support
 
-#### Masaüstü Görünüm:
-- **Sürüklenebilir Modal**: 
-  - Ekranda istediğiniz yere sürükleyin
-  - Köşeden boyutlandırın
-  - "Konumu Sıfırla" butonuyla başlangıç pozisyonuna dönün
-- **Minimize/Maksimize**: Küçük başlık çubuğu modunda çalışın
-
-#### Panel İçeriği:
-
-**1. Başlık Bölümü**
-- Hat kodu ve adı
-- Anlık doluluk yüzdesi rozeti
-- Favori ekleme/çıkarma butonu
-- Yön seçici (Gidiş/Dönüş) veya istasyon seçici (Metro için)
-
-**2. Yoğunluk Kartı** (Ana Bilgi Kartı)
-- **Seçili Saat Göstergesi**: "Tahmini Yoğunluk - 14:00"
-- **Yoğunluk Seviyesi**: Büyük, renkli yazı ile ("Orta Yoğunluk")
-- **Doluluk Çubuğu**: Yüzde bazlı görsel progress bar
-- **Detaylı İstatistikler**:
-  - Tahmini yolcu sayısı (örn: "1,234 kişi")
-  - Maksimum kapasite (tooltip ile açıklama)
-- **Zaman Kaydırıcı**: 0-23 arası saat seçimi için slider
-  - Mevcut saat varsayılan olarak seçili
-  - Kaydırdıkça tüm veriler güncellenir
-
-**3. Sefer Bilgileri Kartı**
-- **Sonraki 3-5 Sefer**: Anlık yaklaşma süreleri
-- **"Tüm Seferleri Görüntüle"** butonu
-- **Modal Açılımı**:
-  - Tam günlük sefer programı
-  - İlk ve son sefer saatleri
-  - Metro için istasyon ve yön seçenekleri
-
-**4. 24 Saatlik Grafik**
-- **İnteraktif Çizgi Grafik** (Recharts ile):
-  - Her saat için tahmini yolcu sayısı
-  - Renkli alan dolgusu (yoğunluğa göre)
-  - Hover ile detaylı bilgi gösterimi
-- **Hizmet Saatleri Gösterimi**: 
-  - Gri çubuklar sefer olmayan saatleri gösterir
-  - Tooltipte "Sefer yok" uyarısı
-
-**5. Durum Banner'ları** (Aktif olduğunda)
-- **Uyarı Banner'ı**: Hat kesintileri ve duyurular için
-- **Hizmet Dışı Banner'ı**: Hat şu an çalışmıyorsa
-- Tıklanabilir - detaylı bilgi için modal açılır
-
-### Favoriler Sayfası
-
-**Kayıtlı hatlarınızı tek ekranda yönetin:**
-
-- **Favori Hat Kartları**:
-  - Her kart bir mini özet sunar
-  - Mevcut saat için doluluk göstergesi
-  - Yolcu sayısı ve doluluk yüzdesi
-  - Hat bilgileri (kod, ad, tür)
-  - Tıklayarak tam detay paneline geçiş
-- **Boş Durum**:
-  - Henüz favori yoksa yönlendirme kartı
-  - "Hatlara Git" butonu ile haritaya yönlendirme
-  - Nasıl favori ekleneceği adım adım açıklama
-
-### Ayarlar Sayfası
-
-**Uygulamayı kişiselleştirin:**
-
-- **Dil Seçimi**: Türkçe ↔ İngilizce geçiş
-- **PWA Yükleme**: Ana ekrana ekleme rehberi
-  - iOS Safari/Chrome için özel talimatlar
-  - Animasyonlu adım adım görseller
-- **Veri Yönetimi**:
-  - Favorileri temizle (onay modalı ile)
-  - Uygulamayı sıfırla (tüm cache temizlenir)
-- **Geri Bildirim Formu**:
-  - Hata raporlama
-  - Veri hatası bildirimi
-  - Özellik istekleri
-  - E-posta ile takip (opsiyonel)
+### 7. **Capacity & Service Frequency (Trips/Hour)**
+- View line-specific `max_capacity`, `vehicle_capacity`, and (when available) `trips_per_hour`.
+- For bus lines, review capacity assumptions and a vehicle-mix summary in the Capacity modal.
+- For rail, a static capacity table and a Marmaray static schedule integration help keep capacity/service-hour logic stable.
 
 ---
 
-## 🎨 Tasarım ve Kullanıcı Deneyimi
+## 🚀 How It Works
 
-### Görsel Kimlik
-- **Koyu Tema**: Modern, göz yormayan slate-gray renk paleti
-- **Neon Vurgular**: Mor-amber gradyanlar ve parlak renkli aksan renkleri
-- **Glassmorphism**: Şeffaf arka planlar ve backdrop blur efektleri
-- **Yumuşak Köşeler**: 2xl border-radius ile dostça görünüm
+### Home Screen: Map + Search
 
-### Renk Sistemi
-- **Yoğunluk Renkleri**:
-  - 🟢 Yeşil: Düşük yoğunluk
-  - 🟡 Sarı: Orta yoğunluk
-  - 🟠 Turuncu: Yüksek yoğunluk
-  - 🔴 Kırmızı: Çok yüksek yoğunluk
-  - ⚫ Gri: Hizmet dışı / Bilinmiyor
-- **Hat Türü Renkleri**:
-  - Metro: Mavi tonları
-  - Otobüs: Yeşil-amber
+**What you see on the start screen:**
+- **Top bar**:
+  - Smart search (search by line code or description)
+  - **Traffic widget**: Istanbul-wide traffic congestion index (0–100%)
+  - **Weather widget**: current temperature + 6-hour forecast
+  - Language switcher
+- **Map view**:
+  - Istanbul map with public transit layers
+  - Metro lines rendered with official colors and stations
+  - Bus route visualization after selecting a line
+- **Bottom navigation**:
+  - Quick switch between Map, Favorites, and Settings
 
-### Animasyonlar ve İnteraksiyonlar
-- **Framer Motion** ile:
-  - Panel açılma/kapanma animasyonları
-  - Sayfa geçiş efektleri
-  - Sürükle-bırak etkileşimleri
-- **Haptic Feedback**: Mobil cihazlarda titreşim geri bildirimi
-- **Skeleton Loaders**: Veri yüklenirken placeholder gösterimi
-- **Smooth Scrolling**: Tüm listelerde özel scrollbar stilleri
+**Search experience:**
+1. Type a line code in the search bar (e.g., "M2", "500T", "15F")
+2. Results filter instantly
+3. Each result shows:
+   - Line code (highlighted)
+   - Transport type label (Bus/Metro)
+   - Route description (matched terms highlighted)
+4. Tap a result to update the map and open the line panel
 
-### Erişilebilirlik
-- **Semantic HTML**: Proper heading hierarchy
-- **ARIA Labels**: Ekran okuyucu desteği
-- **Keyboard Navigation**: Tab tuşu ile gezinme
-- **Yüksek Kontrast**: WCAG standartlarına uygun renk oranları
-- **Loading States**: `aria-busy` ve `sr-only` kullanımı
+### Line Detail Panel: Your Information Hub
 
-### Responsive Tasarım
-- **Mobil Öncelikli**: Tüm özellikler dokunmatik optimizasyonlu
-- **Tablet Desteği**: Orta ekranlar için özel layout'lar
-- **Masaüstü**: Geniş ekranlarda çoklu panel görünümü
-- **Dinamik Viewport**: 100dvh kullanımı ile tam ekran deneyim
+**A smart panel that opens when you select a line:**
+
+#### Mobile:
+- **Bottom sheet**:
+  - Swipe up to expand
+  - Swipe down to minimize
+  - Close button at the top-right
+
+#### Desktop:
+- **Draggable modal**:
+  - Drag anywhere on the screen
+  - Resize from the corner
+  - “Reset position” button to return to default
+- **Minimize / maximize**: work in a compact title-bar mode
+
+#### Panel Contents
+
+**1. Header**
+- Line code and name
+- Current-hour occupancy badge
+- Add/remove favorite button
+- Direction selector (Bus) or station selector (Metro)
+
+**2. Crowding Card (Main Summary)**
+- **Selected hour label**: “Estimated crowding — 14:00”
+- **Crowd level**: Large, color-coded label (e.g., “Medium”)
+- **Occupancy bar**: Percentage-based progress bar
+- **Details**:
+  - Estimated passenger volume (e.g., “1,234 people”)
+  - Max capacity (explained via tooltip)
+- **Time slider**: Select an hour (0–23)
+  - Defaults to current hour
+  - Updates data instantly while sliding
+
+**3. Schedule Card**
+- **Next 3–5 departures**: live countdown
+- **“View full timetable”** button
+- **Modal view**:
+  - Full-day schedule
+  - First/last departure times
+  - Station + direction options for Metro
+
+**4. 24-Hour Chart**
+- **Interactive chart** (Recharts):
+  - Estimated passenger volume per hour
+  - Color/gradient styling based on crowd levels
+  - Hover for details
+- **Service hours visualization**:
+  - Gray bars show out-of-service hours
+  - Tooltip shows “No service”
+
+**5. Status Banners (when active)**
+- **Warning banner**: disruptions and announcements
+- **Out-of-service banner**: if the line is not running right now
+- Clickable for details (opens a modal)
+
+### Favorites Page
+
+**Manage saved lines in one place:**
+- **Favorite line cards**:
+  - Mini summary for the current hour
+  - Passenger volume and occupancy percentage
+  - Line metadata (code, name, type)
+  - Tap to open the full detail panel
+- **Empty state**:
+  - If no favorites are saved, shows a guide card
+  - “Go to lines” button navigates back to the map
+  - Step-by-step instructions for adding favorites
+
+### Settings Page
+
+**Customize your app:**
+- **Language**: Turkish ↔ English
+- **PWA install**: add-to-home-screen instructions
+  - iOS Safari/Chrome-specific steps
+  - Animated, step-by-step visuals
+- **Data management**:
+  - Clear favorites (with confirmation)
+  - Reset app (clears cache)
+- **Feedback form**:
+  - Bug reports
+  - Data issue reports
+  - Feature requests
+  - Optional email follow-up
 
 ---
 
-## 🏗️ Teknik Altyapı
+## 🎨 Design & User Experience
 
-### Framework ve Kütüphaneler
-- **Next.js 16** (App Router): Modern React framework
-- **React 19**: Latest stable React version
-- **next-intl 4.5.5**: Uluslararasılaştırma
-- **Zustand**: Hafif state management
-- **Tailwind CSS**: Utility-first CSS framework
-- **Framer Motion**: Animasyonlar
-- **React Leaflet**: İnteraktif haritalar
-- **Recharts**: Grafik ve data visualization
+### Visual Identity
+- **Dark theme**: modern slate-gray palette
+- **Neon accents**: purple/amber gradients and bright highlights
+- **Glassmorphism**: translucent surfaces with backdrop blur
+- **Rounded UI**: friendly 2xl border radius style
+
+### Color System
+- **Crowding colors**:
+  - 🟢 Green: Low
+  - 🟡 Yellow: Medium
+  - 🟠 Orange: High
+  - 🔴 Red: Very High
+  - ⚫ Gray: Out of service / Unknown
+- **Transport types**:
+  - Metro: blue tones
+  - Bus: green/amber tones
+
+### Motion & Interaction
+- **Framer Motion**:
+  - Panel open/close animations
+  - Page transitions
+  - Drag interactions
+- **Haptic feedback**: optional vibration on mobile devices
+- **Skeleton loaders**: placeholders during fetch
+- **Smooth scrolling**: custom scrollbar styling in lists
+
+### Accessibility
+- **Semantic HTML**: proper heading hierarchy
+- **ARIA labels**: screen reader support
+- **Keyboard navigation**: tab-through navigation
+- **High contrast**: WCAG-aware color contrast
+- **Loading states**: `aria-busy` and `sr-only` patterns
+
+### Responsive Design
+- **Mobile-first**: touch-optimized layouts
+- **Tablet support**: mid-size layouts
+- **Desktop**: multi-panel / wide layout behavior
+- **Dynamic viewport**: 100dvh for full-screen experience
+
+---
+
+## 🏗️ Technical Overview
+
+> This section is a short technical summary for developers. If you only want to use the app, you can skip it.  
+> Developer docs: `frontend/README_TECHNICAL_UI.md` and `src/api/README_API.md`
+
+### Framework & Libraries
+- **Next.js 16** (App Router): modern React framework
+- **React 19**: current React version
+- **next-intl 4.5.5**: internationalization
+- **Zustand**: lightweight state management
+- **Tailwind CSS**: utility-first styling
+- **Framer Motion**: animations
+- **React Leaflet**: interactive maps
+- **Recharts**: charts and data visualization
 - **Axios**: HTTP client
-- **date-fns**: Tarih manipülasyonu
+- **date-fns**: date utilities
 
 ### State Management (Zustand Store)
 ```javascript
 {
-  selectedLine: null,          // Seçili hat objesi
-  isPanelOpen: false,          // Detay paneli açık mı?
-  isPanelMinimized: false,     // Panel minimize mi?
-  selectedHour: 14,            // Seçili saat (0-23)
-  userLocation: [41.0, 28.9],  // GPS koordinatları
-  favorites: ['M2', '500T'],   // Favori hat kodları
-  selectedDirection: 'G',      // 'G' (Gidiş) veya 'D' (Dönüş)
-  showRoute: true,             // Haritada güzergah göster
-  metroSelection: {            // Metro seçimleri
+  selectedLine: null,          // Selected line object
+  isPanelOpen: false,          // Is the detail panel open?
+  isPanelMinimized: false,     // Is the panel minimized?
+  selectedHour: 14,            // Selected hour (0-23)
+  userLocation: [41.0, 28.9],  // GPS coordinates
+  favorites: ['M2', '500T'],   // Favorite line codes
+  selectedDirection: 'G',      // 'G' (outbound) or 'D' (inbound)
+  showRoute: true,             // Show route polyline on map
+  metroSelection: {            // Metro selection state
     lineCode: 'M2',
     stationId: 123,
     directionId: 1
@@ -254,20 +254,20 @@
 }
 ```
 
-### API Entegrasyonu
+### API Integration
 - **Backend**: FastAPI (Python)
-- **Base URL**: `https://ibb-transport.onthewifi.com/api`
+- **Base URL**: `NEXT_PUBLIC_API_URL` (default if unset: `https://ibb-transport.onthewifi.com/api`)
 - **Endpoints**:
-  - `GET /lines/search?query={query}`: Hat arama
-  - `GET /forecast/{lineCode}?target_date={date}&direction={dir}`: 24 saatlik tahmin
-  - `GET /lines/{lineCode}`: Hat metadata
-  - `GET /lines/{lineCode}/status`: Hat durumu ve uyarılar
-- **Metro API**: Metro İstanbul'un canlı sefer API'si
-- **Hava Durumu**: Open-Meteo API entegrasyonu
+  - `GET /lines/search?query={query}`: line search
+  - `GET /forecast/{lineCode}?target_date={date}&direction={dir}`: 24-hour forecast (note: `direction` filters service-hours/alerts; the forecast series is not split by direction)
+  - `GET /lines/{lineCode}`: line metadata
+  - `GET /lines/{lineCode}/status`: service status and alerts
+- **Metro API**: Metro Istanbul live timetable API
+- **Weather**: Open-Meteo integration
 
-### Veri Yapıları
+### Data Shapes
 
-**Forecast Response (24 saatlik):**
+**Forecast response (24 hours):**
 ```json
 [
   {
@@ -281,173 +281,173 @@
 ]
 ```
 
-**Line Metadata:**
+**Line metadata:**
 ```json
 {
   "line_name": "M2",
   "transport_type_id": 2,
   "road_type": "metro",
-  "line": "Yenikapı - Hacıosman Metro Hattı"
+  "line": "Yenikapı - Hacıosman Metro Line"
 }
 ```
 
-### Performans Optimizasyonları
-- **Debounced Search**: 300ms gecikme ile API çağrı azaltma
-- **Lazy Loading**: Sayfalar ve bileşenler ihtiyaç anında yüklenir
-- **Image Optimization**: Next.js Image component
-- **Code Splitting**: Route-based automatic splitting
-- **Service Worker**: PWA caching stratejileri
-- **localStorage**: Favori bilgileri lokal saklanır
+### Performance Optimizations
+- **Debounced search**: 300ms delay to reduce API calls
+- **Lazy loading**: pages/components load on demand
+- **Image optimization**: Next.js Image component
+- **Code splitting**: automatic route-based splitting
+- **Service worker**: PWA caching strategies
+- **localStorage**: favorites stored locally
 
-### Veri Yönetimi
-- **Static Data**: 
-  - `public/data/line_routes.json`: Hat güzergahları
-  - `public/data/metro_topology.json`: Metro ağı yapısı
-  - `public/data/stops_geometry.json`: Durak koordinatları
-- **Cache Strategy**:
-  - Metro sefer bilgileri: 30 saniye cache
-  - Güzergah verileri: İlk yüklemede cache, reload'da refresh
-  - Forecast: Her saat başı API çağrısı
+### Data Management
+- **Static data**:
+  - `public/data/line_routes.json`: bus line stop sequences
+  - `public/data/metro_topology.json`: metro topology
+  - `public/data/stops_geometry.json`: stop coordinates
+- **Cache strategy**:
+  - Metro schedule: short-lived cache for responsive UX
+  - Route data: cached at first load, refreshed on reload
+  - Forecast: re-fetched periodically while the app is open
 
-### Özel Hook'lar
-- `useDebounce`: Input debouncing
-- `useGetTransportLabel`: i18n ile taşıt türü çevirisi
-- `useMediaQuery`: Responsive breakpoint algılama
-- `useMetroSchedule`: Metro sefer verisi yönetimi
-- `useMetroTopology`: Metro ağ yapısı parsing
-- `usePwaInstall`: PWA yükleme event yönetimi
-- `useRoutePolyline`: Güzergah polyline'larını getir
-
----
-
-## 📱 Kullanıcı Akışı Örnekleri
-
-### Senaryo 1: Sabah İşe Giderken
-1. Uygulamayı açıyorsunuz → Ana harita görünümü
-2. Arama çubuğuna "M2" yazıyorsunuz
-3. M2 Metro hattına tıklıyorsunuz
-4. Panel açılıyor, saat 8:00 için:
-   - **Çok Yüksek Yoğunluk** (%92 doluluk)
-   - Tahmini 1,847 yolcu
-5. Zaman kaydırıcısını 9:00'a çekiyorsunuz:
-   - **Yüksek Yoğunluk** (%78 doluluk)
-   - Tahmini 1,562 yolcu
-6. Karar: 1 saat sonra daha rahat yolculuk
-7. Yıldız butonuna basarak favorilere ekliyorsunuz
-
-### Senaryo 2: Yeni Bir Semte Gidiyorsunuz
-1. Haritada konum butonuna basıyorsunuz
-2. GPS konumunuz haritada mavi nokta olarak görünüyor
-3. Yakındaki "500T" otobüsünü arıyorsunuz
-4. Panel açılıyor, güzergah haritada çiziliyor
-5. Başlangıç ve bitiş durakları yeşil/kırmızı işaretli
-6. Sefer bilgilerine bakıyorsunuz: "5 dk içinde"
-7. 24 saatlik grafik: Akşam 18:00'da yoğunluk artıyor
-8. Dönüş yolculuğunuzu bu bilgiye göre planlıyorsunuz
-
-### Senaryo 3: Metro İstasyonunda Bekliyorsunuz
-1. Favoriler sayfasını açıyorsunuz
-2. Kayıtlı M4 hattınıza tıklıyorsunuz
-3. İstasyon seçiciden "Kadıköy" seçiyorsunuz
-4. Yön: "Tavşantepe" yönü
-5. Canlı sefer bilgileri:
-   - **2 dakika** içinde tren geliyor
-   - Sonraki sefer: **7 dakika**
-6. "Tüm Seferleri Görüntüle" → Günlük program açılıyor
-7. Son sefer: 23:45 - Buna göre dönüş planı yapıyorsunuz
+### Custom Hooks
+- `useDebounce`: input debouncing
+- `useGetTransportLabel`: transport label translations via i18n
+- `useMediaQuery`: responsive breakpoints
+- `useMetroSchedule`: metro schedule state
+- `useMetroTopology`: parse metro topology
+- `usePwaInstall`: PWA install event handling
+- `useRoutePolyline`: route polyline builder
 
 ---
 
-## 🌟 Öne Çıkan Özellikler
+## 📱 Example User Flows
 
-### 1. Akıllı Servis Saati Yönetimi
-- Seçilen saat için hat hizmet vermiyorsa otomatik algılama
-- "Sefer Yok" durumu için özel UI gösterimi
-- İlk sefer saati bilgisi ile yönlendirme
-- Grafikte gri çubuklar ile hizmet dışı saatleri gösterme
+### Scenario 1: Morning Commute
+1. Open the app → map view
+2. Search for “M2”
+3. Tap the M2 metro line
+4. The panel opens for 08:00:
+   - **Very High** crowding (92% occupancy)
+   - Estimated 1,847 passengers
+5. Slide to 09:00:
+   - **High** crowding (78% occupancy)
+   - Estimated 1,562 passengers
+6. Decision: travel one hour later for a more comfortable ride
+7. Tap the star icon to add it to favorites
 
-### 2. Çift Yönlü Hat Desteği
-- Gidiş ve Dönüş yönleri için ayrı tahminler
-- Her yön için farklı sefer saatleri
-- Yön değiştirme ile anında veri güncelleme
-- Direction-specific route polylines
+### Scenario 2: Visiting a New Area
+1. Tap the location button on the map
+2. Your GPS location appears as a blue dot
+3. Search for nearby bus “500T”
+4. The panel opens and the route is drawn on the map
+5. Start/end stops are highlighted in green/red
+6. Check departure info: “in 5 minutes”
+7. The 24-hour chart shows crowding rising at 18:00
+8. Plan your return trip accordingly
 
-### 3. Metro Özel Özellikleri
-- **Tam Metro Ağı Görselleştirmesi**:
-  - Tüm istasyonlar sıralı görünüm
-  - İstasyon arası bağlantı çizgileri
-  - Aktarma istasyonları vurgulaması
-- **İstasyon Detayları**:
-  - Olanak bilgileri (asansör, yürüyen merdiven)
-  - Fonksiyonel kodlar
-  - Sıra numarası (1. durak, 2. durak...)
-- **Dinamik Hat Mantığı**:
-  - M1 hattı için M1A ve M1B otomatik birleştirme
-  - Yöne göre istasyon sıralaması ters çevirme
+### Scenario 3: Waiting at a Metro Station
+1. Open the Favorites page
+2. Tap your saved M4 line
+3. Choose station “Kadıköy”
+4. Direction: “towards Tavşantepe”
+5. Live departures:
+   - Train arriving in **2 minutes**
+   - Next train in **7 minutes**
+6. Tap “View full timetable” to open the daily schedule
+7. Last departure: 23:45 — plan your return accordingly
 
-### 4. Veri Görselleştirme
-- **Crowd Level Mapping**:
-  - Yüzde bazlı doluluk → Yoğunluk seviyesi dönüşümü
-  - Renk kodlaması ile hızlı algılama
-  - Progress bar ile görsel orantı
-- **24 Saatlik Grafik**:
-  - Area chart ile trend gösterimi
-  - Tooltip ile interaktif veri keşfi
-  - Gradient fill ile estetik görünüm
+---
 
-### 5. Hata Yönetimi ve Kullanıcı Bildirimleri
-- **Graceful Degradation**:
-  - API hatalarında anlamlı mesajlar
-  - Timeout durumlarında otomatik retry
-  - Network error için bağlantı kontrolü önerisi
-- **Loading States**:
-  - Skeleton screens veri yüklenirken
-  - "Yükleniyor..." metinleri ekran okuyucular için
-  - Shimmer efektli placeholder'lar
+## 🌟 Highlights
 
-### 6. Çoklu Platform Desteği
-- **iOS Optimizasyonları**:
-  - Safari için özel install talimatları
-  - Safe area insets yönetimi
-  - Touch delay optimizasyonları
-- **Android Optimizasyonları**:
+### 1. Smart Service-Hour Handling
+- Detects when a line is out of service for the selected hour
+- Dedicated UI for “No service” states
+- Shows next service time to guide the user
+- Visual “gaps” / gray bars for out-of-service hours in charts
+
+### 2. Direction-Aware Line Support
+In DoluMu, the “direction” selection exists to correctly display direction-dependent info such as **service hours, alerts, and route geometry**:
+- Different operating hours and out-of-service periods per direction (G/D)
+- Direction-specific route polyline (bus)
+- Station + direction selection for accurate metro timetables
+
+### 3. Metro-Specific Features
+- **Full network rendering**:
+  - All stations shown in order
+  - Connection segments between stations
+  - Transfer stations highlighted
+- **Station details**:
+  - Amenity info (elevator, escalator)
+  - Functional codes
+  - Station order (stop 1, stop 2, ...)
+- **Dynamic line logic**:
+  - M1 branch handling (M1A / M1B)
+  - Station order reverses based on direction
+
+### 4. Data Visualization
+- **Crowd level mapping**:
+  - Occupancy percentage → crowd level
+  - Instant recognition via color
+  - Visual proportion via progress bars
+- **24-hour chart**:
+  - Trend visualization
+  - Interactive tooltips
+  - Gradient fill for readability
+
+### 5. Error Handling & User Feedback
+- **Graceful degradation**:
+  - Clear messages on API errors
+  - Automatic retry on timeouts
+  - Connection guidance for network errors
+- **Loading states**:
+  - Skeleton screens while loading
+  - Screen-reader friendly loading text
+  - Shimmer placeholders
+
+### 6. Multi-Platform Support
+- **iOS**:
+  - Safari-specific install instructions
+  - Safe-area inset handling
+  - Touch delay optimizations
+- **Android**:
   - Chrome PWA install prompt
-  - Material Design principles
+  - Material Design aligned UX
 - **Desktop**:
   - Hover states
-  - Keyboard shortcuts
+  - Keyboard navigation
   - Resize handles
 
 ---
 
-## 🔮 Kullanıcı Değer Önerileri
+## 🔮 User Value Proposition
 
-### Zaman Tasarrufu
-- **Bekleme Süresi Azaltma**: En az kalabalık saati seçerek
-- **Akıllı Planlama**: Alternatif rotalar ve saatler karşılaştırma
-- **Anlık Bilgi**: Yola çıkmadan önce mevcut durumu görme
+### Save Time
+- Reduce waiting time by choosing less crowded hours
+- Compare alternative times and routes quickly
+- Check conditions before leaving
 
-### Konfor Artışı
-- **Kalabalıktan Kaçınma**: Yüksek yoğunluk saatlerini atlama
-- **Yer Bulma Şansı**: Düşük doluluk dönemlerini tercih etme
-- **Stres Azaltma**: Önceden bilgi sahibi olmanın rahatlığı
+### Improve Comfort
+- Avoid peak crowding
+- Increase the chance of finding a seat
+- Reduce travel stress by planning ahead
 
-### Güvenilir Bilgi
-- **Makine Öğrenmesi**: Geçmiş verilerle eğitilmiş modeller
-- **Gerçek Veriler**: İBB resmi yolcu sayıları
-- **Sürekli Güncelleme**: Her gün yeni tahminler
+### Trustworthy Guidance
+- Machine learning models trained on historical data
+- Official ridership data sources
+- Updated forecasts produced daily
 
-### Erişilebilirlik
-- **Ücretsiz**: Tamamen açık erişim
-- **Platform Bağımsız**: Web tarayıcı yeterli
-- **Offline Çalışma**: PWA ile temel özellikler her zaman hazır
+### Accessible
+- Free to use
+- Works in any modern browser
+- PWA keeps core functionality available even when offline
 
 ---
 
-## 📊 Veri Akışı ve Mimari
+## 📊 Data Flow & Architecture
 
 ```
-Kullanıcı Etkileşimi
+User Interaction
     ↓
 Next.js Frontend (React Components)
     ↓
@@ -463,64 +463,62 @@ FastAPI Backend
 └──────────────┴──────────────┴───────────────┘
 ```
 
-### Veri Güncelliği
-- **Forecast Verisi**: Günlük batch job ile 24 saat önceden hesaplanır
-- **Metro Seferleri**: 30 saniye cache ile neredeyse gerçek zamanlı
-- **Hat Durumu**: İstek anında API'den çekilir
-- **Güzergah Verileri**: Statik JSON, değişime göre güncellenir
+### Data Freshness
+- **Forecasts**: precomputed daily (24-hour horizon)
+- **Metro schedules**: near real-time experience with short-lived caching
+- **Line status**: fetched on demand
+- **Routes**: static JSON assets (updated when sources change)
 
 ---
 
-## 🎨 Tasarım Sistemi
+## 🎨 Design System
 
-Detaylı tasarım sistemi için `DESIGN_SYSTEM.md` dosyasına bakın. Ana öğeler:
+For the detailed design system, see `DESIGN_SYSTEM.md`. Key elements:
 
 - **Typography**: Inter font family, responsive font sizes
 - **Spacing**: 4px grid system (space-1 → space-20)
-- **Colors**: 
+- **Colors**:
   - Background: slate-950
   - Surface: slate-900
   - Text: gray-100
   - Primary: purple-600
   - Secondary: amber-500
-- **Shadows**: Multi-layer shadows for depth
-- **Borders**: Subtle white/10 opacity borders
+- **Shadows**: multi-layer shadows for depth
+- **Borders**: subtle white/10 opacity borders
 
 ---
 
-## 💻 Geliştirme
+## 💻 Development
 
-### Kurulum
+From the `frontend/` directory:
 
+### Install
 ```bash
 npm install
 ```
 
-### Geliştirme Sunucusu
-
+### Dev Server
 ```bash
 npm run dev
 ```
 
-Tarayıcınızda [http://localhost:3000](http://localhost:3000) adresini açın.
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ### Build
-
 ```bash
 npm run build
 npm start
 ```
 
 ### Lint
-
 ```bash
 npm run lint
 ```
 
 ---
 
-## 🙏 Teşekkürler
+## 🙏 Thanks
 
-Bu platform, İstanbul'da yaşayan milyonlarca insanın günlük yolculuklarını daha konforlu hale getirme amacıyla geliştirilmiştir. Kullanıcı geri bildirimleri ve topluluk desteği sayesinde sürekli gelişmektedir.
+This platform is built to help millions of people in Istanbul make daily trips more predictable and comfortable. It keeps improving thanks to user feedback and community support.
 
-**Keyifli yolculuklar dileriz!** 🚇🚌⛴️
+**Have a great trip!** 🚇🚌⛴️

@@ -1,6 +1,6 @@
 # DoluMu - Istanbul Public Transit Crowding Prediction Platform
 
-**AI-powered crowd and occupancy predictions for all Istanbul public transport. Check before you ride.**
+**ML-powered crowd and occupancy predictions for all Istanbul public transport. Check before you ride.**
 
 🌐 **Available in Turkish and English** | Türkçe ve İngilizce dillerinde kullanılabilir
 
@@ -8,9 +8,9 @@
 
 ## What is this Platform?
 
-**DoluMu** is a **multilingual, web-based AI prediction tool** that helps you avoid peak hours and plan more comfortable journeys on Istanbul's public transportation network covering Metro, Bus, Metrobus, and rail lines.
+**DoluMu** is a **multilingual, web-based ML prediction tool** that helps you avoid peak hours and plan more comfortable journeys on Istanbul's public transportation network covering Metro, Bus, Metrobus, and rail lines.
 
-**Important:** This platform uses **AI models trained on historical passenger data and weather forecasts** to predict crowding levels. It does **not** rely on real-time sensors or live passenger counting. All information shown represents **forecasted predictions** based on patterns learned from past data, weather conditions, and calendar factors.
+**Important:** This platform uses **ML models trained on historical passenger data and weather forecasts** to predict crowding levels. It does **not** rely on real-time sensors or live passenger counting. All information shown represents **forecasted predictions** based on patterns learned from past data, weather conditions, and calendar factors.
 
 ---
 
@@ -21,7 +21,7 @@
 - Plan your commute by checking the best departure times before you leave
 
 ### 🌦️ **Weather-Aware Predictions**
-- Our AI considers weather conditions (rain, temperature, wind) that affect ridership patterns
+- Our model considers weather conditions (rain, temperature, wind) that affect ridership patterns
 - Get more accurate predictions during adverse weather conditions when people change their travel habits
 - Real-time weather badge showing Istanbul temperature with expandable 6-hour forecast
 
@@ -55,10 +55,6 @@
 ### 🚆 **Marmaray & Rail Capacity Support**
 - Marmaray uses a static schedule integration to avoid missing-schedule gaps, keeping service-hour and capacity logic consistent.
 - Metro/rail capacities can be overridden via a static rail capacity table used by the backend.
-
-### 💡 **"Best Time to Travel" Suggestions**
-- Receive personalized recommendations for less crowded departure times
-- Compare multiple time slots to find your optimal travel window
 
 ### 📱 **Progressive Web App (PWA)**
 - Access the platform on any device - mobile, tablet, or desktop
@@ -130,7 +126,7 @@ The crowd score is **contextual and relative** to each transport line's typical 
 ## FAQ & Important Information
 
 ### **How accurate are these predictions?**
-Our AI models achieve good accuracy for typical conditions, but predictions are **estimates, not guarantees**. Accuracy is highest for:
+Our ML models achieve good accuracy for typical conditions, but predictions are **estimates, not guarantees**. Accuracy is highest for:
 - Regular weekday patterns
 - Well-established metro and metrobüs lines
 - Normal weather conditions
@@ -144,15 +140,19 @@ Predictions may be less accurate during:
 - **Passenger Data:** Istanbul Metropolitan Municipality (IBB) open data on hourly ridership
 - **Weather Data:** Open-Meteo weather forecasts and historical weather patterns
 - **Calendar Data:** Turkish holidays, school terms, and seasonal patterns
+- **Transit Topology & Timetables:** Metro Istanbul API (stations, directions, daily timetables) and IETT planned schedules (bus service windows, trips-per-hour)
+- **Traffic Index:** İBB Traffic Management Center (IMM/UYM) congestion feed (Istanbul-wide % index)
+- **Route Geometry (Map):** IETT stop coordinates and route geometries (processed into static JSON assets for the PWA and optional backend route endpoints)
 
 ### **Why don't I see real-time information?**
 This platform focuses on **prediction and planning** rather than real-time monitoring. Our goal is to help you plan ahead and avoid crowded conditions before you start your journey.
 
 ### **Which transport lines are covered?**
 The platform covers major Istanbul public transportation including:
-- Metro lines (M1, M2, M3, M4, M5, M6, M7, M11)
+- Metro & rail lines (topology/schedule-aware; M1 is exposed as `M1A`/`M1B` in the UI)
+- Marmaray (static schedule integration for consistent service-hour logic)
 - Metrobüs (BRT) routes
-- Major bus lines with sufficient historical data
+- Major bus lines with sufficient historical data (with capacity + trips-per-hour support when available)
 
 ### **Is my location data tracked?**
 The platform can use your location (if you permit it) only to show nearby transport options and provide relevant recommendations. Location data is not stored or tracked for advertising purposes.

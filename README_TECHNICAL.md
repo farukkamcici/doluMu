@@ -12,6 +12,18 @@ The UI is a **Next.js PWA** using **React Leaflet** for map-based exploration, *
 
 ---
 
+## Document Scope
+
+This file is a technical deep-dive (architecture + pipeline + reproducibility).
+
+For day-to-day tasks, prefer:
+- **Developer quickstart**: `README.md`
+- **Backend API reference**: `src/api/README_API.md`
+- **User-facing UI guide (TR)**: `frontend/README_UI.md`
+- **Frontend dev guide**: `frontend/README_TECHNICAL_UI.md`
+
+---
+
 ## Recent Updates (2025-12)
 
 - **Model**: Promoted `lgbm_transport_v7` as the API default and added blacklist-based split filtering (`config/data_filters.yaml`, `src/model/config/v7.yaml`).
@@ -392,7 +404,10 @@ The platform runs an **AsyncIOScheduler** (timezone: `Europe/Istanbul`) and sche
 ### Metro Topology & Schedule Integration
 
 **Static Topology Builder** (`src/data_prep/fetch_metro_topology.py`):
-- Calls Metro Istanbul APIs (`GetLines`, `GetStationById`, `GetDirectionsByLineIdAndStationId`) and emits `frontend/public/data/metro_topology.json` containing line metadata, stations, coordinates, accessibility flags, and valid direction IDs.
+- Loads curated line metadata from `data/raw/metro_lines_v1.json` and fetches the rest from Metro Istanbul APIs:
+  - `GET /GetStationById/{line_id}` (stations + coordinates + accessibility)
+  - `GET /GetDirectionById/{line_id}` (line-level direction IDs; station-level endpoint is unreliable)
+- Emits `frontend/public/data/metro_topology.json` containing line metadata, stations, coordinates, accessibility flags, and direction IDs.
 - Bundles helper `update_directions.py` to normalize direction labels and IDs before loading into the frontend.
 
 **Backend Metro Router** (`src/api/services/metro_service.py`, `src/api/routers/metro.py`):

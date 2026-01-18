@@ -4,6 +4,7 @@ This document explains the **frontend architecture and development workflow** fo
 
 - **User-facing UI guide**: see `frontend/README_UI.md`
 - **Backend API docs**: see `src/api/README_API.md`
+- **Project quickstart**: see `README.md`
 
 ---
 
@@ -62,6 +63,15 @@ export NEXT_PUBLIC_API_URL="http://localhost:8000/api"
 ```
 
 The value is consumed by `frontend/src/lib/api.js` via `axios.create({ baseURL: ... })`.
+
+Tip: You can also set this in `frontend/.env.local` as `NEXT_PUBLIC_API_URL=...` (keep secrets out of Git).
+
+---
+
+## Config Notes
+
+- `frontend/next.config.js` is the active config (PWA + `next-intl` plugin).
+- `frontend/next.config.mjs` is currently a minimal stub and can be ignored for deployment.
 
 ---
 
