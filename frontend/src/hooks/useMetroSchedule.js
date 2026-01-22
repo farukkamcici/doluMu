@@ -7,11 +7,13 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { getMetroSchedule } from '@/lib/metroApi';
+import { isMetroTimetableDisabled } from '@/lib/featureFlags';
 
 const REFRESH_INTERVAL = 30000; // 30 seconds
 
 export default function useMetroSchedule(stationId, directionId, options = {}) {
   const { autoRefresh = true, enabled = true } = options;
+  const disabled = isMetroTimetableDisabled();
 
   const [schedule, setSchedule] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -32,7 +34,7 @@ export default function useMetroSchedule(stationId, directionId, options = {}) {
   }, []);
 
   const fetchSchedule = useCallback(async () => {
-    if (!stationId || !directionId || !enabled) {
+    if (!stationId || !directionId || !enabled || disabled) {
       return;
     }
 
@@ -57,7 +59,7 @@ export default function useMetroSchedule(stationId, directionId, options = {}) {
         setLoading(false);
       }
     }
-  }, [stationId, directionId, enabled]);
+  }, [stationId, directionId, enabled, disabled]);
 
   // Initial fetch
   useEffect(() => {
@@ -66,7 +68,7 @@ export default function useMetroSchedule(stationId, directionId, options = {}) {
 
   // Auto-refresh timer
   useEffect(() => {
-    if (!autoRefresh || !enabled || !stationId || !directionId) {
+    if (!autoRefresh || !enabled || !stationId || !directionId || disabled) {
       return;
     }
 
@@ -79,7 +81,7 @@ export default function useMetroSchedule(stationId, directionId, options = {}) {
         clearInterval(refreshTimerRef.current);
       }
     };
-  }, [autoRefresh, enabled, stationId, directionId, fetchSchedule]);
+  }, [autoRefresh, enabled, stationId, directionId, fetchSchedule, disabled]);
 
   /**
    * Get next N arriving trains.
@@ -153,6 +155,7 @@ export default function useMetroSchedule(stationId, directionId, options = {}) {
   }, [getNextTrains]);
 
   return {
+    disabled,
     schedule,
     loading,
     error,

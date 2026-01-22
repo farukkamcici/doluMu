@@ -115,6 +115,9 @@
     "lastUpdated": "Son güncelleme",
     "noLiveGPS": "Not: Planlanan sefer saatlerine göre tahminidir",
     "metroScheduleDisclaimer": "Metro İstanbul API verilerine dayalı planlı sefer saatleri (canlı GPS takibi değil)",
+    "metroTimetableDisabledTitle": "Metro sefer saatleri geçici olarak devre dışı",
+    "metroTimetableDisabled": "Metro İstanbul API tarafındaki geçici bir sorun nedeniyle metro sefer saatleri şu anda devre dışı. Tahminler görüntülenebilir ancak dakika bazlı kalkışlar hatalı olabilir.",
+    "metroTimetableDisabledShort": "Metro sefer saatleri geçici olarak devre dışı.",
     "onPlatform": "Peronda"
   },
   "metroStation": {

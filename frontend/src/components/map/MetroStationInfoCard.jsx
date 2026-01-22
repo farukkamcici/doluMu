@@ -7,6 +7,7 @@ import { useTranslations } from 'next-intl';
 import useMetroSchedule from '@/hooks/useMetroSchedule';
 import useAppStore from '@/store/useAppStore';
 import { Skeleton } from '@/components/ui/Skeleton';
+import { isMetroTimetableDisabled } from '@/lib/featureFlags';
 
 const formatMinutes = (value) => {
   if (value == null) return '—';
@@ -19,6 +20,7 @@ export default function MetroStationInfoCard({ station, lineName, directionId, o
   const tCommon = useTranslations('common');
 
   const { metroSelection, setMetroSelection } = useAppStore();
+  const timetableDisabled = isMetroTimetableDisabled();
 
   const stationDirections = useMemo(() => {
     return station?.directions || [];
@@ -38,16 +40,17 @@ export default function MetroStationInfoCard({ station, lineName, directionId, o
   }, [stationDirections, activeDirectionId]);
 
   const {
+    disabled,
     loading,
     error,
     getNextTrains,
     lastFetchTime
   } = useMetroSchedule(station?.id, activeDirectionId, {
-    enabled: Boolean(station?.id && activeDirectionId)
+    enabled: Boolean(station?.id && activeDirectionId) && !timetableDisabled
   });
 
   const upcomingTrains = activeDirectionId ? getNextTrains(3) : [];
-  const lastUpdatedLabel = lastFetchTime
+  const lastUpdatedLabel = !timetableDisabled && lastFetchTime
     ? `${tSchedule('lastUpdated')}: ${lastFetchTime.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}`
     : null;
 
@@ -89,6 +92,13 @@ export default function MetroStationInfoCard({ station, lineName, directionId, o
       <p className="text-xs text-amber-300 flex items-center gap-2">
         <AlertTriangle size={14} />
         {tSchedule('directionUnavailable')}
+      </p>
+    );
+  } else if (timetableDisabled || disabled) {
+    content = (
+      <p className="text-xs text-amber-300 flex items-center gap-2">
+        <AlertTriangle size={14} />
+        {tSchedule('metroTimetableDisabledShort')}
       </p>
     );
   } else if (loading) {

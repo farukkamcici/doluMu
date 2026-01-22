@@ -115,6 +115,9 @@
     "lastUpdated": "Last updated",
     "noLiveGPS": "Note: Based on planned schedule",
     "metroScheduleDisclaimer": "Planned schedule from Metro Istanbul API (not live GPS tracking)",
+    "metroTimetableDisabledTitle": "Metro timetable temporarily disabled",
+    "metroTimetableDisabled": "Due to a temporary issue with the Metro Istanbul API, metro timetables are currently disabled. Forecasts may still be shown, but minute-level departures can be inaccurate.",
+    "metroTimetableDisabledShort": "Metro timetables are temporarily disabled.",
     "onPlatform": "At platform"
   },
   "metroStation": {

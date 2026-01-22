@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils';
 import useMetroTopology from '@/hooks/useMetroTopology';
 import { getCachedSchedule, setCachedSchedule } from '@/lib/metroScheduleCache';
 import { Skeleton } from '@/components/ui/Skeleton';
+import { isMetroTimetableDisabled } from '@/lib/featureFlags';
 
 export default function MetroScheduleModal({ 
   lineCode, 
@@ -17,6 +18,7 @@ export default function MetroScheduleModal({
 }) {
   const t = useTranslations('schedule');
   const { getLine } = useMetroTopology();
+  const timetableDisabled = isMetroTimetableDisabled();
   
   const [schedule, setSchedule] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -35,6 +37,7 @@ export default function MetroScheduleModal({
   }, [initialStationId, initialDirectionId]);
 
   useEffect(() => {
+    if (!isOpen || timetableDisabled) return;
     if (!isOpen || !selectedStationId || !selectedDirectionId) return;
 
     const fetchSchedule = async () => {
@@ -89,7 +92,7 @@ export default function MetroScheduleModal({
     };
 
     fetchSchedule();
-  }, [isOpen, selectedStationId, selectedDirectionId]);
+  }, [isOpen, selectedStationId, selectedDirectionId, timetableDisabled]);
 
   const getNextTimeIndex = (times) => {
     if (!times || times.length === 0) return -1;
@@ -109,6 +112,45 @@ export default function MetroScheduleModal({
   };
 
   if (!isOpen) return null;
+  if (timetableDisabled) {
+    if (typeof document === 'undefined') return null;
+    return createPortal(
+      <div className="fixed inset-0 z-[1600] flex items-center justify-center">
+        <div
+          className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+          onClick={onClose}
+        />
+        <div className="relative z-10 w-full max-w-xl mx-4 bg-slate-900 rounded-2xl shadow-2xl overflow-hidden border border-white/10">
+          <div className="sticky top-0 bg-slate-900/95 backdrop-blur-sm border-b border-white/10 px-6 py-4 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <TrainFront size={20} className="text-purple-400" />
+              <h2 className="text-lg font-bold text-gray-200">{t('fullSchedule')}</h2>
+            </div>
+            <button
+              onClick={onClose}
+              className="rounded-full bg-slate-800 p-2 text-gray-400 hover:bg-slate-700 transition-colors"
+            >
+              <X size={18} />
+            </button>
+          </div>
+          <div className="p-6">
+            <div className="rounded-xl border border-white/10 bg-gradient-to-br from-amber-950/25 to-slate-900/30 p-4">
+              <div className="flex items-start gap-3">
+                <div className="mt-0.5 flex h-9 w-9 items-center justify-center rounded-lg border border-amber-500/20 bg-amber-500/10">
+                  <Clock size={18} className="text-amber-300" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-gray-200">{t('metroTimetableDisabledTitle')}</p>
+                  <p className="text-xs text-gray-400 mt-1 leading-snug">{t('metroTimetableDisabled')}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>,
+      document.body
+    );
+  }
 
   const currentStation = metroStations.find(s => s.id === selectedStationId);
   const availableDirections = currentStation?.directions || [];

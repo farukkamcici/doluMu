@@ -8,10 +8,11 @@
 'use client';
 import { useState, useEffect, useMemo } from 'react';
 import { useTranslations } from 'next-intl';
-import { Clock, ChevronRight } from 'lucide-react';
+import { Clock, ChevronRight, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { getCachedSchedule, setCachedSchedule } from '@/lib/metroScheduleCache';
 import { Skeleton, SkeletonText } from '@/components/ui/Skeleton';
+import { isMetroTimetableDisabled } from '@/lib/featureFlags';
 
 export default function MetroScheduleWidget({ 
   lineCode,
@@ -23,6 +24,7 @@ export default function MetroScheduleWidget({
   onScheduleSummary = null
 }) {
   const t = useTranslations('schedule');
+  const timetableDisabled = isMetroTimetableDisabled();
   
   const [schedule, setSchedule] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -42,10 +44,26 @@ export default function MetroScheduleWidget({
         status: 'idle'
       });
     }
-  }, [stationId, directionId, onScheduleSummary]);
+  }, [stationId, directionId, onScheduleSummary, lineCode]);
 
   // Fetch full day schedule from backend with cache
   useEffect(() => {
+    if (timetableDisabled) {
+      setLoading(false);
+      setError(null);
+      setSchedule(null);
+      onScheduleSummary?.({
+        type: 'METRO',
+        lineCode,
+        stationId: stationId || null,
+        directionId: directionId || null,
+        hasTrips: false,
+        firstDeparture: null,
+        lastDeparture: null,
+        status: 'disabled'
+      });
+      return;
+    }
     if (!stationId || !directionId) return;
 
     const fetchSchedule = async () => {
@@ -122,7 +140,7 @@ export default function MetroScheduleWidget({
     };
 
     fetchSchedule();
-  }, [stationId, directionId, onScheduleSummary]);
+  }, [stationId, directionId, onScheduleSummary, timetableDisabled, lineCode]);
 
   useEffect(() => {
     if (!onScheduleSummary) return;
@@ -139,7 +157,7 @@ export default function MetroScheduleWidget({
       lastDeparture: scheduleTimes[scheduleTimes.length - 1] || null,
       status: scheduleTimes.length > 0 ? 'success' : 'empty'
     });
-  }, [schedule, stationId, directionId, onScheduleSummary]);
+  }, [schedule, stationId, directionId, onScheduleSummary, lineCode]);
 
   // Get upcoming departures (same logic as bus)
   const getUpcomingDepartures = (times) => {
@@ -168,6 +186,24 @@ export default function MetroScheduleWidget({
       last: times[times.length - 1]
     };
   };
+
+  if (timetableDisabled) {
+    return (
+      <div className={cn(
+        "rounded-xl border border-white/5",
+        "bg-gradient-to-br from-amber-950/30 to-slate-900/40",
+        compact ? "p-2" : "p-4"
+      )}>
+        <div className="flex items-center gap-2 mb-1.5">
+          <AlertTriangle size={14} className="text-amber-400" />
+          <h3 className="text-xs font-medium text-gray-300">{t('plannedTrips')}</h3>
+        </div>
+        <p className="text-xs text-gray-400 leading-snug">
+          {t('metroTimetableDisabled')}
+        </p>
+      </div>
+    );
+  }
 
   if (loading) {
     return (
