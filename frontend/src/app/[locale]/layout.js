@@ -31,7 +31,6 @@ export async function generateMetadata({ params }) {
     title: messages.metadata.title,
     description: messages.metadata.description,
     manifest: '/manifest.json',
-    themeColor: '#0f172a',
     icons: {
       icon: [
         { url: '/icons/icon-192x192.png', sizes: '192x192', type: 'image/png' },
@@ -41,6 +40,10 @@ export async function generateMetadata({ params }) {
     },
   };
 }
+
+export const viewport = {
+  themeColor: '#0f172a',
+};
 
 export default async function RootLayout({ children, params }) {
   const { locale } = await params;

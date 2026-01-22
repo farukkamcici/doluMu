@@ -1,7 +1,7 @@
 {
   "metadata": {
     "title": "DoluMu - İstanbul Transit Crowd Forecast",
-    "description": "AI-powered crowd and occupancy predictions for all Istanbul public transport (Metro, Bus, Ferry). Check before you ride."
+    "description": "ML-based crowd and occupancy forecasts for Istanbul public transit (Metro, bus, Metrobus and rail), using historical ridership and weather forecasts."
   },
   "navigation": {
     "map": "Map",
