@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import os
 import time
 from datetime import date, datetime, timedelta
 from typing import Dict, List, Optional, Tuple
@@ -17,6 +18,15 @@ from .metro_service import metro_service
 
 logger = logging.getLogger(__name__)
 
+_TRUE_VALUES = {"1", "true", "t", "yes", "y", "on"}
+
+
+def _get_bool_env(name: str, default: bool = False) -> bool:
+    raw = os.getenv(name)
+    if raw is None:
+        return default
+    return raw.strip().lower() in _TRUE_VALUES
+
 
 class MetroScheduleCacheService:
     """Handles persistent caching of Metro Istanbul timetables."""
@@ -25,7 +35,11 @@ class MetroScheduleCacheService:
         self.request_timeout = 12
         self.max_attempts = 3
         self.retry_backoff_seconds = 4
-        self.retention_days = 5
+        self.freeze_cache = _get_bool_env("METRO_CACHE_FREEZE", False)
+        try:
+            self.retention_days = int(os.getenv("METRO_CACHE_RETENTION_DAYS", "5"))
+        except Exception:
+            self.retention_days = 5
         self._pair_cache: Optional[List[Dict]] = None
         self._pair_lookup: Dict[str, Dict] = {}
 
@@ -155,6 +169,7 @@ class MetroScheduleCacheService:
         max_stale_days: int = 2
     ) -> Tuple[Optional[Dict], bool, Optional[MetroScheduleCache]]:
         target_date = valid_for or date.today()
+        effective_max_stale_days: Optional[int] = None if self.freeze_cache else max_stale_days
 
         # Prefer fresh entry
         fresh = db.query(MetroScheduleCache).filter(
@@ -174,7 +189,10 @@ class MetroScheduleCacheService:
             MetroScheduleCache.valid_for <= target_date
         ).order_by(MetroScheduleCache.valid_for.desc()).first()
 
-        if fallback and (target_date - fallback.valid_for).days <= max_stale_days:
+        if fallback and (
+            effective_max_stale_days is None
+            or (target_date - fallback.valid_for).days <= effective_max_stale_days
+        ):
             return fallback.payload, True, fallback
 
         return None, True, None
@@ -334,6 +352,7 @@ class MetroScheduleCacheService:
         stats = {
             'target_date': target.isoformat(),
             'total_pairs': len(pairs),
+            'cached': 0,
             'stored': 0,
             'skipped': 0,
             'failed': 0,
@@ -366,6 +385,7 @@ class MetroScheduleCacheService:
                     payload=payload,
                     status='SUCCESS'
                 )
+                stats['cached'] += 1
                 stats['stored'] += 1
             except RuntimeError as exc:
                 stats['failed'] += 1
@@ -425,6 +445,9 @@ class MetroScheduleCacheService:
     # ------------------------------------------------------------------
 
     def cleanup_old_entries(self, db: Session, *, older_than_days: Optional[int] = None) -> int:
+        if self.freeze_cache:
+            logger.warning("🧊 Metro cache freeze enabled; skipping cleanup of metro_schedules")
+            return 0
         cutoff_days = older_than_days or self.retention_days
         cutoff = date.today() - timedelta(days=cutoff_days)
         deleted = db.query(MetroScheduleCache).filter(
@@ -458,7 +481,8 @@ class MetroScheduleCacheService:
             'storage': {
                 'entries_total': db.query(func.count(MetroScheduleCache.id)).scalar() or 0,
                 'last_entry_at': last_entry.fetched_at.isoformat() if last_entry else None,
-                'retention_days': self.retention_days
+                'retention_days': self.retention_days,
+                'freeze_enabled': self.freeze_cache,
             }
         }
 

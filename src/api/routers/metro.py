@@ -39,7 +39,8 @@ from ..services.metro_service import metro_service
 from ..services.metro_schedule_cache import metro_schedule_cache_service
 from ..clients.metro_api import metro_api_client
 from ..db import get_db
-from ..models import MetroScheduleCache
+from ..models import AdminUser, MetroScheduleCache
+from ..auth import get_current_user
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/metro", tags=["Metro"])
@@ -541,7 +542,11 @@ async def get_travel_duration(request: TimeTableRequest = Body(...)):
     description="Admin endpoint to manually clear metro-related caches",
     tags=["Admin", "Metro"]
 )
-async def clear_metro_cache(cache_type: Optional[str] = None, db: Session = Depends(get_db)):
+async def clear_metro_cache(
+    cache_type: Optional[str] = None,
+    db: Session = Depends(get_db),
+    current_user: AdminUser = Depends(get_current_user),
+):
     """
     Clear metro data caches.
     
@@ -577,7 +582,9 @@ async def clear_metro_cache(cache_type: Optional[str] = None, db: Session = Depe
     description="Get current cache sizes and TTL info",
     tags=["Admin", "Metro"]
 )
-async def get_cache_stats():
+async def get_cache_stats(
+    current_user: AdminUser = Depends(get_current_user),
+):
     """
     Get cache statistics for monitoring.
     
@@ -604,7 +611,9 @@ async def get_cache_stats():
     description="Force reload of metro_topology.json from disk",
     tags=["Admin", "Metro"]
 )
-async def reload_topology():
+async def reload_topology(
+    current_user: AdminUser = Depends(get_current_user),
+):
     """
     Reload metro topology from file.
     

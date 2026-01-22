@@ -328,6 +328,42 @@ def prefetch_metro_schedules(target_date: Optional[date] = None, force: bool = F
     job_log = None
 
     try:
+        if metro_schedule_cache_service.freeze_cache:
+            logger.warning("🧊 [CRON] Metro cache freeze enabled; skipping metro timetable prefetch for %s", target)
+
+            job_log = JobExecution(
+                job_type="metro_schedule_prefetch",
+                target_date=target,
+                status="SUCCESS",
+                start_time=datetime.now(),
+                end_time=datetime.now(),
+                records_processed=0,
+                job_metadata={"force": force, "valid_for": str(target), "freeze_enabled": True}
+            )
+            db.add(job_log)
+            db.commit()
+
+            metro_cache_state['last_run'] = datetime.now()
+            metro_cache_state['last_result'] = {
+                "target_date": target.isoformat(),
+                "total_pairs": len(metro_schedule_cache_service.get_station_direction_pairs()),
+                "cached": 0,
+                "stored": 0,
+                "skipped": 0,
+                "failed": 0,
+                "failed_pairs": [],
+                "skipped_due_to_freeze": True,
+            }
+            metro_cache_state['current_valid_for'] = target
+            metro_cache_state['pending_pairs'] = {}
+            _cancel_metro_retry_job()
+
+            job_stats[job_name]['last_run'] = datetime.now()
+            job_stats[job_name]['run_count'] += 1
+            job_stats[job_name]['last_status'] = 'skipped'
+
+            return metro_cache_state['last_result']
+
         logger.info("🚇 [CRON] Starting metro timetable prefetch for %s", target)
         
         # Create job log
@@ -349,7 +385,8 @@ def prefetch_metro_schedules(target_date: Optional[date] = None, force: bool = F
         )
 
         # Update job log
-        job_log.status = "SUCCESS" if result.get('failed') == 0 else "SUCCESS"
+        failed = int(result.get('failed', 0) or 0)
+        job_log.status = "SUCCESS" if failed == 0 else "FAILED"
         job_log.end_time = datetime.now()
         job_log.records_processed = result.get('cached', 0)
         job_log.job_metadata.update({
@@ -400,6 +437,10 @@ def prefetch_metro_schedules(target_date: Optional[date] = None, force: bool = F
 
 def retry_failed_metro_pairs():
     """Retry fetching pending metro schedule pairs."""
+    if metro_schedule_cache_service.freeze_cache:
+        _cancel_metro_retry_job()
+        return
+
     pending = metro_cache_state.get('pending_pairs') or {}
     if not pending:
         _cancel_metro_retry_job()
@@ -456,6 +497,8 @@ def _set_pending_pairs(failed_pairs: List[Dict], valid_for: date):
 
 
 def _schedule_metro_retry_job():
+    if metro_schedule_cache_service.freeze_cache:
+        return
     if metro_cache_state.get('retry_job_id'):
         return
     job = scheduler.add_job(
