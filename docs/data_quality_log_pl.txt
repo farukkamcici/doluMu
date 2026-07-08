@@ -1,0 +1,71 @@
+[2025-11-16 16:41:53] 📗 Polars veri dosyası yükleniyor: ../../data/processed/features_pl.parquet
+[2025-11-16 16:41:54] Yüklendi ✅ 12189610 satır × 21 sütun
+[2025-11-16 16:41:54] 
+=== SÜTUN TİPLERİ ===
+[2025-11-16 16:41:54] datetime: Datetime(time_unit='ns', time_zone=None)
+[2025-11-16 16:41:54] line_name: String
+[2025-11-16 16:41:54] y: Int64
+[2025-11-16 16:41:54] hour_of_day: Int64
+[2025-11-16 16:41:54] lag_24h: Int64
+[2025-11-16 16:41:54] lag_48h: Int64
+[2025-11-16 16:41:54] lag_168h: Int64
+[2025-11-16 16:41:54] roll_mean_24h: Float64
+[2025-11-16 16:41:54] roll_std_24h: Float64
+[2025-11-16 16:41:54] temperature_2m: Float32
+[2025-11-16 16:41:54] precipitation: Float32
+[2025-11-16 16:41:54] wind_speed_10m: Float32
+[2025-11-16 16:41:54] day_of_week: Int8
+[2025-11-16 16:41:54] is_weekend: Int8
+[2025-11-16 16:41:54] month: Int8
+[2025-11-16 16:41:54] year: Int32
+[2025-11-16 16:41:54] season: String
+[2025-11-16 16:41:54] is_school_term: Int8
+[2025-11-16 16:41:54] is_holiday: Int8
+[2025-11-16 16:41:54] holiday_win_m1: Int8
+[2025-11-16 16:41:54] holiday_win_p1: Int8
+[2025-11-16 16:41:54] 
+=== EKSİK DEĞER ANALİZİ ===
+[2025-11-16 16:41:54] lag_168h: 948 eksik değer (%0.01)
+[2025-11-16 16:41:54] 
+=== SAYISAL KOLON ÖZETİ ===
+[2025-11-16 16:41:54] shape: (1, 72)
+┌───────┬────────────┬────────────┬────────────┬───┬───────────┬───────────┬───────────┬───────────┐
+│ y_min ┆ hour_of_da ┆ lag_24h_mi ┆ lag_48h_mi ┆ … ┆ is_school ┆ is_holida ┆ holiday_w ┆ holiday_w │
+│ ---   ┆ y_min      ┆ n          ┆ n          ┆   ┆ _term_std ┆ y_std     ┆ in_m1_std ┆ in_p1_std │
+│ i64   ┆ ---        ┆ ---        ┆ ---        ┆   ┆ ---       ┆ ---       ┆ ---       ┆ ---       │
+│       ┆ i64        ┆ i64        ┆ i64        ┆   ┆ f64       ┆ f64       ┆ f64       ┆ f64       │
+╞═══════╪════════════╪════════════╪════════════╪═══╪═══════════╪═══════════╪═══════════╪═══════════╡
+│ 1     ┆ 0          ┆ 1          ┆ 1          ┆ … ┆ 0.440699  ┆ 0.193366  ┆ 0.197313  ┆ 0.194178  │
+└───────┴────────────┴────────────┴────────────┴───┴───────────┴───────────┴───────────┴───────────┘
+[2025-11-16 16:41:54] 
+=== MANTIK DIŞI DEĞERLER ===
+[2025-11-16 16:41:54] 'y' sütununda negatif değer yok ✅
+[2025-11-16 16:41:54] Sıcaklık değerleri mantıklı aralıkta ✅
+[2025-11-16 16:41:54] Rüzgar hızı mantıklı aralıkta ✅
+[2025-11-16 16:41:54] 
+=== BENZERSİZ DEĞER SAYILARI ===
+[2025-11-16 16:41:54] datetime: 22853 benzersiz değer
+[2025-11-16 16:41:54] line_name: 948 benzersiz değer
+[2025-11-16 16:41:54] y: 46976 benzersiz değer
+[2025-11-16 16:41:54] hour_of_day: 24 benzersiz değer
+[2025-11-16 16:41:54] lag_24h: 46981 benzersiz değer
+[2025-11-16 16:41:54] lag_48h: 46979 benzersiz değer
+[2025-11-16 16:41:55] lag_168h: 46980 benzersiz değer
+[2025-11-16 16:41:55] roll_mean_24h: 251046 benzersiz değer
+[2025-11-16 16:41:55] roll_std_24h: 11837377 benzersiz değer
+[2025-11-16 16:41:55] temperature_2m: 775 benzersiz değer
+[2025-11-16 16:41:55] precipitation: 71 benzersiz değer
+[2025-11-16 16:41:55] wind_speed_10m: 2556 benzersiz değer
+[2025-11-16 16:41:55] day_of_week: 7 benzersiz değer
+[2025-11-16 16:41:55] is_weekend: 2 benzersiz değer
+[2025-11-16 16:41:55] month: 12 benzersiz değer
+[2025-11-16 16:41:55] year: 3 benzersiz değer
+[2025-11-16 16:41:55] season: 4 benzersiz değer
+[2025-11-16 16:41:55] is_school_term: 2 benzersiz değer
+[2025-11-16 16:41:55] is_holiday: 2 benzersiz değer
+[2025-11-16 16:41:55] holiday_win_m1: 2 benzersiz değer
+[2025-11-16 16:41:55] holiday_win_p1: 2 benzersiz değer
+[2025-11-16 16:41:55] 
+✅ Polars veri kalite taraması tamamlandı.
+[2025-11-16 16:41:55] Kaynak: features_pl.parquet
+[2025-11-16 16:41:55] Log dosyası: /Users/farukkamcici/PycharmProjects/ibb-transport/src/features/../../docs/data_quality_log_pl.txt

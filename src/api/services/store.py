@@ -10,7 +10,7 @@ class FeatureStore:
     def __init__(self, features_path='data/processed/features_pl.parquet',
                  calendar_path='data/processed/calendar_dim.parquet',
                  max_seasonal_lookback_years=3):
-        print("Initializing Feature Store with Polars... 🐻‍❄️")
+        logger.info("Initializing Feature Store with Polars...")
         start_time = time.time()
         self.max_seasonal_lookback_years = max_seasonal_lookback_years
         
@@ -46,15 +46,15 @@ class FeatureStore:
             self.global_average_max = max_caps["max_y"].mean() if not max_caps.is_empty() else 0
 
             # 4. Pre-compute latest lags per line/hour/month/day for fast lookup
-            print("Building lag lookup cache...")
+            logger.info("Building lag lookup cache...")
             self.lag_lookup = self._build_lag_lookup()
-            
+
             elapsed = time.time() - start_time
-            print(f"Feature Store initialized successfully in {elapsed:.2f}s.")
-            print(f"Seasonal lookback window: {max_seasonal_lookback_years} years")
+            logger.info("Feature Store initialized successfully in %.2fs.", elapsed)
+            logger.info("Seasonal lookback window: %s years", max_seasonal_lookback_years)
 
         except Exception as e:
-            print(f"Error initializing FeatureStore: {e}. Make sure data files exist.")
+            logger.exception("Error initializing FeatureStore: %s. Make sure data files exist.", e)
             self.features_df = None
             self.calendar_df = None
             self.line_max_capacity = {}

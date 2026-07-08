@@ -180,4 +180,20 @@ Notification features are planned for future releases to alert you about:
 
 ---
 
+## For Developers
+
+- **Architecture & backend internals:** [`README_TECHNICAL.md`](README_TECHNICAL.md), [`src/api/README_API.md`](src/api/README_API.md)
+- **Frontend:** [`frontend/README_UI.md`](frontend/README_UI.md), [`frontend/README_TECHNICAL_UI.md`](frontend/README_TECHNICAL_UI.md)
+- **ML pipeline (offline):** [`ML_PIPELINE_README.md`](ML_PIPELINE_README.md)
+- **Full documentation index:** [`docs/`](docs/README.md) — deployment runbook, subsystem docs (metro, capacity), PRD, technical Q&A.
+
+### Stack at a glance
+
+- **Backend:** FastAPI + LightGBM + Polars, served by Uvicorn in Docker. APScheduler runs the daily forecast and schedule-cache cron jobs in-process. Public forecast endpoints read precomputed predictions from Postgres.
+- **Database:** Postgres 15 (Docker volume).
+- **Frontend:** Next.js PWA on Vercel (unaffected by backend deploys).
+- **Production:** self-hosted on Hetzner behind Caddy (automatic TLS). Deployment & disaster-recovery runbook: [`docs/MIGRATION_HETZNER.md`](docs/MIGRATION_HETZNER.md).
+
+---
+
 *This platform is designed to make Istanbul's public transportation more comfortable and predictable for everyone. While we strive for accuracy, please use these predictions as guidance alongside your own experience and local conditions.*

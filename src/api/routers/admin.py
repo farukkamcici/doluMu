@@ -1,10 +1,11 @@
+import logging
 from fastapi import APIRouter, Depends, BackgroundTasks, HTTPException
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from typing import List, Dict, Any, Optional
 from pydantic import BaseModel
-from datetime import date, timedelta, datetime
+from datetime import date, timedelta, datetime, timezone
 import lightgbm as lgb
 from ..db import get_db
 from ..state import get_model, get_feature_store
@@ -18,6 +19,7 @@ from ..auth import authenticate_user, create_access_token, get_current_user, get
 from .. import scheduler as sched
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
 
 
 # Schemas
@@ -102,7 +104,7 @@ async def login(
         )
     
     # Update last login time
-    user.last_login = datetime.utcnow()
+    user.last_login = datetime.now(timezone.utc)
     db.commit()
     
     # Create access token
@@ -168,7 +170,7 @@ def trigger_forecast_job(
         target_date = bus_schedule_cache_service.today_istanbul()
 
     end_date = target_date + timedelta(days=num_days - 1)
-    print(f"Adding forecast job for {num_days} day(s) ({target_date} to {end_date}) to background tasks.")
+    logger.info(f"Adding forecast job for {num_days} day(s) ({target_date} to {end_date}) to background tasks.")
     background_tasks.add_task(run_daily_forecast_job, db, store, model, target_date, num_days)
 
     return {
@@ -587,7 +589,7 @@ def create_admin_user(
     db.commit()
     db.refresh(new_user)
     
-    print(f"✅ Admin user '{user_data.username}' created by '{current_user.username}'")
+    logger.info(f"Admin user '{user_data.username}' created by '{current_user.username}'")
     
     return new_user
 
@@ -625,7 +627,7 @@ def change_password(
     current_user.hashed_password = get_password_hash(new_password)
     db.commit()
     
-    print(f"✅ Password changed for admin user '{current_user.username}'")
+    logger.info(f"Password changed for admin user '{current_user.username}'")
     
     return {"message": "Password changed successfully"}
 
@@ -667,7 +669,7 @@ def delete_admin_user(
     db.delete(user_to_delete)
     db.commit()
     
-    print(f"🗑️  Admin user '{username}' deleted by '{current_user.username}'")
+    logger.info(f"Admin user '{username}' deleted by '{current_user.username}'")
     
     return {"message": f"Admin user '{username}' deleted successfully"}
 
@@ -699,7 +701,7 @@ def cleanup_all_database(
         
         db.commit()
         
-        print(f"🗑️  Database cleanup by '{current_user.username}': {forecast_count} forecasts + {job_count} jobs deleted")
+        logger.info(f"Database cleanup by '{current_user.username}': {forecast_count} forecasts + {job_count} jobs deleted")
         
         return {
             "message": "Database cleaned successfully",
@@ -709,7 +711,7 @@ def cleanup_all_database(
         
     except Exception as e:
         db.rollback()
-        print(f"❌ Database cleanup failed: {str(e)}")
+        logger.error(f"Database cleanup failed: {str(e)}")
         raise HTTPException(
             status_code=500,
             detail=f"Database cleanup failed: {str(e)}"

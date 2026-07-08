@@ -2,7 +2,8 @@
 Authentication utilities for admin panel access.
 Uses JWT tokens for session management.
 """
-from datetime import datetime, timedelta
+import logging
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 from jose import JWTError, jwt
 from passlib.context import CryptContext
@@ -14,8 +15,14 @@ import os
 from .db import get_db
 from .models import AdminUser
 
+logger = logging.getLogger(__name__)
+
 # Password hashing
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+# Insecure default kept only as a last-resort fallback; a loud warning is
+# emitted at startup whenever it is used so it never slips into production.
+DEFAULT_ADMIN_PASSWORD = "admin123"
 
 # JWT settings from environment
 SECRET_KEY = os.getenv("JWT_SECRET_KEY")
@@ -40,7 +47,6 @@ def get_password_hash(password: str) -> str:
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
     """Create a JWT access token."""
-    from datetime import timezone
     to_encode = data.copy()
     if expires_delta:
         expire = datetime.now(timezone.utc) + expires_delta
@@ -91,14 +97,23 @@ def create_admin_user_if_not_exists(db: Session):
     Called during application startup.
     """
     admin_username = os.getenv("ADMIN_USERNAME", "admin")
-    admin_password = os.getenv("ADMIN_PASSWORD", "admin123")
-    
+    admin_password = os.getenv("ADMIN_PASSWORD", DEFAULT_ADMIN_PASSWORD)
+
+    if admin_password == DEFAULT_ADMIN_PASSWORD:
+        logger.critical(
+            "ADMIN_PASSWORD is unset or using the insecure default. "
+            "Set a strong ADMIN_PASSWORD in the environment before exposing the admin panel."
+        )
+
     if len(admin_password) > 72:
-        print(f"⚠️  Warning: ADMIN_PASSWORD is {len(admin_password)} bytes, truncating to 72 bytes for bcrypt compatibility")
+        logger.warning(
+            "ADMIN_PASSWORD is %d bytes; truncating to 72 bytes for bcrypt compatibility.",
+            len(admin_password),
+        )
         admin_password = admin_password[:72]
-    
+
     existing_user = db.query(AdminUser).filter(AdminUser.username == admin_username).first()
-    
+
     if not existing_user:
         hashed_password = get_password_hash(admin_password)
         admin_user = AdminUser(
@@ -107,6 +122,6 @@ def create_admin_user_if_not_exists(db: Session):
         )
         db.add(admin_user)
         db.commit()
-        print(f"✅ Created admin user: {admin_username}")
+        logger.info("Created admin user: %s", admin_username)
     else:
-        print(f"ℹ️  Admin user '{admin_username}' already exists")
+        logger.info("Admin user '%s' already exists", admin_username)

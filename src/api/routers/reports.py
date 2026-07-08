@@ -1,7 +1,8 @@
+import logging
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from typing import List, Optional
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 
 from ..db import get_db
 from ..models import UserReport, AdminUser
@@ -9,6 +10,7 @@ from ..schemas import ReportCreate, ReportResponse, ReportUpdate
 from ..auth import get_current_user
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
 
 
 # ============================================
@@ -43,13 +45,13 @@ def create_report(
         db.commit()
         db.refresh(new_report)
         
-        print(f"✅ New {report.report_type.value} report created (ID: {new_report.id})")
+        logger.info(f"New {report.report_type.value} report created (ID: {new_report.id})")
         
         return new_report
         
     except Exception as e:
         db.rollback()
-        print(f"❌ Error creating report: {str(e)}")
+        logger.error(f"Error creating report: {str(e)}")
         raise HTTPException(
             status_code=500,
             detail="Failed to create report. Please try again later."
@@ -154,13 +156,13 @@ def update_report_status(
         db.commit()
         db.refresh(report)
         
-        print(f"✅ Report {report_id} status updated: {old_status} → {report_update.status} by {current_user.username}")
+        logger.info(f"Report {report_id} status updated: {old_status} → {report_update.status} by {current_user.username}")
         
         return report
         
     except Exception as e:
         db.rollback()
-        print(f"❌ Error updating report {report_id}: {str(e)}")
+        logger.error(f"Error updating report {report_id}: {str(e)}")
         raise HTTPException(
             status_code=500,
             detail="Failed to update report status"
@@ -190,13 +192,13 @@ def delete_report(
         db.delete(report)
         db.commit()
         
-        print(f"🗑️  Report {report_id} ({report.report_type}) deleted by {current_user.username}")
+        logger.info(f"Report {report_id} ({report.report_type}) deleted by {current_user.username}")
         
         return {"message": f"Report {report_id} deleted successfully"}
         
     except Exception as e:
         db.rollback()
-        print(f"❌ Error deleting report {report_id}: {str(e)}")
+        logger.error(f"Error deleting report {report_id}: {str(e)}")
         raise HTTPException(
             status_code=500,
             detail="Failed to delete report"
@@ -236,7 +238,7 @@ def get_reports_summary(
     ).group_by(UserReport.report_type).all()
     
     # Recent reports (last 7 days)
-    seven_days_ago = datetime.utcnow() - timedelta(days=7)
+    seven_days_ago = datetime.now(timezone.utc) - timedelta(days=7)
     recent_count = db.query(UserReport).filter(
         UserReport.created_at >= seven_days_ago
     ).count()

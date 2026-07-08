@@ -12,7 +12,7 @@ Data is stored per (line_code, valid_for, day_type) where day_type is one of:
 from __future__ import annotations
 
 import logging
-from datetime import date, datetime, time, timedelta
+from datetime import date, datetime, time, timedelta, timezone
 from typing import Dict, List, Optional, Tuple
 
 import requests
@@ -275,7 +275,7 @@ class BusScheduleCacheService:
             BusScheduleCache.day_type == day_type,
         ).one_or_none()
 
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         if record:
             record.payload = payload
             record.fetched_at = now

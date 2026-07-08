@@ -1,5 +1,6 @@
-import lightgbm as lgb
+import logging
 import os
+import lightgbm as lgb
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
@@ -10,50 +11,59 @@ from .services.store import FeatureStore
 from .services.capacity_store import CapacityStore
 from .services.route_service import route_service
 from .utils.init_db import init_db
+from .auth import create_admin_user_if_not_exists
 from .state import AppState
 from .scheduler import start_scheduler, shutdown_scheduler
 
+logging.basicConfig(
+    level=os.getenv("LOG_LEVEL", "INFO").upper(),
+    format="%(asctime)s %(levelname)s %(name)s: %(message)s",
+)
+logger = logging.getLogger(__name__)
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Initialize database
+    # Initialize database schema, seed data, and the admin user
     db = SessionLocal()
     try:
         init_db(db)
+        create_admin_user_if_not_exists(db)
     finally:
         db.close()
 
     # Load the LightGBM model and assign to AppState
-    print("Loading model...")
+    logger.info("Loading model...")
     model_path = os.getenv("MODEL_PATH", "models/lgbm_transport_v7.txt")
     try:
         AppState.model = lgb.Booster(model_file=model_path)
-        print("Model loaded successfully.")
+        logger.info("Model loaded successfully.")
     except lgb.basic.LightGBMError as e:
-        print(f"Error loading model: {e}")
+        logger.error("Error loading model: %s", e)
         AppState.model = None
-    
+
     # Initialize the Feature Store and assign to AppState
     AppState.store = FeatureStore()
 
     # Initialize capacity artifacts store (parquet snapshots)
     AppState.capacity_store = CapacityStore()
-    
+
     # Load route shapes into memory
-    print("Loading route shape data...")
+    logger.info("Loading route shape data...")
     route_service.load_data()
-    print("✅ Route shapes ready")
-    
+    logger.info("Route shapes ready")
+
     # Start the cron job scheduler
-    print("Starting APScheduler for cron jobs...")
+    logger.info("Starting APScheduler for cron jobs...")
     start_scheduler()
-    print("✅ Scheduler initialized")
-    
+    logger.info("Scheduler initialized")
+
     yield
-    
+
     # Clean up on shutdown
-    print("Shutting down scheduler...")
+    logger.info("Shutting down scheduler...")
     shutdown_scheduler()
-    print("Clearing model and feature store cache...")
+    logger.info("Clearing model and feature store cache...")
     AppState.model = None
     AppState.store = None
     AppState.capacity_store = None
@@ -91,7 +101,7 @@ app.add_middleware(
 # Global exception handler
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
-    print(f"An unexpected error occurred: {exc}")
+    logger.exception("Unhandled error on %s %s: %s", request.method, request.url.path, exc)
     return JSONResponse(
         status_code=500,
         content={"message": "An internal server error occurred."},

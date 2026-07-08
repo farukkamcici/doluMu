@@ -1,0 +1,82 @@
+[2025-11-16 16:42:19] 📘 Pandas veri dosyası yükleniyor: ../../data/processed/features_pd.parquet
+[2025-11-16 16:42:20] Yüklendi ✅ 12189610 satır × 21 sütun
+[2025-11-16 16:42:20] 
+=== SÜTUN TİPLERİ ===
+[2025-11-16 16:42:20] datetime          datetime64[ns]
+line_name                 object
+y                          int64
+hour_of_day                int64
+lag_24h                    int64
+lag_48h                    int64
+lag_168h                 float64
+roll_mean_24h            float64
+roll_std_24h             float64
+temperature_2m           float32
+precipitation            float32
+wind_speed_10m           float32
+day_of_week                 int8
+is_weekend                  int8
+month                       int8
+year                       int32
+season                    object
+is_school_term              int8
+is_holiday                  int8
+holiday_win_m1              int8
+holiday_win_p1              int8
+dtype: object
+[2025-11-16 16:42:20] 
+=== EKSİK DEĞER ANALİZİ ===
+[2025-11-16 16:42:21] lag_168h: 948 eksik değer (%0.01)
+[2025-11-16 16:42:21] 
+=== SAYISAL KOLON ÖZETİ ===
+[2025-11-16 16:42:24]                      min        max      mean       std
+y                  1.000  94091.000   517.000  2688.617
+hour_of_day        0.000     23.000    13.459     5.470
+lag_24h            1.000  94091.000   517.285  2690.020
+lag_48h            1.000  94091.000   517.040  2688.795
+lag_168h           1.000  94091.000   516.982  2688.098
+roll_mean_24h      1.000  41728.458   517.213  2246.267
+roll_std_24h       0.000  30325.180   319.032  1476.922
+temperature_2m    -6.444     38.806    16.420     7.839
+precipitation      0.000     14.000     0.081     0.394
+wind_speed_10m     0.000     52.855    15.547     7.710
+day_of_week        1.000      7.000     3.886     1.957
+is_weekend         0.000      1.000     0.404     0.491
+month              1.000     12.000     6.065     3.321
+year            2022.000   2024.000  2022.880     0.772
+is_school_term     0.000      1.000     0.736     0.441
+is_holiday         0.000      1.000     0.039     0.193
+holiday_win_m1     0.000      1.000     0.041     0.197
+holiday_win_p1     0.000      1.000     0.039     0.194
+[2025-11-16 16:42:24] 
+=== MANTIK DIŞI DEĞERLER ===
+[2025-11-16 16:42:24] 'y' sütununda negatif değer yok ✅
+[2025-11-16 16:42:24] Sıcaklık değerleri mantıklı aralıkta ✅
+[2025-11-16 16:42:24] Rüzgar hızı mantıklı aralıkta ✅
+[2025-11-16 16:42:24] 
+=== BENZERSİZ DEĞER SAYILARI ===
+[2025-11-16 16:42:24] datetime: 22853 benzersiz değer
+[2025-11-16 16:42:24] line_name: 948 benzersiz değer
+[2025-11-16 16:42:24] y: 46976 benzersiz değer
+[2025-11-16 16:42:24] hour_of_day: 24 benzersiz değer
+[2025-11-16 16:42:25] lag_24h: 46981 benzersiz değer
+[2025-11-16 16:42:25] lag_48h: 46979 benzersiz değer
+[2025-11-16 16:42:25] lag_168h: 46979 benzersiz değer
+[2025-11-16 16:42:25] roll_mean_24h: 251046 benzersiz değer
+[2025-11-16 16:42:26] roll_std_24h: 11837377 benzersiz değer
+[2025-11-16 16:42:26] temperature_2m: 775 benzersiz değer
+[2025-11-16 16:42:26] precipitation: 71 benzersiz değer
+[2025-11-16 16:42:26] wind_speed_10m: 2556 benzersiz değer
+[2025-11-16 16:42:26] day_of_week: 7 benzersiz değer
+[2025-11-16 16:42:26] is_weekend: 2 benzersiz değer
+[2025-11-16 16:42:26] month: 12 benzersiz değer
+[2025-11-16 16:42:26] year: 3 benzersiz değer
+[2025-11-16 16:42:26] season: 4 benzersiz değer
+[2025-11-16 16:42:26] is_school_term: 2 benzersiz değer
+[2025-11-16 16:42:26] is_holiday: 2 benzersiz değer
+[2025-11-16 16:42:27] holiday_win_m1: 2 benzersiz değer
+[2025-11-16 16:42:27] holiday_win_p1: 2 benzersiz değer
+[2025-11-16 16:42:27] 
+✅ Pandas veri kalite taraması tamamlandı.
+[2025-11-16 16:42:27] Kaynak: features_pd.parquet
+[2025-11-16 16:42:27] Log dosyası: /Users/farukkamcici/PycharmProjects/ibb-transport/src/features/../../docs/data_quality_log.txt

@@ -1,3 +1,4 @@
+import logging
 from sqlalchemy.orm import Session
 from sqlalchemy.dialects.postgresql import insert
 import pandas as pd
@@ -15,6 +16,8 @@ from .bus_schedule_cache import bus_schedule_cache_service
 from .metro_schedule_cache import metro_schedule_cache_service
 from .metro_service import metro_service
 from .marmaray_service import marmaray_service
+
+logger = logging.getLogger(__name__)
 
 # Placeholder for Istanbul coordinates
 ISTANBUL_LAT = 41.0082
@@ -63,12 +66,12 @@ def run_daily_forecast_job(
         db.commit()
         db.refresh(job_log)
 
-        print(f"Starting daily forecast job for {num_days} day(s) starting from: {target_date} (Job ID: {job_log.id})")
+        logger.info(f"Starting daily forecast job for {num_days} day(s) starting from: {target_date} (Job ID: {job_log.id})")
 
         # Fetch all available lines
         all_lines = db.query(TransportLine.line_name).all()
         line_names = [line[0] for line in all_lines]
-        print(f"Found {len(line_names)} lines to process.")
+        logger.info(f"Found {len(line_names)} lines to process.")
 
         rail_line_codes = set(metro_service.get_lines().keys())
 
@@ -81,34 +84,32 @@ def run_daily_forecast_job(
             date_str = current_date.strftime("%Y-%m-%d")
             forecast_date = current_date.date() if hasattr(current_date, "date") else current_date
             
-            print(f"\n{'='*60}")
-            print(f"Processing day {day_offset + 1}/{num_days}: {date_str}")
-            print(f"{'='*60}")
-            
+            logger.info("Processing day %d/%d: %s", day_offset + 1, num_days, date_str)
+
             # Fetch weather SYNC
-            print(f"Fetching weather data for {date_str}...")
+            logger.info(f"Fetching weather data for {date_str}...")
             daily_weather_data = fetch_daily_weather_data_sync(date_str, ISTANBUL_LAT, ISTANBUL_LON)
-            print(f"Weather data fetched: {len(daily_weather_data)} hours available.")
+            logger.info(f"Weather data fetched: {len(daily_weather_data)} hours available.")
 
             forecasts_to_insert = []
 
             # Loop through lines and hours
-            print(f"Starting prediction loop for {len(line_names)} lines × 24 hours...")
+            logger.info(f"Starting prediction loop for {len(line_names)} lines × 24 hours...")
             
             # First check if calendar features exist
             calendar_features = store.get_calendar_features(date_str)
             if not calendar_features:
-                error_msg = f"❌ CRITICAL: No calendar features found for {date_str}! Job cannot proceed."
-                print(error_msg)
+                error_msg = f"No calendar features found for {date_str}! Job cannot proceed."
+                logger.error(error_msg)
                 raise ValueError(error_msg)
             
-            print(f"✓ Calendar features loaded: {calendar_features}")
+            logger.info(f"Calendar features loaded: {calendar_features}")
             
-            print("Batch-loading lag features for all lines...")
+            logger.info("Batch-loading lag features for all lines...")
             lag_batch = store.get_batch_historical_lags(line_names, date_str)
-            print(f"✓ Lag features loaded: {len(lag_batch.get('seasonal', {}))} seasonal, {len(lag_batch.get('fallback', {}))} fallback")
+            logger.info(f"Lag features loaded: {len(lag_batch.get('seasonal', {}))} seasonal, {len(lag_batch.get('fallback', {}))} fallback")
 
-            print(f"Loading bus schedule trips-per-hour for {date_str}...")
+            logger.info(f"Loading bus schedule trips-per-hour for {date_str}...")
             trips_per_hour_by_line = {}
             day_type = bus_schedule_cache_service.day_type_for_date(forecast_date)
             cache_hits = 0
@@ -121,7 +122,7 @@ def run_daily_forecast_job(
             
             for idx, line_name in enumerate(line_names):
                 if idx % 200 == 0:
-                    print(f"Loading schedules: {idx}/{len(line_names)} lines (target={date_str}, day_type={day_type})...")
+                    logger.debug("Loading schedules: %d/%d lines (target=%s, day_type=%s)...", idx, len(line_names), date_str, day_type)
                 
                 # Marmaray: compute trips-per-hour from static schedule
                 if line_name == 'MARMARAY':
@@ -156,15 +157,15 @@ def run_daily_forecast_job(
                 if payload is None:
                     cache_misses += 1
                     if cache_misses <= 10:
-                        print(f"⚠️  No cached schedule for {line_name} (day_type={day_type}), using fallback")
+                        logger.debug("No cached schedule for %s (day_type=%s), using fallback", line_name, day_type)
                     trips_per_hour_by_line[line_name] = FALLBACK_TRIPS_PATTERN
                 else:
                     cache_hits += 1
                     trips_per_hour_by_line[line_name] = bus_schedule_cache_service.trips_per_hour_from_payload(payload)
             
-            print(f"✓ Schedule cache: {cache_hits} hits, {cache_misses} misses (total {len(line_names)} lines)")
+            logger.info(f"Schedule cache: {cache_hits} hits, {cache_misses} misses (total {len(line_names)} lines)")
             if cache_misses > 0:
-                print(f"⚠️  {cache_misses} lines using fallback pattern (schedule unavailable)")
+                logger.info(f"{cache_misses} lines using fallback pattern (schedule unavailable)")
 
             vehicle_capacity_by_line = {
                 line_name: capacity_store.get_capacity_meta(line_name).expected_capacity_weighted_int
@@ -182,7 +183,7 @@ def run_daily_forecast_job(
             
             for idx, line_name in enumerate(line_names):
                 if idx % 100 == 0:
-                    print(f"Building inputs: {idx}/{len(line_names)} lines...")
+                    logger.debug("Building inputs: %d/%d lines...", idx, len(line_names))
 
                 for hour in range(24):
                     weather_data = daily_weather_data.get(hour)
@@ -207,7 +208,7 @@ def run_daily_forecast_job(
 
             # Batch prediction (much faster!)
             if batch_inputs:
-                print(f"Running batch predictions for {len(batch_inputs)} records...")
+                logger.info(f"Running batch predictions for {len(batch_inputs)} records...")
                 df_batch = pd.DataFrame(batch_inputs)
                 df_batch = df_batch[COLUMN_ORDER]
                 df_batch['line_name'] = df_batch['line_name'].astype('category')
@@ -215,12 +216,12 @@ def run_daily_forecast_job(
                 
                 # Single batch prediction call
                 predictions = model.predict(df_batch)
-                print(f"Predictions complete! Processing results...")
+                logger.info(f"Predictions complete! Processing results...")
                 
                 # Process results
                 for idx, (prediction_np, (line_name, hour)) in enumerate(zip(predictions, batch_metadata)):
                     if idx % 5000 == 0:
-                        print(f"Processing results: {idx}/{len(predictions)}...")
+                        logger.debug("Processing results: %d/%d...", idx, len(predictions))
                         
                     prediction = float(max(0, prediction_np))
                     trips = trips_per_hour_by_line.get(line_name, [0] * 24)[hour]
@@ -243,16 +244,14 @@ def run_daily_forecast_job(
                         "vehicle_capacity": int(vehicle_capacity)
                     })
                 
-                print(f"Result processing complete: {len(forecasts_to_insert)} forecasts ready for {date_str}.")
+                logger.info(f"Result processing complete: {len(forecasts_to_insert)} forecasts ready for {date_str}.")
                 
             all_forecasts_to_insert.extend(forecasts_to_insert)
             total_processed_count += len(forecasts_to_insert)
 
         # Bulk Upsert
         if all_forecasts_to_insert:
-            print(f"\n{'='*60}")
-            print(f"Inserting {len(all_forecasts_to_insert)} total forecast records for {num_days} day(s)...")
-            print(f"{'='*60}")
+            logger.info("Inserting %d total forecast records for %d day(s)...", len(all_forecasts_to_insert), num_days)
             stmt = insert(DailyForecast).values(all_forecasts_to_insert)
             stmt = stmt.on_conflict_do_update(
                 constraint='_line_date_hour_uc',
@@ -267,9 +266,9 @@ def run_daily_forecast_job(
             )
             db.execute(stmt)
             db.commit()
-            print(f"Successfully inserted {len(all_forecasts_to_insert)} records.")
+            logger.info(f"Successfully inserted {len(all_forecasts_to_insert)} records.")
         else:
-            print("⚠️ No forecasts generated. Check calendar/weather data availability.")
+            logger.info("No forecasts generated. Check calendar/weather data availability.")
 
         # 2. Update Job Log (SUCCESS)
         job_log.status = "SUCCESS"
@@ -279,8 +278,8 @@ def run_daily_forecast_job(
 
         # 3. Log Feature Store fallback statistics for monitoring
         fallback_stats = store.get_fallback_stats()
-        print(f"✅ Job {job_log.id} completed. Processed {total_processed_count} predictions for {num_days} day(s).")
-        print(f"📊 Lag Fallback Stats: {fallback_stats.get('seasonal_pct', 0):.1f}% seasonal, "
+        logger.info(f"Job {job_log.id} completed. Processed {total_processed_count} predictions for {num_days} day(s).")
+        logger.info(f"Lag Fallback Stats: {fallback_stats.get('seasonal_pct', 0):.1f}% seasonal, "
               f"{fallback_stats.get('hour_fallback_pct', 0):.1f}% hour-based, "
               f"{fallback_stats.get('zero_fallback_pct', 0):.1f}% zeros")
         
@@ -295,8 +294,7 @@ def run_daily_forecast_job(
         # 3. Update Job Log (FAILED)
         db.rollback()
         error_details = traceback.format_exc()
-        print(f"❌ Job failed: {e}")
-        print(f"Full traceback:\n{error_details}")
+        logger.exception("Daily forecast job failed: %s", e)
 
         try:
             # Fetch job_log again in case it was detached or never created
@@ -310,9 +308,9 @@ def run_daily_forecast_job(
                 job_log.end_time = datetime.now()
                 job_log.error_message = error_details[:1000]  # Limit to 1000 chars
                 db.commit()
-                print(f"Updated job {job_log.id} status to FAILED.")
+                logger.info("Updated job %s status to FAILED.", job_log.id)
         except Exception as update_error:
-            print(f"Failed to update job status: {update_error}")
+            logger.error("Failed to update job status: %s", update_error)
             db.rollback()
 
         return {"status": "failed", "error": str(e)}
@@ -320,4 +318,4 @@ def run_daily_forecast_job(
     finally:
         # Always close the session we created
         db.close()
-        print("Database session closed.")
+        logger.info("Database session closed.")
