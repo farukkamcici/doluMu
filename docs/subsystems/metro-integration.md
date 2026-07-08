@@ -68,7 +68,8 @@ ibb-transport/
 │           └── metro_topology.json       # Generated static data
 │
 └── docs/
-    └── METRO_INTEGRATION.md              # This file
+    └── subsystems/
+        └── metro-integration.md          # This file
 ```
 
 ---

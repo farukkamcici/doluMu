@@ -259,6 +259,9 @@ data/
 models/
 mlruns/
 
+# Private/internal docs — dev notes, ops runbooks, server details (kept local, not published)
+docs/internal/
+
 # OS / editor / agent scratch
 **/.DS_Store
 .DS_Store
