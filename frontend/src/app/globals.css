@@ -2,43 +2,120 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Keep the rest of the CSS (root variables, slider styles) exactly as they are. */
+/* Design tokens as RGB channels so Tailwind can apply alpha (see tailwind.config.js). */
 :root {
-  --foreground-rgb: 248, 250, 252;
-  --background-rgb: 15, 23, 42;
+  --bg: 246 247 249;
+  --bg-subtle: 238 240 243;
+  --card: 255 255 255;
+  --card-hover: 248 250 252;
+  --border: 226 230 236;
+  --fg: 15 23 42;
+  --fg-muted: 71 85 105;
+  --fg-subtle: 148 163 184;
+  --brand: 18 122 117;
+  --brand-fg: 255 255 255;
+  --brand-soft: 225 242 241;
+
+  --level-quiet: 22 163 74;
+  --level-normal: 202 138 4;
+  --level-busy: 234 88 12;
+  --level-peak: 220 38 38;
+  --level-closed: 203 213 225;
+
+  --mode-bus: 37 99 235;
+  --mode-metrobus: 190 18 60;
+  --mode-rail: 124 58 237;
+  --mode-ferry: 8 145 178;
+
+  --warn: 180 83 9;
+  --warn-soft: 254 243 199;
+  --danger: 220 38 38;
+
+  color-scheme: light;
 }
 
-body {
-  color: rgb(var(--foreground-rgb));
-  background: rgb(var(--background-rgb));
-  padding-bottom: env(safe-area-inset-bottom);
+.dark {
+  --bg: 9 13 24;
+  --bg-subtle: 14 20 34;
+  --card: 18 25 41;
+  --card-hover: 24 33 52;
+  --border: 33 44 64;
+  --fg: 241 245 249;
+  --fg-muted: 160 174 194;
+  --fg-subtle: 100 116 139;
+  --brand: 45 182 173;
+  --brand-fg: 4 30 29;
+  --brand-soft: 16 46 50;
+
+  --level-quiet: 52 211 153;
+  --level-normal: 250 204 21;
+  --level-busy: 251 146 60;
+  --level-peak: 248 113 113;
+  --level-closed: 51 65 85;
+
+  --mode-bus: 96 165 250;
+  --mode-metrobus: 251 113 133;
+  --mode-rail: 167 139 250;
+  --mode-ferry: 34 211 238;
+
+  --warn: 251 191 36;
+  --warn-soft: 58 42 10;
+  --danger: 248 113 113;
+
+  color-scheme: dark;
 }
 
-input[type=range] {
-  @apply h-2 w-full cursor-pointer appearance-none rounded-lg bg-background;
-}
-input[type=range]::-webkit-slider-thumb {
-  @apply h-6 w-6 appearance-none rounded-full bg-primary shadow-lg ring-4 ring-surface transition-all;
-}
-
-/* Marquee/Scroll Animation */
-@keyframes scroll {
-  0% {
-    transform: translateX(0);
+@layer base {
+  html {
+    -webkit-tap-highlight-color: transparent;
+    text-size-adjust: 100%;
   }
-  100% {
-    transform: translateX(-50%);
+
+  body {
+    @apply bg-bg text-fg antialiased;
+    font-feature-settings: 'cv11', 'ss01';
+  }
+
+  :focus-visible {
+    @apply outline-none ring-2 ring-brand ring-offset-2 ring-offset-bg;
   }
 }
 
-/* Leaflet tooltip readability overrides (metro station hover). */
-.leaflet-tooltip.metro-station-tooltip {
-  background: rgba(15, 23, 42, 0.95);
-  color: rgb(248, 250, 252);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.45);
+@layer utilities {
+  .pb-safe {
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+  .pt-safe {
+    padding-top: env(safe-area-inset-top);
+  }
+  .scrollbar-none {
+    scrollbar-width: none;
+  }
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
 }
 
-.leaflet-tooltip.metro-station-tooltip::before {
-  border-top-color: rgba(15, 23, 42, 0.95);
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    transition-duration: 1ms !important;
+  }
+}
+
+/* Leaflet: match the app's typography and theme. */
+.leaflet-container {
+  font-family: inherit;
+  background: rgb(var(--bg-subtle));
+}
+.leaflet-tooltip.stop-tooltip {
+  @apply rounded-lg border border-line bg-card px-2 py-1 text-xs font-medium text-fg shadow-pop;
+}
+.leaflet-tooltip.stop-tooltip::before {
+  display: none;
+}
+.leaflet-control-attribution {
+  font-size: 10px;
 }

@@ -16,52 +16,34 @@
 
 ## Key Features
 
-### 🕐 **24-Hour Crowding Forecasts**
-- See predicted crowding levels for any metro line or bus route up to 24 hours ahead
-- Plan your commute by checking the best departure times before you leave
+### 🕐 **Hourly Crowding Forecasts**
+- Hour-by-hour crowding for today and tomorrow on metro, Metrobüs, bus, Marmaray and ferry lines
+- A "Right now" summary with a quieter-hour suggestion, so you can decide whether to wait
 
 ### 🌦️ **Weather-Aware Predictions**
-- Our model considers weather conditions (rain, temperature, wind) that affect ridership patterns
-- Get more accurate predictions during adverse weather conditions when people change their travel habits
-- Real-time weather badge showing Istanbul temperature with expandable 6-hour forecast
+- The model uses the weather forecast (rain, temperature, wind), since weather changes how people travel
+- Current Istanbul weather is shown on the home screen
 
-### 🚦 **Live Traffic Conditions**
-- Istanbul-wide traffic congestion index displayed in real-time (sourced from İBB Traffic Management Center)
-- Visual percentage indicator (0% = empty roads, 100% = fully congested)
-- Click badge for detailed explanation of traffic data source and interpretation
-- Auto-updates every 5 minutes to reflect current traffic conditions
+### 🚦 **City Traffic Index**
+- Istanbul-wide congestion index from the İBB Traffic Management Center (UYM), refreshed every 5 minutes
 
-### 🗺️ **Interactive Route Visualization**
-- View complete bus line routes on an interactive map with all stops
-- See dynamic direction labels showing destination stops (e.g., "KADIKÖY Yönü")
-- Interactive stop markers with names and locations
-- Distinctive start (green) and end (red) stop indicators
-- Smooth, professional route rendering with rounded polylines
+### 🗺️ **Route Map**
+- Bus routes per direction and rail lines with all stations, on a light/dark vector basemap
+- Direction labels use the destination stop (e.g. "KADIKÖY yönü")
 
-### 🚇 **Metro Network Mode**
-- Metro lines render with official colors, accessibility badges, and accurate station geometry sourced from Metro Istanbul APIs.
-- Station selectors automatically pull valid directions (e.g., Yenikapı → Havalimanı) and keep the forecast/time slider in sync with the chosen branch.
-- Dedicated MetroLayer overlays stops on the map alongside bus/metro data so you can mix and match trips visually.
-- M1 is exposed as separate `M1A` and `M1B` branches in search and selection so station lists and timetables remain consistent per branch.
+### 🚇 **Rail Lines**
+- Metro, tram, funicular and cable-car lines use their official Metro İstanbul colours and names
+- Operating hours from the Metro İstanbul topology; hours outside service are shown as gaps
+- `M1` is searchable as its `M1A` / `M1B` branches; both share the same forecast
 
-### ⚡ **Instant Metro Timetables**
-- A compact widget shows the next departures plus first/last trips; tapping it opens a full-day `MetroScheduleModal` with every train for the selected station/direction.
-- A built-in stale-while-revalidate cache keeps timetables available even if the upstream Metro API stalls, refreshing quietly whenever the network is reachable.
+### 🚌 **Departures & Notices**
+- First/last departure, next departures with countdown and the full daily timetable (planned İETT schedules)
+- İETT service notices shown on the line page
 
-### 🚌 **Capacity-Aware Forecasts**
-- Occupancy predictions are backed by per-line capacity metadata (`max_capacity`, and when available: `vehicle_capacity` and `trips_per_hour`) so crowd levels are easier to interpret.
-- A dedicated Capacity modal explains the assumptions behind capacity for buses (vehicle mix) and rail (static capacity tables).
-
-### 🚆 **Marmaray & Rail Capacity Support**
-- Marmaray uses a static schedule integration to avoid missing-schedule gaps, keeping service-hour and capacity logic consistent.
-- Metro/rail capacities can be overridden via a static rail capacity table used by the backend.
-
-### 📱 **Progressive Web App (PWA)**
-- Access the platform on any device - mobile, tablet, or desktop
-- Add to your phone's home screen for quick access
-- Works offline for basic functionality
-- Advanced mobile gestures: drag-to-minimize panels, haptic feedback
-- Responsive design with desktop sidebar and mobile drawer layouts
+### 📱 **Mobile-First Web App**
+- One responsive design: single column on phones, two columns on large screens
+- Installable to the home screen (Add to Home Screen / Install app)
+- Light, dark or system theme; shareable line URLs (`/tr/line/500T?dir=D&day=tomorrow`)
 
 ### 🌐 **Multi-Language Support**
 - Full interface available in Turkish (Türkçe) and English
@@ -71,26 +53,19 @@
 
 ---
 
-## How to Interpret the "Crowd Score"
+## How to Read the Crowd Levels
 
-The platform shows crowding levels using a **color-coded system** and **crowd scores**:
+Levels are **relative to each line's own busiest hour of that day**, like "Popular times" on Google Maps:
 
-### Color Scale
-- 🟢 **Green (Very Low/Low):** Comfortable travel with plenty of space
-- 🟡 **Yellow (Medium):** Moderate crowding, seats may be limited
-- 🟠 **Orange (High):** Crowded conditions, standing room available
-- 🔴 **Red (Very High):** Very crowded, limited standing space
+| Level | Share of the day's busiest hour | Meaning |
+|---|---|---|
+| 🟢 Quiet | < 40% | One of the quietest times of the day |
+| 🟡 Normal | 40–65% | Typical for this line |
+| 🟠 Busy | 65–85% | Crowded, seats may be hard to find |
+| 🔴 Very busy | ≥ 85% | Among the busiest hours of the day |
 
-### Understanding "High" vs "Low"
-The crowd score is **contextual and relative** to each transport line's typical patterns:
-
-- **Percentile Ranking:** How this hour compares to historical data for the same line and time
-- **Peak Comparison:** How crowded this is relative to the line's busiest periods
-
-**Example:** "M2 Metro - Şişli → Hacıosman: **High (🟠)**"
-- *Historical Context:* 78% more crowded than typical for this time
-- *Peak Reference:* 63% of this line's maximum capacity
-- *Recommendation:* Consider traveling at 21:00 instead (Medium crowding)
+The "Right now" card also suggests a noticeably quieter hour within the next three hours when there is one.
+Capacity-based occupancy (`occupancy_pct`) is still shown under "How is this forecast made?", together with a note on how reliable the capacity estimate is. It is not used for the colours because the capacity estimates are coarse and saturate at 100% on many lines.
 
 ### 🚦 Service Awareness
 - Hours that fall outside the published schedule are clearly marked **Out of Service**, so you instantly know when a line is offline instead of staring at an empty chart.
@@ -183,7 +158,7 @@ Notification features are planned for future releases to alert you about:
 ## For Developers
 
 - **Architecture & backend internals:** [`README_TECHNICAL.md`](README_TECHNICAL.md), [`src/api/README_API.md`](src/api/README_API.md)
-- **Frontend:** [`frontend/README_UI.md`](frontend/README_UI.md), [`frontend/README_TECHNICAL_UI.md`](frontend/README_TECHNICAL_UI.md)
+- **Frontend:** [`frontend/README.md`](frontend/README.md), product & design: [`frontend/DESIGN.md`](frontend/DESIGN.md)
 - **ML pipeline (offline):** [`ML_PIPELINE_README.md`](ML_PIPELINE_README.md)
 - **Full documentation index:** [`docs/`](docs/README.md) — subsystem docs (metro, capacity), PRD, technical reference & Q&A.
 

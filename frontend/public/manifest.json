@@ -1,24 +1,20 @@
 {
-  "name": "DoluMu: İstanbul Toplu Taşıma Doluluk Tahmini",
+  "name": "DoluMu — İstanbul toplu taşıma yoğunluk tahmini",
   "short_name": "DoluMu",
-  "theme_color": "#0f172a",
-  "background_color": "#0f172a",
+  "description": "İstanbul'da metro, metrobüs, otobüs ve vapur hatları için saatlik kalabalık tahmini.",
+  "lang": "tr",
+  "theme_color": "#090d18",
+  "background_color": "#090d18",
   "display": "standalone",
   "orientation": "portrait",
   "scope": "/",
   "start_url": "/",
   "icons": [
-    {
-      "src": "/icons/icon-192x192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "/icons/icon-512x512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any maskable"
-    }
+    { "src": "/icons/icon-192x192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-512x512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-512x512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Ayarlar", "url": "/tr/settings" }
   ]
 }

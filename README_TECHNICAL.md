@@ -8,7 +8,7 @@
 
 This project implements a **LightGBM-based global forecasting model** for hourly public transportation ridership prediction in Istanbul. The current production model (`lgbm_transport_v7`) uses a stable **18-column feature set** (lags/rolling stats + weather + calendar + categorical line code) and is served by a **FastAPI** backend with **PostgreSQL persistence**, a **Polars-backed FeatureStore**, and **APScheduler** jobs for automated forecast generation and cache prefetch.
 
-The UI is a **Next.js PWA** using **React Leaflet** for map-based exploration, **Recharts** for 24h charts, **Framer Motion** for gestures/animations, **next-intl** for TR/EN localization, and a local **favorites** store with optional **haptic feedback** (`navigator.vibrate`). Route/stop geometry data is ingested via **IETT SOAP endpoints** and shipped as static JSON assets under `frontend/public/data/`.
+The UI is a mobile-first **Next.js 16** web app (TypeScript, TanStack Query, Tailwind, next-intl TR/EN, Leaflet + OpenFreeMap vector basemap). It shows crowding **relative to each line's own daily peak** and suggests quieter hours; see `frontend/DESIGN.md` for the product and design decisions.
 
 ---
 
@@ -19,8 +19,8 @@ This file is a technical deep-dive (architecture + pipeline + reproducibility).
 For day-to-day tasks, prefer:
 - **Developer quickstart**: `README.md`
 - **Backend API reference**: `src/api/README_API.md`
-- **User-facing UI guide (TR)**: `frontend/README_UI.md`
-- **Frontend dev guide**: `frontend/README_TECHNICAL_UI.md`
+- **Frontend guide**: `frontend/README.md`
+- **Product & design decisions**: `frontend/DESIGN.md`
 
 ---
 
@@ -382,24 +382,7 @@ The platform runs an **AsyncIOScheduler** (timezone: `Europe/Istanbul`) and sche
 
 ### Frontend Route System
 
-**useRoutePolyline Hook** (`frontend/src/hooks/useRoutePolyline.js`):
-- Module-level caching with singleton loading pattern (`stopsCache`, `routesCache`, `loadingPromise`)
-- **`getRouteStops(lineCode, direction)`**: Returns detailed stop objects `[{code, name, lat, lng, district}]`
-- **`getDirectionInfo(lineCode)`**: Generates dynamic direction labels by extracting destination stop names
-  - Format: `"{DESTINATION_STOP_NAME} Yönü"` (e.g., "KADIKÖY Yönü" instead of "Gidiş")
-  - Stop name formatting: removes suffixes (MAH., CAD., SOK.) and converts to uppercase
-  - Returns metadata: `{label, firstStop, lastStop, firstStopCode, lastStopCode}` per direction
-- **`getPolyline(lineCode, direction)`**: Returns lat/lng coordinate arrays for Leaflet rendering
-- **`getAvailableDirections(lineCode)`**: Determines which directions exist for a line
-
-**MapView Enhancements** (`frontend/src/components/map/MapView.jsx`):
-- **Polyline Rendering**: Blue routes with `lineCap="round"` and `lineJoin="round"` for smooth appearance
-- **Interactive Stop Markers**: `<CircleMarker>` components with tooltips displaying stop names on hover
-  - **Start Stop**: Green filled circle (radius=6) with "Start" label
-  - **End Stop**: Red filled circle (radius=6) with "End" label  
-  - **Regular Stops**: White filled circles with blue borders (radius=4, weight=2)
-- **Auto-Fit Bounds**: `MapController` component uses `useMap()` hook to pan/zoom showing full route with 50px padding
-- **Performance Optimization**: `useMemo` for route coordinates and stops to prevent unnecessary recalculations
+The line page draws the route returned by `GET /api/lines/{code}/route` (per direction) for buses, and the station sequence from `frontend/public/data/metro_topology.json` for rail lines (`frontend/src/components/line/RouteCard.tsx`). Direction labels come from the `meta` block of `GET /api/lines/{code}/schedule`.
 
 ### Metro Topology & Schedule Integration
 
@@ -415,9 +398,8 @@ The platform runs an **AsyncIOScheduler** (timezone: `Europe/Istanbul`) and sche
 - Converts Metro Istanbul timetable responses into the normalized structure (destination, `TimeInfos`, `RemainingMinutes`) consumed by the frontend.
 
 **Frontend Metro Experience**:
-- `useMetroTopology` + `MetroLayer` render Metro lines/stations on the map, auto-fitting bounds and surfacing direction metadata alongside accessibility badges.
-- `MetroScheduleWidget` (compact) and `MetroScheduleModal` (full-day view) share a stale-while-revalidate cache (`frontend/src/lib/metroScheduleCache.js`) keyed by station/direction/day so users see instant timetables even when the upstream API stalls.
-- LineDetailPanel detects metro lines (including the `M1 → M1A` fallback) and wires forecasts, schedule pickers, and live countdowns together for a seamless metro UX.
+- Rail lines use their official Metro İstanbul colour and name, show operating hours from the topology, and draw stations on the route map.
+- Minute-level metro timetables are not shown while the Metro İstanbul API issue persists (backend freeze mode, see `docs/subsystems/metro-cache-freeze-mode.md`).
 
 **M1 Branch Handling (M1A / M1B)**:
 - `/lines/search` exposes `M1A` and `M1B` as separate selectable lines (branch-correct station lists + direction IDs) while `/forecast/{line}` aliases both to the same underlying `M1` prediction rows.
@@ -425,215 +407,13 @@ The platform runs an **AsyncIOScheduler** (timezone: `Europe/Istanbul`) and sche
 
 **Rail Service Windows (Out-of-Service Hours)**:
 - For metro/rail lines, forecast service windows are derived from `metro_topology.json` line metadata (`first_time`/`last_time`) and handle wrap-midnight cases so the 24h chart can render gaps during inactive hours.
-- **Special Case - MARMARAY**: Hardcoded service hours (06:00-00:00 with midnight wrap) implemented in both `forecast.py::_get_service_hours()` and `status_service.py` to handle missing schedule data. Frontend bypasses schedule widget requirements and forces 24h chart display with custom empty state message ("Tarife bilgisi mevcut değil"). This prevents "Out of Service" errors across all 24 hours for this cross-continental rail line.
+- **Special Case - MARMARAY**: Hardcoded service hours (06:00-00:00 with midnight wrap) implemented in both `forecast.py::_get_service_hours()` and `status_service.py` to handle missing schedule data. This prevents "Out of Service" errors across all 24 hours for this cross-continental rail line.
 
 ---
 
 ## UI Platform Architecture & User Experience Flow
 
-### Frontend Technology Stack
-
-**Framework**: **Next.js 16** with **App Router** and **React 19**
-**Styling**: **Tailwind CSS** with custom design system  
-**Animations**: **Framer Motion 12** for advanced gestures and transitions
-**Mapping**: **React Leaflet 5** with CartoDB light tiles and IETT route overlays
-**State Management**: **Zustand 5** with localStorage persistence middleware
-**Charts**: **Recharts** for time-series crowd visualization
-**Internationalization**: **next-intl 4.5.5** for Turkish/English localization
-**PWA**: **@ducanh2912/next-pwa** with offline capabilities and home screen installation
-**Metro UX Modules**: `MetroLayer`, `MetroScheduleWidget`, `MetroScheduleModal`, and a client-side `metroScheduleCache` deliver map overlays, station/direction selectors, and instant timetables for every metro line.
-
-### Component Architecture
-
-#### **1. Core Layout Structure** (`frontend/src/app/`)
-
-```typescript
-// Main application layout with floating components
-export default function Home() {
-  return (
-    <main className="relative flex h-[100dvh] w-screen flex-col">
-      <SearchBar />           // Floating top search 
-      <MapCaller />          // Full-screen interactive map
-      <BottomNav />          // Navigation tabs  
-      <LineDetailPanel />    // Slide-up prediction panel
-    </main>
-  );
-}
-```
-
-#### **2. Interactive Map System** (`components/map/`)
-
-**MapView.jsx**: Leaflet integration with Istanbul-centered view
-- **Base Layer**: CartoDB light tiles for mobile-optimized rendering
-- **User Location**: GPS integration with animated position marker (pulsing blue dot)
-- **Route Visualization**: Polyline + stop-marker rendering based on ingested IETT route/stop JSON assets
-- **Interactive Markers**: CircleMarker components with tooltips, distinctive start (green)/end (red) styling
-- **Auto-Fit Bounds**: Automatic map panning/zooming when routes displayed
-- **Custom Controls**: LocateButton with dynamic positioning based on panel state
-
-**LocateButton.jsx**: Geolocation service with responsive positioning
-- Dynamic `bottom` property: `12rem` (panel open) vs `5rem` (panel closed)
-- Smooth transition animations (`transition-all duration-300`)
-- Loading state with spinner icon during GPS acquisition
-
-**MapCaller.jsx**: Dynamic import wrapper for SSR compatibility (Leaflet requires client-side rendering)
-
-#### **3. Prediction Interface** (`components/ui/`)
-
-**LineDetailPanel.jsx**: **Core prediction interface with Framer Motion**
-```typescript
-// State-driven panel with animations and gestures
-const LineDetailPanel = () => {
-  const { selectedLine, selectedHour, showRoute, selectedDirection } = useAppStore();
-  const [forecastData, setForecastData] = useState([]);
-  const [isMinimized, setIsMinimized] = useState(false);
-  const isDesktop = useMediaQuery('(min-width: 768px)');
-  const controls = useAnimation();
-  
-  // Drag-to-minimize gesture (mobile only)
-  const handleDragEnd = (event, info) => {
-    const threshold = 100;
-    if (info.offset.y > threshold || info.velocity.y > 500) {
-      setIsMinimized(true);
-      vibrate(10);
-    }
-  };
-  
-  return (
-    <motion.div 
-      drag={!isDesktop ? "y" : false}
-      dragConstraints={{ top: 0, bottom: 0 }}
-      onDragEnd={handleDragEnd}
-      animate={controls}
-      className={cn(
-        "fixed z-[899] bg-slate-900/95 backdrop-blur-md",
-        isDesktop ? "top-20 left-4 w-96" : "bottom-16 left-0 right-0"
-      )}
-    >
-      {/* Minimized state: Line code + route name + occupancy % + direction toggle */}
-      {/* Expanded state: Full data + time slider + 24h chart + route controls */}
-      <CrowdStatusDisplay />
-      <TimeSlider />
-      <CrowdChart data={forecastData} />
-      <RouteControls />
-    </motion.div>
-  );
-};
-```
-
-**Key Features:**
-- **Framer Motion Integration**: Drag gestures, elastic constraints, AnimatePresence for smooth transitions
-- **Haptic Feedback**: `navigator.vibrate()` API (10ms major actions, 5ms minor)
-- **Responsive Layouts**: Desktop sidebar (384px fixed width) vs mobile drawer (full-width)
-- **Minimize/Expand**: Click/drag to toggle between compact and full views
-- **Route Visualization**: Direction selector with dynamic labels ("KADIKÖY Yönü"), show/hide toggle
-- **Internationalization**: All strings localized via `useTranslations('lineDetail')` hook
-- **Favorites System**: Star button with localStorage persistence
-
-**TimeSlider.jsx**: Hour selection interface (0-23 range slider) with vibration feedback
-**CrowdChart.jsx**: **Recharts** area chart with gradient visualization and collapsible mobile view
-**SearchBar.jsx**: Debounced line search with numeric keyboard support (`inputMode="numeric"`)
-**WeatherBadge.jsx**: Istanbul weather nowcast with dropdown hourly forecast
-
-### State Management Architecture
-
-**Zustand Store** (`store/useAppStore.js`):
-```typescript
-const useAppStore = create(
-  persist(
-    (set, get) => ({
-      // Core application state
-      selectedLine: null,        // Currently viewed transport line
-      isPanelOpen: false,        // Detail panel visibility
-      selectedHour: new Date().getHours(), // Time selector (0-23)
-      userLocation: null,        // GPS coordinates [lat, lng]
-      alertMessage: null,        // User notifications
-      
-      // Route visualization state
-      showRoute: false,          // Route polyline visibility toggle
-      selectedDirection: 'G',    // Active direction (G=gidiş, D=dönüş)
-      
-      // Favorites system
-      favorites: [],             // Array of favorited line IDs
-      toggleFavorite: (lineId) => {
-        const favs = get().favorites;
-        set({ 
-          favorites: favs.includes(lineId) 
-            ? favs.filter(id => id !== lineId) 
-            : [...favs, lineId]
-        });
-      },
-      isFavorite: (lineId) => get().favorites.includes(lineId),
-      
-      // State mutations  
-      setSelectedLine: (line) => set({ selectedLine: line, isPanelOpen: true }),
-      setSelectedHour: (hour) => set({ selectedHour: hour }),
-      setUserLocation: (location) => set({ userLocation: location }),
-      setShowRoute: (show) => set({ showRoute: show }),
-      setSelectedDirection: (dir) => set({ selectedDirection: dir }),
-      closePanel: () => set({ isPanelOpen: false, selectedLine: null, showRoute: false }),
-    }),
-    {
-      name: 'ibb-transport-storage',
-      partialize: (state) => ({ favorites: state.favorites }), // Only persist favorites
-    }
-  )
-);
-```
-
-**State Flow**:
-1. User searches transport line → `setSelectedLine()` → Panel opens
-2. User adjusts time slider → `setSelectedHour()` → Chart re-renders for new hour
-3. Location permission granted → `setUserLocation()` → Map centers on user
-4. API errors → `setAlertMessage()` → Toast notification displays
-
-### API Integration Layer
-
-**HTTP Client** (`lib/api.js`):
-```typescript
-const apiClient = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || 'https://ibb-transport.onthewifi.com/api',
-  headers: { 'Content-Type': 'application/json' },
-  timeout: 10000,
-});
-
-// Primary forecast endpoint
-export const getForecast = async (lineName, date, direction = null) => {
-  const dateString = format(date, 'yyyy-MM-dd');
-  const response = await apiClient.get(`/forecast/${lineName}?target_date=${dateString}`);
-  return response.data;  // Returns: HourlyForecast[]
-};
-```
-
-- Supports optional `direction=G|D` query params so metro schedules can filter service windows per side.
-- Response objects now include `in_service` flags plus `crowd_level` values such as `Out of Service`, enabling the UI to replace empty charts with explicit service indicators.
-
-**Error Handling Strategy**:
-- **Network Failures**: Graceful degradation with cached data fallback  
-- **API Errors**: User-friendly error messages with retry mechanisms
-- **Loading States**: Skeleton UI during async operations
-
-### User Interaction Flow
-
-**Primary User Journey**:
-
-1. **Landing**: User arrives at map-centered interface
-2. **Search**: Types transport line name in floating search bar
-3. **Selection**: Clicks on search result → Line detail panel slides up
-4. **API Call**: `getForecast(lineName, today)` fetches 24h predictions
-5. **Visualization**: Area chart renders with color-coded crowd levels
-6. **Time Exploration**: User drags time slider (0-23 hours)
-7. **Real-time Updates**: Chart highlights selected hour with detailed metrics
-8. **Decision**: User identifies optimal travel time based on crowd predictions
-
-**Advanced Features**:
-- **Favorites**: Save frequently used lines for quick access
-- **Geolocation**: Map locate control for user positioning
-
-**Planned / Not Implemented Yet**:
-- Push notifications for high-crowd alerts
-- Offline caching for forecast API responses (beyond static asset caching)
-- Location-based line recommendations
+The frontend was rebuilt in v2 (2026-10). Its architecture, routes and conventions are documented in [`frontend/README.md`](frontend/README.md); product decisions (information architecture, relative crowd levels, design tokens) are in [`frontend/DESIGN.md`](frontend/DESIGN.md).
 
 ---
 
