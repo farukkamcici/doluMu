@@ -1,7 +1,8 @@
 'use client';
-import { MapContainer, TileLayer, Marker, Polyline, CircleMarker, Tooltip, useMap } from 'react-leaflet';
+import { MapContainer, Marker, Polyline, CircleMarker, Tooltip, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import useAppStore from '@/store/useAppStore';
+import BaseMapLayer from '@/components/map/BaseMapLayer';
 import MapControls from '@/components/map/MapControls';
 import MetroLayer from '@/components/map/MetroLayer';
 import MetroStationInfoCard from '@/components/map/MetroStationInfoCard';
@@ -192,11 +193,7 @@ export default function MapView() {
       style={{ height: "100%", width: "100%" }}
       zoomControl={false}
     >
-      <TileLayer
-        url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-        maxZoom={19}
-      />
+      <BaseMapLayer />
 
       <MapControls />
 
