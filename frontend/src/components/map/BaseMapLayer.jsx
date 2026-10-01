@@ -14,7 +14,11 @@ export default function BaseMapLayer() {
   const map = useMap();
 
   useEffect(() => {
-    const layer = maplibreGL({ style: STYLE_URL, attribution: ATTRIBUTION }).addTo(map);
+    const layer = maplibreGL({
+      style: STYLE_URL,
+      // The plugin reads Leaflet attribution from here, not from `attribution`.
+      attributionControl: { customAttribution: ATTRIBUTION },
+    }).addTo(map);
     return () => {
       map.removeLayer(layer);
     };
