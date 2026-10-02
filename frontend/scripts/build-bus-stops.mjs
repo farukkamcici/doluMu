@@ -68,12 +68,26 @@ async function worker() {
 }
 await Promise.all(Array.from({ length: 8 }, worker));
 
+// Stop facilities (GetDurak_json, all stops in one call): bit 1 sheltered, 2 smart display,
+// 4 wheelchair accessible. Optional: the index is still useful without them.
+const flags = new Map();
+try {
+  for (const d of JSON.parse(await soap('UlasimAnaVeri/HatDurakGuzergah.asmx', 'GetDurak_json', { DurakKodu: '' }))) {
+    const bits =
+      (/KAPALI/i.test(d.FIZIKI ?? '') ? 1 : 0) | (d.AKILLI === 'VAR' ? 2 : 0) | (/^Uygun$/i.test(d.ENGELLIKULLANIM ?? '') ? 4 : 0);
+    flags.set(String(d.SDURAKKODU), bits);
+  }
+  console.log(`${flags.size} stop facility records`);
+} catch (e) {
+  console.warn(`stop facilities unavailable: ${e.message}`);
+}
+
 const out = {
-  source: 'İETT DurakDetay_GYY_wYonAdi (api.ibb.gov.tr), İBB Açık Veri',
+  source: 'İETT DurakDetay_GYY_wYonAdi, GetDurak_json (api.ibb.gov.tr), İBB Açık Veri',
   updatedAt: new Date().toISOString().slice(0, 10),
-  // [code, name, lat, lng, district, "LINE:DIR LINE:DIR …"]
+  // [code, name, lat, lng, district, "LINE:DIR LINE:DIR …", facility bits (1 sheltered, 2 smart, 4 accessible)]
   stops: [...stops.entries()]
-    .map(([code, s]) => [code, s.name, s.lat, s.lng, s.district, [...s.lines].sort().join(' ')])
+    .map(([code, s]) => [code, s.name, s.lat, s.lng, s.district, [...s.lines].sort().join(' '), flags.get(code) ?? 0])
     .sort((a, b) => a[0].localeCompare(b[0])),
 };
 // Sanity floor so an İETT outage never replaces good data (CI refreshes this monthly).

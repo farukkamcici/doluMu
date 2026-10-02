@@ -122,6 +122,10 @@ export interface StopIndexEntry {
   lng: number;
   district: string;
   lines: { code: string; dir: 'G' | 'D' }[];
+  sheltered: boolean;
+  /** Real-time arrival display at the stop. */
+  smart: boolean;
+  accessible: boolean;
 }
 
 export interface RailRidership {
@@ -141,8 +145,8 @@ export const useBusStops = (enabled = true) =>
   useQuery({
     queryKey: ['bus-stops'],
     queryFn: async () => {
-      const raw = await get<{ stops: [string, string, number, number, string, string][] }>('/data/bus_stops.json');
-      return raw.stops.map<StopIndexEntry>(([code, name, lat, lng, district, lines]) => ({
+      const raw = await get<{ stops: [string, string, number, number, string, string, number?][] }>('/data/bus_stops.json');
+      return raw.stops.map<StopIndexEntry>(([code, name, lat, lng, district, lines, flags = 0]) => ({
         code,
         name,
         lat,
@@ -155,6 +159,9 @@ export const useBusStops = (enabled = true) =>
             const [line, dir] = l.split(':');
             return { code: line, dir: dir === 'D' ? 'D' : 'G' };
           }),
+        sheltered: (flags & 1) > 0,
+        smart: (flags & 2) > 0,
+        accessible: (flags & 4) > 0,
       }));
     },
     enabled,

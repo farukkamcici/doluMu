@@ -129,3 +129,12 @@ class BusLineDay(Base):
     journeys = Column(Integer, nullable=True)
     # Median actual running time per route variant and start hour: {"500T_G_D0": {"7": 96.5}}.
     trip_minutes = Column(JSON, nullable=False, default=dict)
+
+
+class IettDailyJourneys(Base):
+    """Journeys per day for İETT's 50 busiest lines (GetIettYolculukHat, published since 2023-04-27)."""
+    __tablename__ = "iett_daily_journeys"
+
+    date = Column(Date, primary_key=True)
+    line_code = Column(String, primary_key=True, index=True)
+    journeys = Column(Integer, nullable=False)

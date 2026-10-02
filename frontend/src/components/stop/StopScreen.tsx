@@ -54,7 +54,9 @@ function StopLineRow({ code, dir, stopCode, otherDirHere }: { code: string; dir:
   return (
     <Link
       href={`/line/${encodeURIComponent(code)}?dir=${dir}`}
-      className="flex items-center gap-3 border-b border-line px-4 py-3 last:border-b-0 hover:bg-card-hover sm:px-5"
+      // Soonest bus first; lines with nothing on the way sink to the bottom.
+      style={{ order: arrival?.minutes ?? (arrival ? 500 : 1000) }}
+      className="flex items-center gap-3 border-b border-line px-4 py-3 hover:bg-card-hover sm:px-5"
     >
       <LineBadge code={code} typeId={1} />
       <span className="min-w-0 flex-1">
@@ -139,7 +141,15 @@ export function StopScreen({ code }: { code: string }) {
             <>
               <h1 className="font-display text-[26px] font-bold leading-tight tracking-tight">{stop.name}</h1>
               <p className="text-sm text-fg-muted">
-                {stop.district} · {t('linesCount', { count: stop.lines.length })}
+                {[
+                  stop.district,
+                  t('linesCount', { count: stop.lines.length }),
+                  stop.sheltered ? t('sheltered') : null,
+                  stop.smart ? t('smart') : null,
+                  stop.accessible ? t('accessible') : null,
+                ]
+                  .filter(Boolean)
+                  .join(' · ')}
               </p>
             </>
           ) : (
@@ -151,6 +161,7 @@ export function StopScreen({ code }: { code: string }) {
 
         <section className="border-y border-line bg-card">
           <h2 className="eyebrow px-4 pb-1 pt-4 sm:px-5">{t('lines')}</h2>
+          <div className="-mb-px flex flex-col">
           {stop
             ? stop.lines.map((l) => (
                 <StopLineRow
@@ -162,6 +173,7 @@ export function StopScreen({ code }: { code: string }) {
                 />
               ))
             : [0, 1, 2].map((i) => <Skeleton key={i} className="mx-4 my-3 h-10" />)}
+          </div>
         </section>
         <p className="px-4 pb-12 pt-4 text-xs leading-relaxed text-fg-subtle sm:px-5">{t('liveNote')}</p>
       </div>

@@ -115,7 +115,7 @@ iett("FiloDurum/SeferGerceklesme.asmx", "GetHatOtoKonum_json", HatKodu="500T")
 | Servis · işlem | Ne verir | Durum |
 |---|---|---|
 | `UlasimAnaVeri/HatDurakGuzergah.asmx` · `GetHat_json(HatKodu)` | Boş kod → **çalışan tüm hatlar** (~783): ad, tarife (`2 BİLETLİ`…), uzunluk, sefer süresi | ✅ |
-| `… GetDurak_json(DurakKodu)` | Boş kod → **tüm duraklar** (~15 bin, 3,6 MB): ad, koordinat (WKT), ilçe, yön, durak tipi, engelli uygunluğu | ✅ |
+| `… GetDurak_json(DurakKodu)` | Boş kod → **tüm duraklar** (~15 bin, 3,6 MB): ad, koordinat (WKT), ilçe, yön, durak tipi, kapalı/açık (`FIZIKI`), akıllı ekran (`AKILLI`), engelli uygunluğu | ✅ |
 | `… GetGaraj_json()` | 86 garaj ve konumları | ✅ |
 | `ibb/ibb.asmx` · `DurakDetay_GYY_wYonAdi(hat_kodu)` | Hattın **iki yöndeki sıralı durakları**, yön adlarıyla (XML DataSet) | ✅ |
 | `… HatServisi_GYY(hat_kodu)` | Hat adı, durum, bölge, sefer süresi (XML) | ✅ |
@@ -125,8 +125,8 @@ iett("FiloDurum/SeferGerceklesme.asmx", "GetHatOtoKonum_json", HatKodu="500T")
 
 | Servis · işlem | Ne verir | Durum |
 |---|---|---|
-| `ibb/ibb360.asmx` · `GetIettArsivGorev_json(Tarih=yyyyMMdd)` | Bir günün **gerçekleşen tüm seferleri** (~55 bin, 20 MB): hat, depar, araç, planlanan/gerçek kalkış, bitiş, durum (`T` tamamlandı, `I` iptal). En az 16 gün geriye gidiyor. | ✅ ~5 sn |
-| `… GetIettYolculukHat_json(Tarih=yyyy-MM-dd)` | O gün **en yoğun 50 hattın** yolculuk sayısı | ✅ |
+| `ibb/ibb360.asmx` · `GetIettArsivGorev_json(Tarih=yyyyMMdd)` | Bir günün **gerçekleşen tüm seferleri** (~55 bin, 20 MB): hat, depar, araç, planlanan/gerçek kalkış, bitiş, durum (`T` tamamlandı, `I` iptal). En az 2024-11'e kadar geriye gidiyor. | ✅ ~5 sn |
+| `… GetIettYolculukHat_json(Tarih=yyyy-MM-dd)` | O gün **en yoğun 50 hattın** günlük yolculuk sayısı (saatlik değil). **2023-04-27'den** beri her gün. | ✅ |
 | `AracAnaVeri/AracOzellik.asmx` · `GetAkarYakitToplamLitre_json(Yil, Ay)` | Günlük toplam yakıt tüketimi | ✅ |
 
 Kavramlar: **depar** = güzergah varyantı, kod biçimi `HAT_YÖN_D<no>` (ör. `19_G_D1610`); `D0` ana
@@ -221,7 +221,7 @@ Ulaşım için en işe yarar olanlar. Ad = `package_show?id=` değeri.
 |---|---|
 | Metro İstanbul | `frontend/src/lib/live/metro.ts`, `src/api/clients/metro_api.py` |
 | İETT canlı ve ana veri | `frontend/src/lib/live/iett.ts`, `src/api/services/iett_registry.py` |
-| İETT sefer arşivi | `src/api/services/iett_archive.py` (`bus_line_days` tablosu) |
+| İETT sefer arşivi | `src/api/services/iett_archive.py` (`bus_line_days`; ilk 50 hattın günlük yolculukları `iett_daily_journeys`, CSV: `GET /api/bus/journeys.csv?line=&from=&to=`) |
 | İSPARK | `frontend/src/lib/live/city.ts` |
 | Trafik indeksi | `src/api/routers/traffic.py` |
 | Statik dosyalar | `frontend/scripts/build-bus-stops.mjs`, `build-bus-routes.mjs`, `build-rail-ridership.mjs` (her ay GitHub Action ile yenilenir) |

@@ -310,7 +310,10 @@
     "liveNote": "Arrival times are estimated from live bus positions and İETT's recent actual running times.",
     "linesCount": "{count, plural, one {# line} other {# lines}}",
     "terminus": "Terminus",
-    "etaStops": "{n, plural, =0 {at stop} one {# stop} other {# stops}}"
+    "etaStops": "{n, plural, =0 {at stop} one {# stop} other {# stops}}",
+    "sheltered": "Sheltered",
+    "smart": "Live display",
+    "accessible": "Wheelchair accessible"
   },
   "parking": {
     "title": "İSPARK car parks nearby",

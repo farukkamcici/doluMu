@@ -23,7 +23,7 @@ import requests
 from sqlalchemy.orm import Session
 
 from ..db import SessionLocal
-from ..models import BusLineDay
+from ..models import BusLineDay, IettDailyJourneys
 
 logger = logging.getLogger(__name__)
 
@@ -112,23 +112,35 @@ def summarize(duties: list, journeys: Dict[str, int]) -> Dict[str, dict]:
     return out
 
 
-def fetch_day(day: date) -> Dict[str, dict]:
+def fetch_journeys(day: date) -> Dict[str, int]:
+    rows = _soap("GetIettYolculukHat_json", {"Tarih": day.isoformat()}, timeout=60)
+    return {str(r["Hat"]).strip(): int(r["Yolculuk"]) for r in rows if r.get("Hat")}
+
+
+def store_journeys(db: Session, day: date, journeys: Dict[str, int]) -> None:
+    if not journeys:
+        return
+    db.query(IettDailyJourneys).filter(IettDailyJourneys.date == day).delete()
+    db.bulk_insert_mappings(IettDailyJourneys, [{"date": day, "line_code": k, "journeys": v} for k, v in journeys.items()])
+
+
+def fetch_day(day: date) -> tuple[Dict[str, dict], Dict[str, int]]:
     duties = _soap("GetIettArsivGorev_json", {"Tarih": day.strftime("%Y%m%d")})
     if len(duties) < _MIN_TRIPS:
         raise ValueError(f"archive for {day} has only {len(duties)} trips")
     try:
-        rows = _soap("GetIettYolculukHat_json", {"Tarih": day.isoformat()}, timeout=60)
-        journeys = {str(r["Hat"]).strip(): int(r["Yolculuk"]) for r in rows if r.get("Hat")}
+        journeys = fetch_journeys(day)
     except Exception as exc:  # noqa: BLE001 - journeys are optional
         logger.warning("İETT journeys for %s unavailable: %s", day, exc)
         journeys = {}
-    return summarize(duties, journeys)
+    return summarize(duties, journeys), journeys
 
 
 def store_day(db: Session, day: date) -> int:
-    summary = fetch_day(day)
+    summary, journeys = fetch_day(day)
     db.query(BusLineDay).filter(BusLineDay.date == day).delete()
     db.bulk_insert_mappings(BusLineDay, [{"date": day, "line_code": line, **row} for line, row in summary.items()])
+    store_journeys(db, day, journeys)
     db.commit()
     return len(summary)
 
@@ -161,4 +173,40 @@ def sync_history(days: int = HISTORY_DAYS) -> Dict[str, int]:
     finally:
         db.close()
         _lock.release()
+    return stored
+
+
+JOURNEYS_SINCE = date(2023, 4, 27)
+_journeys_lock = threading.Lock()
+
+
+def backfill_journeys(since: date = JOURNEYS_SINCE) -> int:
+    """Keep the full daily-journeys history (top-50 lines) in our database, filling missing days.
+
+    İETT publishes it back to 2023-04-27; we store it so it survives even if the service stops.
+    """
+    if not _journeys_lock.acquire(blocking=False):
+        return 0
+    db = SessionLocal()
+    stored = 0
+    try:
+        have = {d for (d,) in db.query(IettDailyJourneys.date).distinct()}
+        day = since
+        yesterday = today_istanbul() - timedelta(days=1)
+        while day <= yesterday:
+            if day not in have:
+                try:
+                    journeys = fetch_journeys(day)
+                    store_journeys(db, day, journeys)
+                    db.commit()
+                    stored += bool(journeys)
+                except Exception as exc:  # noqa: BLE001 - try again on the next run
+                    db.rollback()
+                    logger.warning("İETT journeys for %s unavailable: %s", day, exc)
+            day += timedelta(days=1)
+        if stored:
+            logger.info("İETT daily journeys: stored %d new days", stored)
+    finally:
+        db.close()
+        _journeys_lock.release()
     return stored

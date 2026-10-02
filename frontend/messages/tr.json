@@ -310,7 +310,10 @@
     "liveNote": "Varış süreleri canlı otobüs konumları ve İETT'nin son gerçek sefer süreleriyle tahmin edilir.",
     "linesCount": "{count, plural, other {# hat}}",
     "terminus": "Son durak",
-    "etaStops": "{n, plural, =0 {durakta} other {# durak}}"
+    "etaStops": "{n, plural, =0 {durakta} other {# durak}}",
+    "sheltered": "Kapalı durak",
+    "smart": "Akıllı durak ekranı",
+    "accessible": "Engelli erişimine uygun"
   },
   "parking": {
     "title": "Yakındaki İSPARK otoparkları",

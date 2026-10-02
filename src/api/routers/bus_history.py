@@ -1,11 +1,14 @@
 """Per-line daily history of İETT bus operations (see services/iett_archive.py)."""
-from datetime import timedelta
+import csv
+import io
+from datetime import date, timedelta
+from typing import Optional
 
 from fastapi import APIRouter, Depends, Path, Query, Response
 from sqlalchemy.orm import Session
 
 from ..db import get_db
-from ..models import BusLineDay
+from ..models import BusLineDay, IettDailyJourneys
 from ..services.iett_archive import HISTORY_DAYS, today_istanbul
 
 router = APIRouter(tags=["bus"])
@@ -46,3 +49,30 @@ def bus_line_history(
         "tripMinutes": times_from.trip_minutes if times_from else {},
         "tripMinutesDate": times_from.date.isoformat() if times_from else None,
     }
+
+
+@router.get("/bus/journeys.csv")
+def daily_journeys_csv(
+    line: Optional[str] = Query(None, max_length=20),
+    start: Optional[date] = Query(None, alias="from"),
+    end: Optional[date] = Query(None, alias="to"),
+    db: Session = Depends(get_db),
+):
+    """Daily journeys of İETT's 50 busiest lines since 2023-04-27 (date, line, journeys)."""
+    q = db.query(IettDailyJourneys)
+    if line:
+        q = q.filter(IettDailyJourneys.line_code == line)
+    if start:
+        q = q.filter(IettDailyJourneys.date >= start)
+    if end:
+        q = q.filter(IettDailyJourneys.date <= end)
+    out = io.StringIO()
+    writer = csv.writer(out)
+    writer.writerow(["date", "line", "journeys"])
+    for r in q.order_by(IettDailyJourneys.date, IettDailyJourneys.line_code):
+        writer.writerow([r.date.isoformat(), r.line_code, r.journeys])
+    return Response(
+        out.getvalue(),
+        media_type="text/csv; charset=utf-8",
+        headers={"Content-Disposition": 'attachment; filename="iett_daily_journeys.csv"', "Cache-Control": "public, max-age=3600"},
+    )

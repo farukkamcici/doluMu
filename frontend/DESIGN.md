@@ -127,6 +127,16 @@ hat, depar, araç, planlanan/gerçek kalkış ve bitiş; durum `T` tamamlandı, 
 tablosuna yazar; açılışta eksik son 14 günü doldurur. Hat sayfasındaki **Güvenilirlik** bloğu (ilk duraktan
 ±3 dk içinde kalkış oranı, iptaller, yolculuk) ve varış süreleri bu tablodan gelir.
 
+**Günlük yolculuk arşivi.** İETT'nin ilk 50 hat için yayımladığı günlük yolculuk sayıları (2023-04-27'den beri)
+backend'de `iett_daily_journeys` tablosunda tutulur (açılışta eksik günler doldurulur, her gece dün eklenir) ve
+`GET /api/bus/journeys.csv` ile indirilebilir. Tahmin modeli bu veriyle güncellenmez; araştırma için saklanır.
+
+**Durak olanakları.** `bus_stops.json` her durak için kapalı durak / akıllı ekran / engelli erişimi bitlerini de taşır
+(`GetDurak_json`); durak sayfasında başlıkta gösterilir. Durak sayfasındaki hatlar en yakın varışa göre sıralanır.
+
+**Sıradaki trenler.** İstasyon kartı ve "yakınındaki istasyonlar" listesi, Metro İstanbul'un `GetTimeTable` servisinden
+o günün kalkışlarını alır (`/api/live/metro/departures/{istasyonId}`, 30 dk önbellek) ve her yön için sıradaki treni gösterir.
+
 **Varış süresi.** Bir yönün uçtan uca süresi, geçen haftanın aynı günündeki gerçek sefer sürelerinin
 o saatteki medyanıdır (yoksa İETT'nin planlı süresi). Araç en yakın durağına yerleştirilir; bir durağa
 kalan süre, duraklar boyunca kalan mesafenin toplam mesafeye oranıyla ölçeklenir. İlk durakta bekleyen

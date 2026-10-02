@@ -2,31 +2,12 @@
 import { useTranslations } from 'next-intl';
 import { Skeleton } from '@/components/primitives/Skeleton';
 import { LineBadge } from '@/components/transit/LineBadge';
-import { toDepartures } from '@/lib/departures';
-import { useMetroDepartures } from '@/lib/live/client';
-import { forecastCode } from '@/lib/network';
-import { useNow } from '@/hooks/useNow';
-
-/** Metro service days run past midnight; before 03:00 we're still in yesterday's timetable. */
-const SERVICE_DAY_START = 180;
+import { useNextTrains } from '@/lib/live/nextTrains';
 
 /** Next trains from a station, per line and direction (Metro İstanbul's live timetable). */
 export function Departures({ stationIds }: { stationIds: number[] }) {
   const t = useTranslations('station');
-  const now = useNow();
-  const { data, loading } = useMetroDepartures(stationIds);
-  const at = now.minutes < SERVICE_DAY_START ? now.minutes + 1440 : now.minutes;
-
-  const rows = data.flatMap((station) =>
-    station.directions.map((d) => ({
-      key: `${station.stationId}-${d.id}`,
-      line: forecastCode(station.line),
-      towards: d.towards,
-      next: toDepartures(d.times)
-        .filter((x) => x.minutes >= at)
-        .slice(0, 3),
-    })),
-  );
+  const { rows, loading } = useNextTrains(stationIds);
 
   if (!rows.length) {
     return loading && stationIds.length ? <Skeleton className="mx-5 mt-5 h-16" /> : null;
@@ -43,7 +24,7 @@ export function Departures({ stationIds }: { stationIds: number[] }) {
             {r.next.length ? (
               <span className="shrink-0 text-sm tabular-nums">
                 <span className="font-display font-bold">
-                  {r.next[0].minutes - at < 1 ? t('now') : t('inMin', { min: r.next[0].minutes - at })}
+                  {r.inMin! < 1 ? t('now') : t('inMin', { min: r.inMin! })}
                 </span>
                 {r.next.slice(1).map((x) => (
                   <span key={x.minutes} className="text-fg-muted">

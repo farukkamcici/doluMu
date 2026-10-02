@@ -12,7 +12,7 @@ from .services.store import FeatureStore
 from .services.capacity_store import CapacityStore
 from .services.route_service import route_service
 from .services.iett_registry import iett_registry
-from .services.iett_archive import sync_history
+from .services.iett_archive import backfill_journeys, sync_history
 from .utils.init_db import init_db
 from .auth import create_admin_user_if_not_exists
 from .state import AppState
@@ -59,7 +59,7 @@ async def lifespan(app: FastAPI):
     # Warm the İETT line registry in the background (search and jobs use it to skip retired lines).
     threading.Thread(target=iett_registry.active_codes, daemon=True).start()
     # Fill in any missing days of İETT's trip archive (punctuality history, running times).
-    threading.Thread(target=sync_history, daemon=True).start()
+    threading.Thread(target=lambda: (sync_history(), backfill_journeys()), daemon=True).start()
 
     # Start the cron job scheduler
     logger.info("Starting APScheduler for cron jobs...")

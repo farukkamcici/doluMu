@@ -4,6 +4,7 @@ import { useTranslations } from 'next-intl';
 import { LineBadge } from '@/components/transit/LineBadge';
 import { Link } from '@/i18n/routing';
 import { useBusStops } from '@/lib/live/client';
+import { useNextTrains } from '@/lib/live/nextTrains';
 import { distanceMeters, type NetworkStation } from '@/lib/network';
 import type { GeoState } from '@/hooks/useGeolocation';
 
@@ -43,12 +44,31 @@ export function NearbyStations({ stations, geo, onSelect }: NearbyStationsProps)
                   <LineBadge key={code} code={code} size="sm" />
                 ))}
               </span>
+              <NextTrainsLine stationIds={station.metroIds} />
             </span>
             <span className="shrink-0 font-display text-sm font-semibold tabular-nums text-fg-muted">{distance(d)}</span>
           </button>
         </li>
       ))}
     </ul>
+  );
+}
+
+/** "Hacıosman 3 dk · Yenikapı 5 dk": the next train each way, in one quiet line. */
+function NextTrainsLine({ stationIds }: { stationIds: number[] }) {
+  const t = useTranslations('station');
+  const { rows } = useNextTrains(stationIds, 1);
+  const upcoming = rows.filter((r) => r.inMin != null).slice(0, 3);
+  if (!upcoming.length) return null;
+  return (
+    <span className="mt-1 block truncate text-xs text-fg-muted">
+      {upcoming.map((r, i) => (
+        <span key={r.key}>
+          {i ? ' · ' : ''}
+          {r.towards} <span className="font-semibold text-fg">{r.inMin! < 1 ? t('now') : t('inMin', { min: r.inMin! })}</span>
+        </span>
+      ))}
+    </span>
   );
 }
 
