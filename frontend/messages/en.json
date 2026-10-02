@@ -239,7 +239,13 @@
     "wc": "Toilet",
     "babyRoom": "Baby room",
     "masjid": "Prayer room",
-    "entries": "~{count} entries per weekday"
+    "entries": "~{count} entries per weekday",
+    "departures": "Next trains",
+    "towards": "towards {stop}",
+    "now": "now",
+    "inMin": "{min} min",
+    "noMore": "No more trains today",
+    "departuresNote": "Metro İstanbul's current timetable."
   },
   "live": {
     "statusTitle": "Service status",

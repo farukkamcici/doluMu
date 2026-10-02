@@ -1,6 +1,6 @@
 import 'server-only';
-import { htmlToText, metroGet, metroPost } from './upstream';
-import type { EquipmentKind, EquipmentOutage, MetroLine, MetroLineFacts, MetroNetwork, MetroStatus } from './types';
+import { htmlToText, metroGet, metroPost, UpstreamError } from './upstream';
+import type { EquipmentKind, EquipmentOutage, MetroDepartures, MetroLine, MetroLineFacts, MetroNetwork, MetroStatus } from './types';
 
 interface RawLine {
   Name: string;
@@ -15,6 +15,7 @@ interface RawLine {
 
 interface RawStation {
   Id: number;
+  LineId: number;
   LineName: string;
   Description: string;
   Order: number;
@@ -188,4 +189,48 @@ export async function getMetroStatus(): Promise<MetroStatus> {
 export async function getFares() {
   const raw = await metroGet<{ Type: string; TicketPrices: { Name: string; Price: string }[] }[]>('GetTicketPrice/TR', 86_400);
   return raw.map((f) => ({ card: f.Type, items: f.TicketPrices.map((p) => ({ name: p.Name, price: p.Price })) }));
+}
+
+interface RawDirection {
+  DirectionId: number;
+  DirectionName: string; // "Yenikapı->Hacıosman"
+}
+
+interface RawTimetable {
+  LastStation: string | null;
+  TimeInfos: { Times: string[] } | null;
+}
+
+/**
+ * Today's departures from one station, per direction (Metro İstanbul GetTimeTable). Times are
+ * the full service day in order; trips after midnight come last ("00:06").
+ */
+export async function getMetroDepartures(stationId: number): Promise<MetroDepartures> {
+  const stations = await metroGet<RawStation[]>('GetStations', 86_400);
+  const station = stations.find((s) => s.Id === stationId);
+  if (!station) throw new UpstreamError(`metro station ${stationId} not found`);
+  const directions = await metroPost<RawDirection[]>(
+    'GetDirectionsByLineIdAndStationId',
+    { LineId: station.LineId, StationId: stationId },
+    86_400,
+  );
+  const timetables = await Promise.all(
+    directions.map((d) =>
+      metroPost<RawTimetable[] | null>('GetTimeTable', { BoardingStationId: stationId, DirectionId: d.DirectionId }, 3_600)
+        .then((t) => ({ d, t: t?.[0] ?? null }))
+        .catch(() => ({ d, t: null })),
+    ),
+  );
+  return {
+    stationId,
+    line: station.LineName,
+    directions: timetables
+      .map(({ d, t }) => ({
+        id: d.DirectionId,
+        towards: t?.LastStation?.trim() || d.DirectionName.split('->').pop()!.trim(),
+        times: t?.TimeInfos?.Times ?? [],
+      }))
+      // At a terminus the direction ending here has no departures.
+      .filter((d) => d.times.length),
+  };
 }

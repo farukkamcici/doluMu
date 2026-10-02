@@ -239,7 +239,13 @@
     "wc": "WC",
     "babyRoom": "Bebek odası",
     "masjid": "Mescit",
-    "entries": "Hafta içi günde ~{count} giriş"
+    "entries": "Hafta içi günde ~{count} giriş",
+    "departures": "Sıradaki trenler",
+    "towards": "{stop} yönü",
+    "now": "şimdi",
+    "inMin": "{min} dk",
+    "noMore": "Bugün sefer kalmadı",
+    "departuresNote": "Metro İstanbul'un güncel sefer tarifesi."
   },
   "live": {
     "statusTitle": "Hizmet durumu",

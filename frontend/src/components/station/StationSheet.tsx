@@ -7,6 +7,7 @@ import { useOutagesByStation } from '@/components/live/outages';
 import { useParking, useRailRidership } from '@/lib/live/client';
 import { distanceMeters, stationEntries } from '@/lib/network';
 import { useLocale } from 'next-intl';
+import { Departures } from './Departures';
 
 interface StationSheetProps {
   station: NetworkStation | null;
@@ -61,14 +62,19 @@ export function StationSheet({ station, onClose, hour }: StationSheetProps) {
               <BoardRow key={code} code={code} hour={hour} />
             ))}
           </div>
+          <Departures stationIds={station.metroIds} />
           <p className="eyebrow px-5 pb-1 pt-5">{t('access')}</p>
           {outages.length ? (
             <ul className="mx-5 mb-2 space-y-1">
-              {outages.map((o, i) => (
-                <li key={i} className="text-sm font-semibold text-signal">
-                  {tl('outage', { kind: tl(`kinds.${o.kind}`) })}
-                </li>
-              ))}
+              {[...new Set(outages.map((o) => o.kind))].map((kind) => {
+                const n = outages.filter((o) => o.kind === kind).length;
+                return (
+                  <li key={kind} className="text-sm font-semibold text-signal">
+                    {tl('outage', { kind: tl(`kinds.${kind}`) })}
+                    {n > 1 ? ` (${n})` : null}
+                  </li>
+                );
+              })}
             </ul>
           ) : null}
           <p className="px-5 text-sm text-fg-muted">{amenities.length ? amenities.join(' · ') : t('none')}</p>

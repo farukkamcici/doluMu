@@ -8,6 +8,7 @@ import type {
   Fleet,
   Fare,
   ParkingLot,
+  MetroDepartures,
   MetroNetwork,
   MetroStatus,
 } from './types';
@@ -34,6 +35,22 @@ export const useMetroStatus = () =>
     refetchInterval: 2 * MINUTE,
     ...quiet,
   });
+
+/** Today's departures per direction for Metro İstanbul station ids (one per line at a transfer). */
+export function useMetroDepartures(stationIds: number[]) {
+  return useQueries({
+    queries: stationIds.map((id) => ({
+      queryKey: ['live', 'metro-departures', id],
+      queryFn: () => get<MetroDepartures>(`/api/live/metro/departures/${id}`),
+      staleTime: 30 * MINUTE,
+      ...quiet,
+    })),
+    combine: (results) => ({
+      data: results.flatMap((r) => (r.data ? [r.data] : [])),
+      loading: results.some((r) => r.isLoading),
+    }),
+  });
+}
 
 export const useFares = (enabled = true) =>
   useQuery({ queryKey: ['live', 'fares'], queryFn: () => get<Fare[]>('/api/live/fares'), staleTime: 24 * 60 * MINUTE, enabled, ...quiet });

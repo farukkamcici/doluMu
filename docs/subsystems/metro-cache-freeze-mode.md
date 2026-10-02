@@ -1,5 +1,12 @@
 ## Metro Cache Freeze Mode (Temporary Operation)
 
+> **Status (2026-10-02): disabled.** Metro İstanbul's `GetTimeTable` works again, production runs with
+> `METRO_CACHE_FREEZE=0` and `METRO_CACHE_RETENTION_DAYS=14`. Freeze mode should rarely be needed now:
+> cleanup never deletes a pair's newest successful timetable, the schedule endpoint falls back to the
+> latest one of any age when the upstream fails, and forecasts use the latest timetable regardless of age.
+> The frontend no longer has a timetable kill switch (`NEXT_PUBLIC_METRO_TIMETABLE_DISABLED` was removed);
+> the station sheet reads next departures straight from Metro İstanbul via `/api/live/metro/departures/{id}`.
+
 When `METRO_CACHE_FREEZE=1`, the backend keeps using the last known `metro_schedules` rows and avoids deleting them, so the system can keep working while the upstream Metro İstanbul API is unavailable.
 
 ### What Freeze Does

@@ -361,7 +361,7 @@ async def get_train_schedule(
             request.BoardingStationId,
             request.DirectionId,
             valid_for=None,
-            max_stale_days=7
+            max_stale_days=None
         )
         if fallback_payload:
             logger.warning("Returning last known metro schedule due to upstream failure")

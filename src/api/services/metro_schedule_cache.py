@@ -10,7 +10,7 @@ from typing import Dict, List, Optional, Tuple
 
 import requests
 from sqlalchemy import func
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, aliased
 
 from ..clients.metro_api import metro_api_client
 from ..models import MetroScheduleCache
@@ -166,8 +166,9 @@ class MetroScheduleCacheService:
         direction_id: int,
         *,
         valid_for: Optional[date] = None,
-        max_stale_days: int = 2
+        max_stale_days: Optional[int] = 2
     ) -> Tuple[Optional[Dict], bool, Optional[MetroScheduleCache]]:
+        """Today's timetable, else the latest one within `max_stale_days` (None = any age)."""
         target_date = valid_for or date.today()
         effective_max_stale_days: Optional[int] = None if self.freeze_cache else max_stale_days
 
@@ -248,7 +249,7 @@ class MetroScheduleCacheService:
         line_code: str,
         *,
         valid_for: date,
-        max_stale_days: int = 2,
+        max_stale_days: Optional[int] = 2,
     ) -> Optional[List[int]]:
         """Return combined (both directions) trips-per-hour for a metro line.
 
@@ -450,9 +451,23 @@ class MetroScheduleCacheService:
             return 0
         cutoff_days = older_than_days or self.retention_days
         cutoff = date.today() - timedelta(days=cutoff_days)
+        # Never drop a pair's newest successful timetable: if Metro İstanbul goes down again it is
+        # the fallback, so the old manual freeze mode isn't needed to keep the app working.
+        newer = aliased(MetroScheduleCache)
+        has_newer = (
+            db.query(newer.id)
+            .filter(
+                newer.station_id == MetroScheduleCache.station_id,
+                newer.direction_id == MetroScheduleCache.direction_id,
+                newer.valid_for > MetroScheduleCache.valid_for,
+                newer.source_status == 'SUCCESS',
+            )
+            .exists()
+        )
         deleted = db.query(MetroScheduleCache).filter(
-            MetroScheduleCache.valid_for < cutoff
-        ).delete()
+            MetroScheduleCache.valid_for < cutoff,
+            has_newer,
+        ).delete(synchronize_session=False)
         if deleted:
             logger.info("🧹 Deleted %s stale metro schedule cache rows (cutoff=%s)", deleted, cutoff)
         db.commit()

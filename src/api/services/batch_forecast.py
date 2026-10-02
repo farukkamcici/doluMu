@@ -145,7 +145,8 @@ def run_daily_forecast_job(
                         db,
                         line_name,
                         valid_for=forecast_date,
-                        max_stale_days=7,
+                        # Timetables rarely change: an older one beats no trip counts at all.
+                        max_stale_days=None,
                     )
                     if metro_trips is not None:
                         cache_hits += 1

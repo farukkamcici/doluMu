@@ -64,6 +64,13 @@ export interface MetroStatus {
   fetchedAt: string;
 }
 
+export interface MetroDepartures {
+  stationId: number;
+  /** Metro İstanbul line code, e.g. "M2", "M1A". */
+  line: string;
+  directions: { id: number; towards: string; times: string[] }[];
+}
+
 export interface Fare {
   card: string;
   items: { name: string; price: string }[];
