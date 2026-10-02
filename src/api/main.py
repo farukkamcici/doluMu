@@ -10,7 +10,6 @@ from .db import SessionLocal
 from .routers import admin, forecast, lines, nowcast, reports, schedule, status, metro, traffic, capacity, bus_history
 from .services.store import FeatureStore
 from .services.capacity_store import CapacityStore
-from .services.route_service import route_service
 from .services.iett_registry import iett_registry
 from .services.iett_archive import backfill_journeys, sync_history
 from .utils.init_db import init_db
@@ -51,10 +50,7 @@ async def lifespan(app: FastAPI):
     # Initialize capacity artifacts store (parquet snapshots)
     AppState.capacity_store = CapacityStore()
 
-    # Load route shapes into memory
-    logger.info("Loading route shape data...")
-    route_service.load_data()
-    logger.info("Route shapes ready")
+    # Route shapes (~370 MB in memory) load on first use: the app no longer calls /lines/{code}/route.
 
     # Warm the İETT line registry in the background (search and jobs use it to skip retired lines).
     threading.Thread(target=iett_registry.active_codes, daemon=True).start()

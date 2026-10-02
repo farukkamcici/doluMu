@@ -1,0 +1,44 @@
+# Production stack on the Hetzner server, deployed by Dokploy from this repo (main).
+# Traefik (managed by Dokploy) terminates HTTPS and routes the domain to `api:8000`.
+# Secrets come from the Dokploy environment (same keys as .env).
+services:
+  api:
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      POSTGRES_HOST: db
+      POSTGRES_PORT: "5432"
+      MODEL_PATH: models/lgbm_transport_v7.txt
+    volumes:
+      # Model + feature artifacts are not in git (large, thesis data): kept on the host.
+      - /opt/dolumu/artifacts/models:/app/models:ro
+      - /opt/dolumu/artifacts/data/processed:/app/data/processed:ro
+    depends_on:
+      db:
+        condition: service_healthy
+    expose:
+      - "8000"
+    networks: [default, dokploy-network]
+
+  db:
+    image: postgres:15
+    restart: unless-stopped
+    env_file: .env
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
+    # The existing production database volume, reused as-is.
+    external: true
+    name: app_postgres_data
+
+networks:
+  dokploy-network:
+    external: true

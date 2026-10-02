@@ -1,0 +1,26 @@
+# Runtime dependencies of the API only (training/analysis libraries live in requirements.txt).
+# Install with the lock file so a rebuild reproduces the exact versions the forecasts were made with:
+#   pip install -r requirements-api.txt -c constraints-api.txt
+fastapi
+uvicorn
+pydantic
+SQLAlchemy
+psycopg2-binary
+APScheduler
+httpx
+requests
+tenacity
+cachetools
+PyYAML
+python-dotenv
+python-jose[cryptography]
+passlib
+bcrypt
+python-multipart
+email-validator
+numpy
+scipy
+pandas
+pyarrow
+polars
+lightgbm
