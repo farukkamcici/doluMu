@@ -305,7 +305,8 @@
     "nearest": "En yakın otobüs",
     "noneComing": "Yaklaşan otobüs yok",
     "showAll": "Tüm durakları göster",
-    "showLess": "Daha az göster"
+    "showLess": "Daha az göster",
+    "offRoute": "{count, plural, other {# otobüs bu hatta atanmış ama şu an güzergah dışında (garaja ya da başlangıç durağına gidiyor olabilir).}}"
   },
   "stop": {
     "title": "Durak",
@@ -316,5 +317,20 @@
     "liveNote": "Otobüs konumları İETT'den anlık alınır; varış süresi tahmini değildir.",
     "linesCount": "{count, plural, other {# hat}}",
     "terminus": "Son durak"
+  },
+  "yesterday": {
+    "title": "Dün",
+    "trips": "Sefer",
+    "completed": "Tamamlanan",
+    "cancelled": "İptal",
+    "onTime": "Zamanında kalkış",
+    "journeys": "Yolculuk",
+    "delay": "İlk duraktan kalkışlar planlanan saatten ortalama {min} dk sonra.",
+    "source": "Kaynak: İETT sefer gerçekleşme arşivi. Zamanında: planlanan saatten en fazla 3 dk sapma."
+  },
+  "parking": {
+    "title": "Yakındaki İSPARK otoparkları",
+    "free": "{empty} / {capacity} boş",
+    "closed": "Kapalı"
   }
 }

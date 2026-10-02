@@ -4,6 +4,9 @@ import { Sheet } from '@/components/primitives/Sheet';
 import { BoardRow } from '@/components/home/NetworkBoard';
 import type { NetworkStation } from '@/lib/network';
 import { useOutagesByStation } from '@/components/live/outages';
+import { useParking } from '@/lib/live/client';
+import { distanceMeters } from '@/lib/network';
+import { useLocale } from 'next-intl';
 
 
 interface StationSheetProps {
@@ -16,6 +19,18 @@ interface StationSheetProps {
 export function StationSheet({ station, onClose, hour }: StationSheetProps) {
   const t = useTranslations('station');
   const tl = useTranslations('live');
+  const tp = useTranslations('parking');
+  const locale = useLocale();
+  const parking = useParking(!!station);
+  const nearbyParks =
+    station && Number.isFinite(station.lat) && parking.data
+      ? parking.data
+          .map((p) => ({ p, d: distanceMeters(station, p) }))
+          .filter(({ d }) => d <= 800)
+          .sort((a, b) => a.d - b.d)
+          .slice(0, 3)
+      : [];
+  const nf = new Intl.NumberFormat(locale);
   const outagesByStation = useOutagesByStation();
   const outages = station ? station.metroIds.flatMap((id) => outagesByStation.get(id) ?? []) : [];
   const f = station?.facilities;
@@ -50,6 +65,26 @@ export function StationSheet({ station, onClose, hour }: StationSheetProps) {
             </ul>
           ) : null}
           <p className="px-5 text-sm text-fg-muted">{amenities.length ? amenities.join(' · ') : t('none')}</p>
+          {nearbyParks.length ? (
+            <>
+              <p className="eyebrow px-5 pb-1 pt-5">{tp('title')}</p>
+              <ul className="border-y border-line">
+                {nearbyParks.map(({ p, d }) => (
+                  <li key={p.id} className="flex items-center gap-3 border-b border-line px-5 py-2.5 last:border-b-0">
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-sm font-medium">{p.name}</span>
+                      <span className="block text-xs text-fg-muted">
+                        {Math.round(d / 10) * 10} m · {p.hours}
+                      </span>
+                    </span>
+                    <span className="shrink-0 font-display text-sm font-semibold tabular-nums">
+                      {tp('free', { empty: nf.format(p.empty), capacity: nf.format(p.capacity) })}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </>
+          ) : null}
         </div>
       ) : null}
     </Sheet>

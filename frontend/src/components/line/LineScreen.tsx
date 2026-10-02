@@ -18,7 +18,8 @@ import { ApiError, type Direction } from '@/lib/api';
 import { buildDayProfile } from '@/lib/crowd';
 import { RAIL_COLORS, isMetroTopologyLine, modeOf } from '@/lib/lines';
 import { lineStations, type NetworkLine, type NetworkStation } from '@/lib/network';
-import { useForecast, useLine, useLineStatus, useRoute, useSchedule } from '@/lib/queries';
+import { useForecast, useLine, useLineStatus, useSchedule } from '@/lib/queries';
+import { classifyVehicles, routeThroughStops, useBusRoutes } from '@/lib/live/routes';
 import { useBusLine, useBusRegistry, useBusVehiclesMany } from '@/lib/live/client';
 import { addDays } from '@/lib/time';
 import { usePrefs } from '@/store/prefs';
@@ -34,6 +35,7 @@ import { AlertsBanner } from './AlertsBanner';
 import { StationStrip } from './StationStrip';
 import { BusStops } from './BusStops';
 import { LineFacts } from './LineFacts';
+import { Yesterday } from './Yesterday';
 import { FavoriteButton, ShareButton } from './LineActions';
 
 const DIRECTIONS: Direction[] = ['G', 'D'];
@@ -113,7 +115,7 @@ export function LineScreen({ code }: { code: string }) {
   const forecast = useForecast(inDb ? code : null, date, direction);
   const todayForecast = useForecast(inDb ? code : null, now.date, direction);
   const status = useLineStatus(inDb ? code : null, direction);
-  const route = useRoute(code, busLike && (inDb || !!liveInfo));
+  const routes = useBusRoutes(busLike ? code : null);
   const network = useNetwork();
   const metroLine = network.metro?.lines.find((l) => l.code === (code === 'M1' ? 'M1A' : code)) ?? null;
   const disruptions = useLineDisruptions(code);
@@ -123,16 +125,20 @@ export function LineScreen({ code }: { code: string }) {
 
   const liveDirection = direction ? busLive.data?.directions[direction] : undefined;
 
-  // Map: the rail network for context, this line on top. Buses: route shape (or stop chain), stops, live vehicles.
+  // Map: the rail network for context, this line on top. Buses: İETT's real road geometry of the
+  // main variant for the chosen direction (falls back to joining the stops), stops, live vehicles.
+  const ownRoute = useMemo(
+    () => (busLike ? routeThroughStops(routes.data, direction, liveDirection?.stops ?? []) : null),
+    [busLike, routes.data, direction, liveDirection],
+  );
   const mapLines = useMemo<NetworkLine[]>(() => {
     if (!busLike) return network.lines;
-    const shape = (direction && route.data?.[direction]) || route.data?.G || route.data?.D || [];
-    const coords: [number, number][] = shape.length
-      ? shape.map(([lat, lng]) => [lng, lat])
-      : (liveDirection?.stops ?? []).map((s) => [s.lng, s.lat]);
-    const own: NetworkLine = { code, id: code, color: null, style: 'brt', segments: coords.length > 1 ? [coords] : [] };
+    const segments: [number, number][][] = ownRoute?.coords.length
+      ? [ownRoute.coords]
+      : [(liveDirection?.stops ?? []).map((s) => [s.lng, s.lat] as [number, number])];
+    const own: NetworkLine = { code, id: code, color: null, style: 'brt', segments: segments.filter((p) => p.length > 1) };
     return [...network.lines.filter((l) => l.code !== code), own];
-  }, [busLike, network.lines, route.data, direction, code, liveDirection]);
+  }, [busLike, network.lines, ownRoute, code, liveDirection]);
 
   const ownStations = useMemo<NetworkStation[]>(() => {
     if (busLike) {
@@ -148,11 +154,16 @@ export function LineScreen({ code }: { code: string }) {
     return lineStations(code, network.metro, network.marmaray, network.stations);
   }, [busLike, liveDirection, code, network.metro, network.marmaray, network.stations]);
 
-  // Place vehicles by stop membership (robust across variants), not by their route's G/D letter.
-  const liveVehicles = useMemo(() => {
+  // Vehicles assigned to the line include ones driving to/from the depot: classify by distance to
+  // their route variant, and place them by stop membership (robust across Metrobüs variants).
+  const directionVehicles = useMemo(() => {
     const stopsHere = new Set((liveDirection?.stops ?? []).map((s) => s.code));
-    return (vehicles.data ?? []).filter((v) => v.nearStop && stopsHere.has(v.nearStop));
-  }, [vehicles.data, liveDirection]);
+    const allStops = Object.values(busLive.data?.directions ?? {}).flatMap((d) => d?.stops ?? []);
+    return classifyVehicles(vehicles.data, routes.data, allStops).filter(
+      (v) => (v.nearStop && stopsHere.has(v.nearStop) && v.inService) || (!v.inService && v.variant?.dir === direction),
+    );
+  }, [vehicles.data, routes.data, liveDirection, direction, busLive.data]);
+  const liveVehicles = directionVehicles;
   const widths = useMemo(() => ({ [code]: 5 }), [code]);
 
   useEffect(() => {
@@ -310,7 +321,7 @@ export function LineScreen({ code }: { code: string }) {
 
           {busLike && liveDirection && direction ? (
             <Block>
-              <BusStops direction={liveDirection} vehicles={vehicles.data ? liveVehicles : undefined} vehiclesAt={vehicles.dataUpdatedAt} />
+              <BusStops direction={liveDirection} vehicles={vehicles.data ? directionVehicles : undefined} vehiclesAt={vehicles.dataUpdatedAt} />
             </Block>
           ) : null}
 
@@ -333,8 +344,22 @@ export function LineScreen({ code }: { code: string }) {
           ) : null}
 
           <Block>
-            <LineFacts metroLine={metroLine} busInfo={liveInfo} stopCount={liveDirection?.stops.length ?? null} />
+            <LineFacts
+              metroLine={metroLine}
+              busInfo={liveInfo}
+              stopCount={liveDirection?.stops.length ?? null}
+              busTripMinutes={
+                // Only trust the static running time when the variant still matches today's stops.
+                ownRoute?.variant?.durationS && ownRoute.coverage >= 0.95 ? Math.round(ownRoute.variant.durationS / 60) : null
+              }
+            />
           </Block>
+
+          {busLike ? (
+            <Block>
+              <Yesterday code={code} />
+            </Block>
+          ) : null}
 
           {inDb ? (
             <Block>

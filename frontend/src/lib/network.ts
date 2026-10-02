@@ -1,4 +1,3 @@
-import type { RouteShape } from './api';
 import { RAIL_COLORS } from './lines';
 import type { MetroLine, MetroNetwork, MetroStation } from './live/types';
 import type { Topology } from './topology';
@@ -129,7 +128,8 @@ const orderedWithCoords = (stations: MetroStation[], line: string) =>
 export function buildNetworkLines(
   metro: MetroNetwork | undefined,
   marmaray: MarmarayStations | undefined,
-  metrobus: RouteShape | undefined,
+  /** Metrobüs road geometry ([lng, lat] parts) from İETT's route dataset. */
+  metrobus: [number, number][][] | undefined,
 ): NetworkLine[] {
   const out: NetworkLine[] = [];
   for (const line of metro?.lines ?? []) {
@@ -147,9 +147,8 @@ export function buildNetworkLines(
       segments: [[...marmaray.stations].sort((a, b) => a.order - b.order).map((s) => [s.lng, s.lat])],
     });
   }
-  const brt = metrobus?.G?.length ? metrobus.G : metrobus?.D;
-  if (brt?.length) {
-    out.push({ code: '34', id: '34', color: null, style: 'brt', segments: [brt.map(([lat, lng]) => [lng, lat])] });
+  if (metrobus?.length) {
+    out.push({ code: '34', id: '34', color: null, style: 'brt', segments: metrobus });
   }
   // Wide Metrobüs/Marmaray strokes go underneath so metro lines stay visible on top.
   return [...out.filter((l) => l.style !== 'metro'), ...out.filter((l) => l.style === 'metro')];

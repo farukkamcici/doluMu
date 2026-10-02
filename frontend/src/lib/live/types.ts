@@ -98,6 +98,8 @@ export interface BusLineDetail {
 
 export interface BusVehicle {
   id: string;
+  /** İETT route variant code, e.g. "19_G_D1610" (see public/data/bus_routes). */
+  route: string | null;
   lat: number;
   lng: number;
   direction: 'G' | 'D' | null;
@@ -110,4 +112,37 @@ export interface BusNotice {
   line: string;
   message: string;
   time: string | null;
+}
+
+export interface LineReliability {
+  /** Duties (trips) İETT recorded for the line on `date`. */
+  trips: number;
+  completed: number;
+  cancelled: number;
+  /** Median minutes between planned and actual departure from the first stop. */
+  medianDelayMin: number | null;
+  /** Share of departures within 3 minutes of plan. */
+  onTimeShare: number | null;
+}
+
+export interface BusReliability {
+  date: string;
+  lines: Record<string, LineReliability>;
+}
+
+export interface BusRidership {
+  date: string;
+  /** Top lines by journeys that day (İETT publishes the top 50). */
+  lines: Record<string, number>;
+}
+
+export interface ParkingLot {
+  id: number;
+  name: string;
+  lat: number;
+  lng: number;
+  capacity: number;
+  empty: number;
+  type: string;
+  hours: string;
 }

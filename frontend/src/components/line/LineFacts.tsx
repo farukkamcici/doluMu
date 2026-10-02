@@ -9,10 +9,12 @@ interface LineFactsProps {
   metroLine: MetroLine | null;
   busInfo: BusLineInfo | null;
   stopCount: number | null;
+  /** İETT's scheduled running time of the main route, minutes. */
+  busTripMinutes?: number | null;
 }
 
 /** Line "fact sheet": length, stations, trip time, frequency, riders, fare. */
-export function LineFacts({ metroLine, busInfo, stopCount }: LineFactsProps) {
+export function LineFacts({ metroLine, busInfo, stopCount, busTripMinutes }: LineFactsProps) {
   const t = useTranslations('facts');
   const locale = useLocale();
   const fares = useFares();
@@ -30,7 +32,8 @@ export function LineFacts({ metroLine, busInfo, stopCount }: LineFactsProps) {
   if (lengthKm) items.push([t('length'), t('km', { n: n.format(lengthKm) })]);
   if (f?.stations) items.push([t('stations'), n.format(f.stations)]);
   else if (stopCount) items.push([t('stops'), n.format(stopCount)]);
-  if (f?.tripMinutes) items.push([t('trip'), t('min', { n: n.format(f.tripMinutes) })]);
+  const trip = f?.tripMinutes ?? busTripMinutes ?? null;
+  if (trip) items.push([t('trip'), t('min', { n: n.format(trip) })]);
   if (metroLine?.firstTime) items.push([t('hours'), `${metroLine.firstTime}–${metroLine.lastTime}`]);
   if (f?.dailyRiders) items.push([t('riders'), n.format(f.dailyRiders)]);
   if (f?.vehicles) items.push([t('vehicles'), n.format(f.vehicles)]);

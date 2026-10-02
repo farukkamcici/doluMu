@@ -58,7 +58,8 @@ src/
   store/prefs.ts       favourites + recent lines (localStorage, v1-compatible key)
 messages/{tr,en}.json  UI copy
 public/data/           metro_topology.json, marmaray_static_schedule.json (both also read by the backend),
-                       marmaray_stations.json (OpenStreetMap, ODbL), bus_stops.json (scripts/build-bus-stops.mjs)
+                       marmaray_stations.json (OpenStreetMap, ODbL), bus_stops.json (scripts/build-bus-stops.mjs),
+                       bus_routes/*.json (scripts/build-bus-routes.mjs; refresh monthly)
 ```
 
 ## Conventions

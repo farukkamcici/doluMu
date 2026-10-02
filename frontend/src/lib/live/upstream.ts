@@ -9,7 +9,7 @@ import 'server-only';
 
 const METRO = 'https://api.ibb.gov.tr/MetroIstanbul/api/MetroMobile/V2';
 const IETT = 'https://api.ibb.gov.tr/iett';
-const TIMEOUT_MS = 12_000;
+const TIMEOUT_MS = 25_000;
 
 export class UpstreamError extends Error {}
 
@@ -61,7 +61,7 @@ export async function iettSoap(service: string, operation: string, params: Recor
     method: 'POST',
     headers: { 'Content-Type': 'text/xml; charset=utf-8', SOAPAction: `"http://tempuri.org/${operation}"` },
     body: envelope,
-    next: { revalidate },
+    ...(revalidate > 0 ? { next: { revalidate } } : { cache: 'no-store' as const }),
   });
   const xml = await res.text();
   if (xml.includes('<soap:Fault>')) throw new UpstreamError(`iett fault ${operation}`);

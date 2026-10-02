@@ -13,6 +13,7 @@ import { Link } from '@/i18n/routing';
 import { buildDayProfile } from '@/lib/crowd';
 import { useForecast } from '@/lib/queries';
 import { useBusLine, useBusStops, useBusVehicles, type StopIndexEntry } from '@/lib/live/client';
+import { classifyVehicles, useBusRoutes } from '@/lib/live/routes';
 import type { NetworkStation } from '@/lib/network';
 import { useNow } from '@/hooks/useNow';
 import { useNetwork } from '@/hooks/useNetwork';
@@ -26,6 +27,7 @@ function StopLineRow({ code, dir, stopCode, otherDirHere }: { code: string; dir:
   const name = useLineDisplayName(code);
   const line = useBusLine(code);
   const vehicles = useBusVehicles(code);
+  const routes = useBusRoutes(code);
   const forecast = useForecast(code, now.date);
   const point = useMemo(() => (forecast.data ? buildDayProfile(forecast.data).hours[now.hour] : null), [forecast.data, now.hour]);
 
@@ -36,15 +38,17 @@ function StopLineRow({ code, dir, stopCode, otherDirHere }: { code: string; dir:
     const target = order.get(stopCode);
     if (target == null) return null;
     let best: number | null = null;
-    for (const v of vehicles.data) {
-      if (!v.nearStop) continue;
+    // Only buses actually running their route count (not ones heading to/from the depot).
+    const allStops = Object.values(line.data?.directions ?? {}).flatMap((d) => d?.stops ?? []);
+    for (const v of classifyVehicles(vehicles.data, routes.data, allStops)) {
+      if (!v.nearStop || !v.inService) continue;
       const idx = order.get(v.nearStop);
       if (idx == null || idx > target) continue;
       const away = target - idx;
       if (best == null || away < best) best = away;
     }
     return best;
-  }, [direction, vehicles.data, stopCode]);
+  }, [direction, vehicles.data, routes.data, stopCode, line.data]);
 
   // Buses heading *to* this stop as their terminus aren't useful to someone waiting here.
   const terminus = direction ? direction.stops[direction.stops.length - 1]?.code === stopCode : false;

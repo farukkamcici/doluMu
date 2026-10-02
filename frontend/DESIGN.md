@@ -94,6 +94,22 @@ route'larını çağırır; bunlar sunucuda İBB'ye gider ve sonucu CDN'de önbe
 | `/api/live/bus/[code]` | İETT `DurakDetay_GYY_wYonAdi` | 1 gün | Sıralı duraklar, gerçek yön adları |
 | `/api/live/bus/[code]/vehicles` | İETT `GetHatOtoKonum_json` | 30 sn | Canlı otobüsler (harita + durak şeridi), "N durak uzakta" |
 | `/api/live/bus/notices` | İETT `GetDuyurular_json` | 5 dk | Duyurular |
+| `/api/live/bus/reliability` | İETT `GetIettArsivGorev_json` (dünkü ~55 bin görev) | 6 sa | "Dün": sefer, tamamlanan, iptal, zamanında kalkış oranı |
+| `/api/live/bus/ridership` | İETT `GetIettYolculukHat_json` (en yoğun 50 hat) | 6 sa | Dünkü gerçek yolculuk sayısı |
+| `/api/live/parking` | İSPARK `Park` | 5 dk | İstasyon yakınındaki otoparkların boş yeri |
+
+`public/data/bus_routes/<HAT>.json`, `scripts/build-bus-routes.mjs` ile İETT'nin güzergah veri
+setinden (7.401 güzergah, 257 MB) üretilir: her hattın tüm **depar**ları (güzergah varyantları; `D0` ana
+güzergah, diğerleri kısa/alternatif seferler) gerçek yol geometrisi, uzunluk ve sefer süresiyle.
+Bu veri seti canlı durumdan geride kalabildiği için (ör. 19 Kadıköy yerine artık Uzunçayır'a gidiyor)
+güzergah çizgisi canlı durak listesine göre kurulur: iki durak arasında varyant yolu iki durağı da sırayla
+kapsıyorsa yol izlenir, kapsamıyorsa durağa düz geçilir.
+
+Canlı araçlar: `GetHatOtoKonum_json` hatta **atanmış** araçları verir, bunlar arasında garaja ya da
+başlangıca boş giden araçlar da vardır (500T'de 33 aracın 7'si güzergahtan 1–6,5 km uzaktaydı). Bu
+yüzden araç kendi deparının yoluna 300 m'den, ya da hattın herhangi bir durağına 350 m'den uzaksa
+"güzergah dışında" sayılır: şeritte gösterilmez, haritada gri ve soluk çizilir. Kısa sefer yapan araçlarda
+nereye kadar gittiği yazılır.
 
 `public/data/bus_stops.json`, `scripts/build-bus-stops.mjs` ile üretilen durak → hat dizinidir
 (13 bin durak; İETT'nin GTFS `stop_times` dosyası 1.048.576 satırda kesik olduğu için canlı servisten

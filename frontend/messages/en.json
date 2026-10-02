@@ -305,7 +305,8 @@
     "nearest": "Nearest bus",
     "noneComing": "No bus approaching",
     "showAll": "Show all stops",
-    "showLess": "Show fewer"
+    "showLess": "Show fewer",
+    "offRoute": "{count, plural, one {# more bus is assigned to this line but off the route right now (likely to or from the depot).} other {# more buses are assigned to this line but off the route right now (likely to or from the depot).}}"
   },
   "stop": {
     "title": "Stop",
@@ -316,5 +317,20 @@
     "liveNote": "Bus positions come live from İETT; this is not an arrival-time prediction.",
     "linesCount": "{count, plural, one {# line} other {# lines}}",
     "terminus": "Terminus"
+  },
+  "yesterday": {
+    "title": "Yesterday",
+    "trips": "Trips",
+    "completed": "Completed",
+    "cancelled": "Cancelled",
+    "onTime": "On-time departures",
+    "journeys": "Journeys",
+    "delay": "Departures from the first stop left a median {min} min after schedule.",
+    "source": "Source: İETT trip archive. On time: within 3 min of the planned departure."
+  },
+  "parking": {
+    "title": "İSPARK car parks nearby",
+    "free": "{empty} of {capacity} free",
+    "closed": "Closed"
   }
 }

@@ -12,6 +12,13 @@ const STYLE_URL = 'https://tiles.openfreemap.org/styles/positron';
 const ISTANBUL: [number, number] = [28.98, 41.03];
 const DEFAULT_WIDTH = 4;
 
+export interface MapVehicle {
+  id: string;
+  lat: number;
+  lng: number;
+  inService?: boolean;
+}
+
 export interface TransitMapProps {
   lines: NetworkLine[];
   stations?: NetworkStation[];
@@ -22,8 +29,8 @@ export interface TransitMapProps {
   me?: { lat: number; lng: number } | null;
   /** Line codes with a live disruption: drawn with a signal-red dashed overlay. */
   alerts?: string[];
-  /** Live vehicles (buses) to plot. */
-  vehicles?: { id: string; lat: number; lng: number }[];
+  /** Live vehicles (buses) to plot; `inService: false` draws them muted. */
+  vehicles?: MapVehicle[];
   /** Fly to this point (e.g. a station picked from a list). */
   flyTo?: { lat: number; lng: number; zoom?: number } | null;
   onLineClick?: (code: string) => void;
@@ -49,6 +56,22 @@ function paintWhenReady(map: MLMap, lines: () => { lines: NetworkLine[]; widths?
   paintAll(map);
   const { lines: l, widths, alerts } = lines();
   (map.getSource('net') as GeoJSONSource | undefined)?.setData(linesGeoJSON(l, widths, cssRgb('--fg'), alerts));
+}
+
+/** Bus marker (lucide "bus-front" on a filled disc), rasterised for MapLibre. */
+function busIcon(fill: string) {
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48"><circle cx="24" cy="24" r="21" fill="${fill}" stroke="#ffffff" stroke-width="3"/><g transform="translate(12 12)" fill="none" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6 2 7"/><path d="M10 6h4"/><path d="m22 7-2-1"/><rect width="16" height="16" x="4" y="3" rx="2"/><path d="M4 11h16"/><path d="M8 15h.01"/><path d="M16 15h.01"/><path d="M6 19v2"/><path d="M18 21v-2"/></g></svg>`;
+  const img = new Image(48, 48);
+  img.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+  return img.decode().then(() => img);
+}
+
+async function installBusIcons(map: MLMap) {
+  const [live, idle] = await Promise.all([busIcon(cssRgb('--signal')), busIcon('#8a857c')]);
+  for (const [name, img] of [['bus-live', live], ['bus-idle', idle]] as const) {
+    if (map.hasImage(name)) map.removeImage(name);
+    map.addImage(name, img, { pixelRatio: 2 });
+  }
 }
 
 const HIDDEN = /^(building|aeroway|railway|highway-shield|road_shield|airport|highway-name-(path|minor))/;
@@ -109,12 +132,12 @@ function linesGeoJSON(lines: NetworkLine[], widths: Record<string, number> | und
   };
 }
 
-function vehiclesGeoJSON(vehicles: { id: string; lat: number; lng: number }[]) {
+function vehiclesGeoJSON(vehicles: MapVehicle[]) {
   return {
     type: 'FeatureCollection' as const,
     features: vehicles.map((v) => ({
       type: 'Feature' as const,
-      properties: { id: v.id },
+      properties: { id: v.id, live: v.inService !== false },
       geometry: { type: 'Point' as const, coordinates: [v.lng, v.lat] },
     })),
   };
@@ -289,15 +312,18 @@ export default function TransitMap({
       });
       map.addLayer({
         id: 'vehicles',
-        type: 'circle',
+        type: 'symbol',
         source: 'vehicles',
-        paint: {
-          'circle-radius': ['interpolate', ['linear'], ['zoom'], 9, 3.5, 14, 7],
-          'circle-color': cssRgb('--signal'),
-          'circle-stroke-color': '#ffffff',
-          'circle-stroke-width': 1.5,
+        layout: {
+          'icon-image': ['case', ['get', 'live'], 'bus-live', 'bus-idle'],
+          'icon-size': ['interpolate', ['linear'], ['zoom'], 9, 0.6, 13, 1.05, 16, 1.4],
+          'icon-allow-overlap': true,
+          'icon-ignore-placement': true,
+          'symbol-sort-key': ['case', ['get', 'live'], 1, 0],
         },
+        paint: { 'icon-opacity': ['case', ['get', 'live'], 1, 0.55] },
       });
+      void installBusIcons(map);
       map.addLayer({
         id: 'me-halo',
         type: 'circle',
@@ -362,7 +388,7 @@ export default function TransitMap({
         linesGeoJSON(latest.current.lines, latest.current.widths, cssRgb('--fg'), latest.current.alerts),
       );
       map.setPaintProperty('net-alert', 'line-color', cssRgb('--signal'));
-      map.setPaintProperty('vehicles', 'circle-color', cssRgb('--signal'));
+      void installBusIcons(map);
     });
     observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
     return () => observer.disconnect();

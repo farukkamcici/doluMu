@@ -3,12 +3,13 @@ import { useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { BusFront, ChevronDown } from 'lucide-react';
 import { Link } from '@/i18n/routing';
-import type { BusDirection, BusVehicle } from '@/lib/live/types';
+import type { BusDirection } from '@/lib/live/types';
+import { variantEnd, type ClassifiedVehicle } from '@/lib/live/routes';
 import { cn } from '@/lib/utils';
 
 interface BusStopsProps {
   direction: BusDirection;
-  vehicles: BusVehicle[] | undefined;
+  vehicles: ClassifiedVehicle[] | undefined;
   vehiclesAt: number;
 }
 
@@ -20,15 +21,16 @@ export function BusStops({ direction, vehicles, vehiclesAt }: BusStopsProps) {
   const [expanded, setExpanded] = useState(false);
 
   const busesAt = useMemo(() => {
-    const map = new Map<string, BusVehicle[]>();
+    const map = new Map<string, ClassifiedVehicle[]>();
     for (const v of vehicles ?? []) {
-      if (!v.nearStop) continue;
+      if (!v.nearStop || !v.inService) continue;
       map.set(v.nearStop, [...(map.get(v.nearStop) ?? []), v]);
     }
     return map;
   }, [vehicles]);
 
   const count = [...busesAt.values()].reduce((sum, v) => sum + v.length, 0);
+  const offRoute = (vehicles ?? []).filter((v) => !v.inService).length;
   const stops = direction.stops;
   const long = stops.length > COLLAPSED + 3;
   const shown = long && !expanded ? stops.slice(0, COLLAPSED) : stops;
@@ -54,6 +56,9 @@ export function BusStops({ direction, vehicles, vehiclesAt }: BusStopsProps) {
       ) : (
         <div className="mb-3 h-5" />
       )}
+      {vehicles && offRoute ? (
+        <p className="-mt-2 mb-3 text-xs text-fg-muted">{t('offRoute', { count: offRoute })}</p>
+      ) : null}
 
       <ol className="relative">
         {shown.map((stop, i) => {
@@ -88,8 +93,15 @@ export function BusStops({ direction, vehicles, vehiclesAt }: BusStopsProps) {
                 )}
                 <span className={cn('min-w-0 flex-1 truncate text-[15px]', terminus && 'font-semibold')}>{stop.name}</span>
                 {buses.length ? (
-                  <span className="shrink-0 font-display text-xs font-semibold text-signal">
-                    {buses.map((b) => b.id).join(', ')}
+                  <span className="shrink-0 text-right font-display text-xs font-semibold leading-tight text-signal">
+                    {buses.map((b) => (
+                      <span key={b.id} className="block">
+                        {b.id}
+                        {b.variant && b.variant.depar !== '0' ? (
+                          <span className="font-normal text-fg-muted"> → {variantEnd(b.variant)}</span>
+                        ) : null}
+                      </span>
+                    ))}
                   </span>
                 ) : (
                   <span className="shrink-0 text-xs text-fg-subtle">{stop.district}</span>

@@ -4,8 +4,11 @@ import type {
   BusLineDetail,
   BusLineInfo,
   BusNotice,
+  BusReliability,
+  BusRidership,
   BusVehicle,
   Fare,
+  ParkingLot,
   MetroNetwork,
   MetroStatus,
 } from './types';
@@ -75,6 +78,15 @@ export function useBusVehiclesMany(codes: string[]) {
     }),
   });
 }
+
+export const useBusReliability = (enabled = true) =>
+  useQuery({ queryKey: ['live', 'bus-reliability'], queryFn: () => get<BusReliability>('/api/live/bus/reliability'), staleTime: 6 * 60 * MINUTE, enabled, ...quiet });
+
+export const useBusRidership = (enabled = true) =>
+  useQuery({ queryKey: ['live', 'bus-ridership'], queryFn: () => get<BusRidership>('/api/live/bus/ridership'), staleTime: 6 * 60 * MINUTE, enabled, ...quiet });
+
+export const useParking = (enabled = true) =>
+  useQuery({ queryKey: ['live', 'parking'], queryFn: () => get<ParkingLot[]>('/api/live/parking'), staleTime: 5 * MINUTE, enabled, ...quiet });
 
 export const useBusNotices = () =>
   useQuery({ queryKey: ['live', 'bus-notices'], queryFn: () => get<BusNotice[]>('/api/live/bus/notices'), staleTime: 5 * MINUTE, ...quiet });
