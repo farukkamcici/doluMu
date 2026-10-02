@@ -18,6 +18,7 @@ from .services.batch_forecast import run_daily_forecast_job
 from .services.metro_schedule_cache import metro_schedule_cache_service
 from .services.bus_schedule_cache import bus_schedule_cache_service
 from .services.iett_archive import sync_history
+from .services import notifier
 from .state import get_model, get_feature_store, get_capacity_store
 
 logger = logging.getLogger(__name__)
@@ -921,6 +922,14 @@ def start_scheduler():
         misfire_grace_time=3600,
         coalesce=True
     )
+
+    # Mobile app notifications: bus alarms (30 s), disruptions/outages (2 min), housekeeping (daily)
+    scheduler.add_job(notifier.check_alarms, trigger=IntervalTrigger(seconds=30), id="notify_alarms",
+                      name="Notify Bus Alarms", replace_existing=True, max_instances=1, coalesce=True)
+    scheduler.add_job(notifier.check_status, trigger=IntervalTrigger(minutes=2), id="notify_status",
+                      name="Notify Disruptions/Outages", replace_existing=True, max_instances=1, coalesce=True)
+    scheduler.add_job(notifier.prune_devices, trigger=CronTrigger(hour=4, minute=50, timezone="Europe/Istanbul"),
+                      id="notify_prune", name="Prune Devices", replace_existing=True)
 
     # Start the scheduler
     scheduler.start()

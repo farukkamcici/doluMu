@@ -7,7 +7,7 @@ from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 from .db import SessionLocal
-from .routers import admin, forecast, lines, nowcast, reports, schedule, status, metro, traffic, capacity, bus_history
+from .routers import admin, forecast, lines, nowcast, reports, schedule, status, metro, traffic, capacity, bus_history, devices
 from .services.store import FeatureStore
 from .services.capacity_store import CapacityStore
 from .services.iett_registry import iett_registry
@@ -123,6 +123,7 @@ app.include_router(metro.router, prefix="/api")  # Metro Istanbul integration
 app.include_router(traffic.router, prefix="/api")
 app.include_router(capacity.router, prefix="/api")
 app.include_router(bus_history.router, prefix="/api")
+app.include_router(devices.router, prefix="/api")
 
 @app.get("/")
 def read_root():

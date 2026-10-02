@@ -138,3 +138,62 @@ class IettDailyJourneys(Base):
     date = Column(Date, primary_key=True)
     line_code = Column(String, primary_key=True, index=True)
     journeys = Column(Integer, nullable=False)
+
+
+# --- Mobile app notifications (no accounts: devices register anonymously by push token) ---
+
+class Device(Base):
+    __tablename__ = "devices"
+
+    id = Column(String, primary_key=True)
+    push_token = Column(String, unique=True, nullable=False)
+    platform = Column(String, nullable=False, default="ios")
+    locale = Column(String, nullable=False, default="tr")
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    last_seen = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+
+
+class Subscription(Base):
+    """`line_disruption` → line code, `station_outage` → network station id."""
+    __tablename__ = "subscriptions"
+
+    device_id = Column(String, primary_key=True)
+    kind = Column(String, primary_key=True)
+    target = Column(String, primary_key=True)
+
+
+class Alarm(Base):
+    """One-off "tell me when my bus is N minutes away" at a stop."""
+    __tablename__ = "alarms"
+
+    id = Column(String, primary_key=True)
+    device_id = Column(String, nullable=False, index=True)
+    stop_code = Column(String, nullable=False)
+    line_code = Column(String, nullable=False)
+    direction = Column(String(1), nullable=False)
+    threshold_min = Column(Integer, nullable=False)
+    stop_name = Column(String, nullable=False, default="")
+    line_label = Column(String, nullable=False, default="")
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    expires_at = Column(DateTime(timezone=True), nullable=False)
+    fired_at = Column(DateTime(timezone=True), nullable=True)
+    cancelled = Column(Integer, nullable=False, default=0)
+
+
+class NotifyState(Base):
+    """Last seen disruptions / outages, to notify only on changes."""
+    __tablename__ = "notify_state"
+
+    key = Column(String, primary_key=True)
+    value = Column(JSON, nullable=False)
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+
+class NotificationLog(Base):
+    __tablename__ = "notification_log"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    device_id = Column(String, nullable=False, index=True)
+    kind = Column(String, nullable=False)
+    target = Column(String, nullable=False)
+    sent_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False, index=True)
