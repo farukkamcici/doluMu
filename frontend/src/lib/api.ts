@@ -40,7 +40,28 @@ export interface BusSchedule {
   data_status?: string;
 }
 
-export type RouteShape = Partial<Record<Direction, [number, number][]>>;
+/** One day of a bus line's operations, from İETT's trip archive. */
+export interface BusDay {
+  date: string;
+  trips: number;
+  completed: number;
+  cancelled: number;
+  /** Median minutes between planned and actual departure from the first stop. */
+  medianDelayMin: number | null;
+  /** Share of departures within 3 minutes of plan. */
+  onTimeShare: number | null;
+  /** Only for İETT's 50 busiest lines. */
+  journeys: number | null;
+}
+
+export interface BusHistory {
+  line: string;
+  /** Oldest first, up to two weeks. */
+  days: BusDay[];
+  /** Median actual running minutes per route variant and start hour: {"500T_G_D0": {"7": 156}}. */
+  tripMinutes: Record<string, Record<string, number>>;
+  tripMinutesDate: string | null;
+}
 
 export interface CapacityMeta {
   line_code: string;
@@ -113,7 +134,7 @@ export const api = {
   getStatus: (code: string, direction?: Direction | null) =>
     request<LineStatus>(`/lines/${seg(code)}/status`, { direction }),
   getSchedule: (code: string) => request<BusSchedule>(`/lines/${seg(code)}/schedule`),
-  getRoute: (code: string) => request<RouteShape>(`/lines/${seg(code)}/route`),
+  getBusHistory: (code: string) => request<BusHistory>(`/bus/${seg(code)}/history`),
   getCapacity: (code: string) => request<CapacityMeta>(`/capacity/${seg(code)}`),
   getTraffic: () => request<TrafficIndex>('/traffic/istanbul'),
   getNowcast: () => request<Record<string, NowcastHour>>('/nowcast'),

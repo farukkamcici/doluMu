@@ -8,13 +8,12 @@ import type { BusLineInfo, MetroLine } from '@/lib/live/types';
 interface LineFactsProps {
   metroLine: MetroLine | null;
   busInfo: BusLineInfo | null;
-  stopCount: number | null;
-  /** İETT's scheduled running time of the main route, minutes. */
-  busTripMinutes?: number | null;
+  /** Bus running time end to end, minutes: recorded for this hour (`live`) or İETT's planned time. */
+  busTrip?: { minutes: number; live: boolean } | null;
 }
 
-/** Line "fact sheet": length, stations, trip time, frequency, riders, fare. */
-export function LineFacts({ metroLine, busInfo, stopCount, busTripMinutes }: LineFactsProps) {
+/** Line "fact sheet": length, trip time, hours, frequency, riders, fare. */
+export function LineFacts({ metroLine, busInfo, busTrip }: LineFactsProps) {
   const t = useTranslations('facts');
   const locale = useLocale();
   const fares = useFares();
@@ -30,10 +29,8 @@ export function LineFacts({ metroLine, busInfo, stopCount, busTripMinutes }: Lin
 
   const items: [string, ReactNode][] = [];
   if (lengthKm) items.push([t('length'), t('km', { n: n.format(lengthKm) })]);
-  if (f?.stations) items.push([t('stations'), n.format(f.stations)]);
-  else if (stopCount) items.push([t('stops'), n.format(stopCount)]);
-  const trip = f?.tripMinutes ?? busTripMinutes ?? null;
-  if (trip) items.push([t('trip'), t('min', { n: n.format(trip) })]);
+  if (f?.tripMinutes) items.push([t('trip'), t('min', { n: n.format(f.tripMinutes) })]);
+  else if (busTrip) items.push([busTrip.live ? t('tripNow') : t('trip'), t('min', { n: n.format(Math.round(busTrip.minutes)) })]);
   if (metroLine?.firstTime) items.push([t('hours'), `${metroLine.firstTime}–${metroLine.lastTime}`]);
   if (f?.dailyRiders) items.push([t('riders'), n.format(f.dailyRiders)]);
   if (f?.vehicles) items.push([t('vehicles'), n.format(f.vehicles)]);
@@ -64,14 +61,11 @@ export function LineFacts({ metroLine, busInfo, stopCount, busTripMinutes }: Lin
         </div>
       ) : null}
       {twoFare ? <p className="mt-3 text-sm text-fg-muted">{t('fareTwo')}</p> : null}
-      <div className="mt-3 flex items-center justify-between gap-3">
-        <p className="text-xs text-fg-subtle">{t('source')}</p>
-        {fares.data?.length ? (
-          <button type="button" onClick={() => setOpen(true)} className="shrink-0 text-sm font-semibold underline underline-offset-4">
-            {t('fares')}
-          </button>
-        ) : null}
-      </div>
+      {fares.data?.length ? (
+        <button type="button" onClick={() => setOpen(true)} className="mt-3 text-sm font-semibold underline underline-offset-4">
+          {t('fares')}
+        </button>
+      ) : null}
 
       <Sheet open={open} onOpenChange={setOpen} title={t('faresTitle')}>
         <div className="-mx-5 pb-6">

@@ -16,7 +16,7 @@ const THRESHOLDS: [number, CrowdLevel][] = [
   [0.4, 'normal'],
 ];
 
-export function levelFor(ratio: number): CrowdLevel {
+function levelFor(ratio: number): CrowdLevel {
   for (const [min, level] of THRESHOLDS) if (ratio >= min) return level;
   return 'quiet';
 }
@@ -77,7 +77,7 @@ export function buildDayProfile(forecast: HourlyForecast[] | undefined): DayProf
   };
 }
 
-export interface QuieterSuggestion {
+interface QuieterSuggestion {
   hour: number;
   /** How much quieter than now, 0–1. */
   drop: number;
@@ -105,36 +105,4 @@ export function findQuieterHour(
   const drop = 1 - best.passengers / current.passengers;
   if (drop < minDrop) return null;
   return { hour: best.hour, drop, level: best.state as CrowdLevel };
-}
-
-/** Busiest and quietest stretches, used for the day summary line. */
-export function daySummary(profile: DayProfile) {
-  const served = profile.hours.filter((h) => h.passengers != null);
-  if (!served.length) return null;
-  const peak = served.reduce((a, b) => (b.passengers! > a.passengers! ? b : a));
-  const daytime = served.filter((h) => h.hour >= 6 && h.hour <= 22);
-  const pool = daytime.length ? daytime : served;
-  const quiet = pool.reduce((a, b) => (b.passengers! < a.passengers! ? b : a));
-  return { peakHour: peak.hour, quietHour: quiet.hour };
-}
-
-export interface HourWindow {
-  start: number;
-  /** Exclusive. */
-  end: number;
-}
-
-/** Consecutive runs of hours in `states`, within daytime by default (night hours are rarely useful). */
-export function hourWindows(profile: DayProfile, states: HourState[], from = 6, to = 24): HourWindow[] {
-  const runs: HourWindow[] = [];
-  let start: number | null = null;
-  for (let h = from; h <= to; h++) {
-    const inRun = h < to && states.includes(profile.hours[h]?.state);
-    if (inRun && start === null) start = h;
-    if (!inRun && start !== null) {
-      runs.push({ start, end: h });
-      start = null;
-    }
-  }
-  return runs;
 }

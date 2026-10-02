@@ -46,7 +46,7 @@ export const variantEnd = (v: RouteVariant) => v.name.split(' - ').pop()?.trim()
 const RAD = Math.PI / 180;
 
 /** Metres from a point to a polyline (equirectangular projection around the point). */
-function distanceToPath(lat: number, lng: number, parts: [number, number][][]) {
+export function distanceToPath(lat: number, lng: number, parts: [number, number][][]) {
   const kx = Math.cos(lat * RAD) * 111_320;
   const ky = 110_574;
   let best = Infinity;

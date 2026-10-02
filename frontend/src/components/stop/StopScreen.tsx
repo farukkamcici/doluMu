@@ -11,16 +11,18 @@ import { MapPanel } from '@/components/map/MapPanel';
 import { SearchButton } from '@/components/search/SearchButton';
 import { Link } from '@/i18n/routing';
 import { buildDayProfile } from '@/lib/crowd';
-import { useForecast } from '@/lib/queries';
+import { useBusHistory, useForecast, useSchedule } from '@/lib/queries';
+import { minutesToNextDeparture } from '@/lib/departures';
 import { useBusLine, useBusStops, useBusVehicles, type StopIndexEntry } from '@/lib/live/client';
 import { classifyVehicles, useBusRoutes } from '@/lib/live/routes';
+import { fullRunMinutes, nextArrivals } from '@/lib/live/eta';
 import type { NetworkStation } from '@/lib/network';
 import { useNow } from '@/hooks/useNow';
 import { useNetwork } from '@/hooks/useNetwork';
 import { useLineDisplayName } from '@/hooks/useLineName';
 import { useIsDesktop } from '@/hooks/useIsDesktop';
 
-/** One line calling at the stop: destination, nearest live bus (in stops) and crowd level now. */
+/** One line calling at the stop: destination, when the next bus gets here, and crowd level now. */
 function StopLineRow({ code, dir, stopCode, otherDirHere }: { code: string; dir: 'G' | 'D'; stopCode: string; otherDirHere: boolean }) {
   const t = useTranslations();
   const now = useNow();
@@ -28,27 +30,22 @@ function StopLineRow({ code, dir, stopCode, otherDirHere }: { code: string; dir:
   const line = useBusLine(code);
   const vehicles = useBusVehicles(code);
   const routes = useBusRoutes(code);
+  const history = useBusHistory(code);
+  const schedule = useSchedule(code);
   const forecast = useForecast(code, now.date);
   const point = useMemo(() => (forecast.data ? buildDayProfile(forecast.data).hours[now.hour] : null), [forecast.data, now.hour]);
 
   const direction = line.data?.directions[dir];
-  const stopsAway = useMemo(() => {
+  // undefined while loading, null when no bus is on its way.
+  const arrival = useMemo(() => {
     if (!direction || !vehicles.data) return undefined;
-    const order = new Map(direction.stops.map((s, i) => [s.code, i]));
-    const target = order.get(stopCode);
-    if (target == null) return null;
-    let best: number | null = null;
     // Only buses actually running their route count (not ones heading to/from the depot).
     const allStops = Object.values(line.data?.directions ?? {}).flatMap((d) => d?.stops ?? []);
-    for (const v of classifyVehicles(vehicles.data, routes.data, allStops)) {
-      if (!v.nearStop || !v.inService) continue;
-      const idx = order.get(v.nearStop);
-      if (idx == null || idx > target) continue;
-      const away = target - idx;
-      if (best == null || away < best) best = away;
-    }
-    return best;
-  }, [direction, vehicles.data, routes.data, stopCode, line.data]);
+    const classified = classifyVehicles(vehicles.data, routes.data, allStops);
+    const minutes = fullRunMinutes(history.data?.tripMinutes, routes.data, dir, now.hour);
+    const startWait = minutesToNextDeparture(schedule.data?.[dir], now.minutes);
+    return nextArrivals(direction.stops, classified, minutes, startWait).get(stopCode) ?? null;
+  }, [direction, vehicles.data, routes.data, line.data, history.data, schedule.data, dir, now.hour, now.minutes, stopCode]);
 
   // Buses heading *to* this stop as their terminus aren't useful to someone waiting here.
   const terminus = direction ? direction.stops[direction.stops.length - 1]?.code === stopCode : false;
@@ -66,17 +63,20 @@ function StopLineRow({ code, dir, stopCode, otherDirHere }: { code: string; dir:
         </span>
         <span className="mt-0.5 block truncate text-xs text-fg-muted">{name}</span>
       </span>
-      <span className="flex w-28 shrink-0 flex-col items-end gap-1">
+      <span className="flex w-24 shrink-0 flex-col items-end gap-1">
         {terminus ? (
           <span className="text-xs text-fg-subtle">{t('stop.terminus')}</span>
-        ) : stopsAway === undefined ? (
+        ) : arrival === undefined ? (
           <Skeleton className="h-4 w-20" />
-        ) : stopsAway === null ? (
+        ) : arrival === null ? (
           <span className="text-xs text-fg-subtle">{t('bus.noneComing')}</span>
         ) : (
-          <span className="flex items-center gap-1 font-display text-sm font-semibold text-signal">
+          <span
+            className="flex items-center gap-1 font-display text-base font-bold tabular-nums text-signal"
+            title={t('stop.etaStops', { n: arrival.stops })}
+          >
             <BusFront className="h-3.5 w-3.5" />
-            {t('bus.stopsAway', { n: stopsAway })}
+            {arrival.minutes == null ? t('stop.etaStops', { n: arrival.stops }) : arrival.minutes < 1 ? t('bus.arriving') : t('bus.eta', { min: arrival.minutes })}
           </span>
         )}
         {point && point.state !== 'nodata' ? <LevelPill state={point.state} className="text-xs" /> : null}

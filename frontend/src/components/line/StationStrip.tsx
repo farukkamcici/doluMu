@@ -1,7 +1,7 @@
 'use client';
 import { useState } from 'react';
-import { useTranslations } from 'next-intl';
-import { Accessibility, ChevronDown } from 'lucide-react';
+import { useLocale, useTranslations } from 'next-intl';
+import { ChevronDown } from 'lucide-react';
 import { useOutagesByStation } from '@/components/live/outages';
 import { LineBadge } from '@/components/transit/LineBadge';
 import type { NetworkStation } from '@/lib/network';
@@ -12,14 +12,20 @@ interface StationStripProps {
   color: string;
   /** Stations of this line in order. */
   stations: NetworkStation[];
+  /** Weekday entries per station id, drawn as a faint bar behind each row. */
+  entries?: Map<string, number> | null;
+  entriesYear?: number | null;
   onSelect: (station: NetworkStation) => void;
 }
 
 const COLLAPSED = 8;
 
 /** Strip map like the one above train doors: the line's colour as a spine, transfers marked. */
-export function StationStrip({ code, color, stations, onSelect }: StationStripProps) {
+export function StationStrip({ code, color, stations, entries, entriesYear, onSelect }: StationStripProps) {
   const t = useTranslations('line');
+  const locale = useLocale();
+  const nf = new Intl.NumberFormat(locale, { notation: 'compact', maximumFractionDigits: 0 });
+  const busiest = entries ? Math.max(...entries.values()) : 0;
   const tl = useTranslations('live');
   const outagesByStation = useOutagesByStation();
   const [expanded, setExpanded] = useState(false);
@@ -28,14 +34,18 @@ export function StationStrip({ code, color, stations, onSelect }: StationStripPr
 
   return (
     <div className="px-4 py-5 sm:px-5">
-      <h2 className="eyebrow mb-3">
-        {t('stations')} · {t('stationsCount', { count: stations.length })}
-      </h2>
+      <div className="mb-3 flex items-baseline justify-between gap-3">
+        <h2 className="eyebrow">
+          {t('stations')} · {t('stationsCount', { count: stations.length })}
+        </h2>
+        {busiest && entriesYear ? <span className="text-right text-xs text-fg-muted">{t('ridership.legend', { year: entriesYear })}</span> : null}
+      </div>
       <ol className="relative">
         {shown.map((station, i) => {
           const transfers = station.lines.filter((l) => l !== code);
           const last = i === shown.length - 1 && !(long && !expanded);
           const terminus = i === 0 || i === stations.length - 1;
+          const value = entries?.get(station.id);
           return (
             <li key={station.id} className="relative">
               <span
@@ -47,7 +57,15 @@ export function StationStrip({ code, color, stations, onSelect }: StationStripPr
                 type="button"
                 onClick={() => onSelect(station)}
                 className="relative flex min-h-[44px] w-full items-center gap-3 py-1.5 pl-7 pr-1 text-left hover:bg-card-hover"
+                title={value ? t('ridership.entries', { count: nf.format(value), year: entriesYear ?? '' }) : undefined}
               >
+                {value && busiest ? (
+                  <span
+                    aria-hidden
+                    className="absolute inset-y-1.5 left-7 rounded-sm bg-fg/[0.07]"
+                    style={{ width: `calc((100% - 1.75rem) * ${value / busiest})` }}
+                  />
+                ) : null}
                 <span
                   aria-hidden
                   className={cn(
@@ -56,7 +74,7 @@ export function StationStrip({ code, color, stations, onSelect }: StationStripPr
                   )}
                   style={{ borderColor: transfers.length ? 'rgb(var(--fg))' : color }}
                 />
-                <span className={cn('min-w-0 flex-1 truncate text-[15px]', (transfers.length || terminus) && 'font-semibold')}>
+                <span className={cn('relative min-w-0 flex-1 truncate text-[15px]', (transfers.length || terminus) && 'font-semibold')}>
                   {station.name}
                 </span>
                 {(() => {
@@ -64,24 +82,22 @@ export function StationStrip({ code, color, stations, onSelect }: StationStripPr
                   const liftDown = outages.some((o) => o.kind === 'lift');
                   if (liftDown) {
                     return (
-                      <span className="shrink-0 rounded bg-signal px-1.5 py-0.5 font-display text-[11px] font-semibold uppercase tracking-wide text-white">
+                      <span className="relative shrink-0 rounded bg-signal px-1.5 py-0.5 font-display text-[11px] font-semibold uppercase tracking-wide text-white">
                         {tl('outage', { kind: tl('kinds.lift') })}
                       </span>
                     );
                   }
                   if (outages.length) {
                     return (
-                      <span className="shrink-0 font-display text-[11px] font-semibold uppercase tracking-wide text-signal">
+                      <span className="relative shrink-0 font-display text-[11px] font-semibold uppercase tracking-wide text-signal">
                         {tl('outage', { kind: tl(`kinds.${outages[0].kind}`) })}
                       </span>
                     );
                   }
-                  return station.facilities?.lifts ? (
-                    <Accessibility className="h-4 w-4 shrink-0 text-fg-muted" aria-label={tl('kinds.lift')} />
-                  ) : null;
+                  return null;
                 })()}
                 {transfers.length ? (
-                  <span className="flex shrink-0 gap-1" aria-label={t('transfer')}>
+                  <span className="relative flex shrink-0 gap-1" aria-label={t('transfer')}>
                     {transfers.map((l) => (
                       <LineBadge key={l} code={l} size="sm" />
                     ))}

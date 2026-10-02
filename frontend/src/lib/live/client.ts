@@ -4,9 +4,8 @@ import type {
   BusLineDetail,
   BusLineInfo,
   BusNotice,
-  BusReliability,
-  BusRidership,
   BusVehicle,
+  Fleet,
   Fare,
   ParkingLot,
   MetroNetwork,
@@ -79,11 +78,19 @@ export function useBusVehiclesMany(codes: string[]) {
   });
 }
 
-export const useBusReliability = (enabled = true) =>
-  useQuery({ queryKey: ['live', 'bus-reliability'], queryFn: () => get<BusReliability>('/api/live/bus/reliability'), staleTime: 6 * 60 * MINUTE, enabled, ...quiet });
+/** Buses crawling below this speed (km/h) are highlighted on the fleet layer. */
+export const SLOW_KMH = 10;
 
-export const useBusRidership = (enabled = true) =>
-  useQuery({ queryKey: ['live', 'bus-ridership'], queryFn: () => get<BusRidership>('/api/live/bus/ridership'), staleTime: 6 * 60 * MINUTE, enabled, ...quiet });
+/** Every moving İETT bus (home map layer). */
+export const useFleet = (enabled: boolean) =>
+  useQuery({
+    queryKey: ['live', 'fleet'],
+    queryFn: () => get<Fleet>('/api/live/fleet'),
+    enabled,
+    staleTime: 30_000,
+    refetchInterval: enabled ? 30_000 : false,
+    ...quiet,
+  });
 
 export const useParking = (enabled = true) =>
   useQuery({ queryKey: ['live', 'parking'], queryFn: () => get<ParkingLot[]>('/api/live/parking'), staleTime: 5 * MINUTE, enabled, ...quiet });
@@ -99,6 +106,18 @@ export interface StopIndexEntry {
   district: string;
   lines: { code: string; dir: 'G' | 'D' }[];
 }
+
+export interface RailRidership {
+  year: number;
+  /** Median weekday entries by Metro İstanbul station id. */
+  metro: Record<string, number>;
+  /** …and by Marmaray station order. */
+  marmaray: Record<string, number>;
+}
+
+/** Static per-station entries (scripts/build-rail-ridership.mjs), ~3 KB. */
+export const useRailRidership = (enabled = true) =>
+  useQuery({ queryKey: ['rail-ridership'], queryFn: () => get<RailRidership>('/data/rail_ridership.json'), enabled, staleTime: Infinity, retry: 1 });
 
 /** Static stop → lines index (scripts/build-bus-stops.mjs). ~280 KB gzipped, loaded on demand. */
 export const useBusStops = (enabled = true) =>

@@ -114,26 +114,12 @@ export interface BusNotice {
   time: string | null;
 }
 
-export interface LineReliability {
-  /** Duties (trips) İETT recorded for the line on `date`. */
-  trips: number;
-  completed: number;
-  cancelled: number;
-  /** Median minutes between planned and actual departure from the first stop. */
-  medianDelayMin: number | null;
-  /** Share of departures within 3 minutes of plan. */
-  onTimeShare: number | null;
-}
-
-export interface BusReliability {
-  date: string;
-  lines: Record<string, LineReliability>;
-}
-
-export interface BusRidership {
-  date: string;
-  /** Top lines by journeys that day (İETT publishes the top 50). */
-  lines: Record<string, number>;
+/** Moving İETT buses city-wide: [lng, lat, km/h]. */
+export interface Fleet {
+  at: string;
+  moving: [number, number, number][];
+  /** Reporting but standing still (stops, lights, terminals, depots). */
+  stopped: number;
 }
 
 export interface ParkingLot {

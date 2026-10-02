@@ -81,7 +81,6 @@ export function ForecastCard({
           currentHour={currentHour}
           onSelect={onSelectHour}
         />
-        <p className="mt-3 text-xs text-fg-subtle">{t('legend')}</p>
       </>
     );
   }

@@ -4,6 +4,7 @@ import maplibregl, { type GeoJSONSource, type LngLatBoundsLike, type Map as MLMa
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { useLocale } from 'next-intl';
 import type { NetworkLine, NetworkStation } from '@/lib/network';
+import { SLOW_KMH } from '@/lib/live/client';
 import { cn } from '@/lib/utils';
 
 // OpenFreeMap vector basemap (free, no API key). One base style, recoloured from CSS variables
@@ -31,6 +32,8 @@ export interface TransitMapProps {
   alerts?: string[];
   /** Live vehicles (buses) to plot; `inService: false` draws them muted. */
   vehicles?: MapVehicle[];
+  /** City-wide moving buses as [lng, lat, km/h]; slow ones are drawn in signal red. */
+  fleet?: [number, number, number][] | null;
   /** Fly to this point (e.g. a station picked from a list). */
   flyTo?: { lat: number; lng: number; zoom?: number } | null;
   onLineClick?: (code: string) => void;
@@ -89,7 +92,7 @@ function paintAll(map: MLMap) {
     ink: cssRgb('--fg'),
   };
   for (const { id, type } of map.getStyle().layers ?? []) {
-    if (id.startsWith('net-') || id.startsWith('station') || id.startsWith('me') || id === 'vehicles') continue;
+    if (id.startsWith('net-') || id.startsWith('station') || id.startsWith('me') || id === 'vehicles' || id === 'fleet') continue;
     if (HIDDEN.test(id)) {
       map.setLayoutProperty(id, 'visibility', 'none');
     } else if (type === 'background') {
@@ -112,7 +115,21 @@ function paintAll(map: MLMap) {
     map.setPaintProperty('stations', 'circle-stroke-color', c.ink);
     map.setPaintProperty('station-labels', 'text-color', c.ink);
     map.setPaintProperty('station-labels', 'text-halo-color', c.land);
+    map.setPaintProperty('fleet', 'circle-color', fleetColor());
   }
+}
+
+const fleetColor = (): maplibregl.ExpressionSpecification => ['case', ['<', ['get', 's'], SLOW_KMH], cssRgb('--signal'), cssRgb('--fg')];
+
+function fleetGeoJSON(fleet: [number, number, number][] | null | undefined) {
+  return {
+    type: 'FeatureCollection' as const,
+    features: (fleet ?? []).map(([lng, lat, s]) => ({
+      type: 'Feature' as const,
+      properties: { s },
+      geometry: { type: 'Point' as const, coordinates: [lng, lat] },
+    })),
+  };
 }
 
 function linesGeoJSON(lines: NetworkLine[], widths: Record<string, number> | undefined, ink: string, alerts: string[] = []) {
@@ -185,6 +202,7 @@ export default function TransitMap({
   me = null,
   alerts = [],
   vehicles = [],
+  fleet = null,
   flyTo = null,
   onLineClick,
   onStationClick,
@@ -196,8 +214,8 @@ export default function TransitMap({
   const fitted = useRef(false);
   const locale = useLocale();
   // Latest props for map event handlers and style reloads.
-  const latest = useRef({ lines, stations, widths, focus, me, alerts, vehicles, onLineClick, onStationClick });
-  latest.current = { lines, stations, widths, focus, me, alerts, vehicles, onLineClick, onStationClick };
+  const latest = useRef({ lines, stations, widths, focus, me, alerts, vehicles, fleet, onLineClick, onStationClick });
+  latest.current = { lines, stations, widths, focus, me, alerts, vehicles, fleet, onLineClick, onStationClick };
 
   // Create the map once.
   useEffect(() => {
@@ -232,10 +250,11 @@ export default function TransitMap({
     const install = () => {
       const ink = cssRgb('--fg');
       const land = cssVar('--map-land');
-      const { lines, stations, widths, alerts, vehicles } = latest.current;
+      const { lines, stations, widths, alerts, vehicles, fleet } = latest.current;
 
       map.addSource('net', { type: 'geojson', data: linesGeoJSON(lines, widths, ink, alerts) });
       map.addSource('vehicles', { type: 'geojson', data: vehiclesGeoJSON(vehicles) });
+      map.addSource('fleet', { type: 'geojson', data: fleetGeoJSON(fleet) });
       map.addSource('stations', { type: 'geojson', data: stationsGeoJSON(stations) });
       map.addSource('me', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
 
@@ -274,6 +293,16 @@ export default function TransitMap({
         type: 'line',
         source: 'net',
         paint: { 'line-color': '#000', 'line-opacity': 0, 'line-width': 18 },
+      });
+      map.addLayer({
+        id: 'fleet',
+        type: 'circle',
+        source: 'fleet',
+        paint: {
+          'circle-color': fleetColor(),
+          'circle-opacity': ['case', ['<', ['get', 's'], SLOW_KMH], 0.9, 0.45],
+          'circle-radius': ['interpolate', ['linear'], ['zoom'], 9, 1.3, 12, 2.6, 15, 4.5],
+        },
       });
       map.addLayer({
         id: 'stations',
@@ -424,6 +453,11 @@ export default function TransitMap({
     const src = mapRef.current?.getSource('vehicles') as GeoJSONSource | undefined;
     src?.setData(vehiclesGeoJSON(vehicles));
   }, [vehicles]);
+
+  useEffect(() => {
+    const src = mapRef.current?.getSource('fleet') as GeoJSONSource | undefined;
+    src?.setData(fleetGeoJSON(fleet));
+  }, [fleet]);
 
   useEffect(() => {
     if (mapRef.current?.getLayer('net-line')) applyFocus(mapRef.current, focus);

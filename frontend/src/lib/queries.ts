@@ -66,12 +66,13 @@ export function useSchedule(code: string | null, enabled = true) {
   });
 }
 
-export function useRoute(code: string | null, enabled = true) {
+/** Last two weeks of a bus line's punctuality and running times (backend, from İETT's archive). */
+export function useBusHistory(code: string | null, enabled = true) {
   return useQuery({
-    queryKey: ['route', code],
-    queryFn: () => api.getRoute(code!),
+    queryKey: ['bus-history', code],
+    queryFn: () => api.getBusHistory(code!),
     enabled: !!code && enabled,
-    staleTime: 24 * HOUR,
+    staleTime: HOUR,
     retry,
   });
 }

@@ -1,0 +1,50 @@
+# Monthly refresh of the static transit snapshots the app ships (İETT stops and route geometry,
+# rail station ridership). Each script refuses to overwrite good data with a broken download;
+# a commit to main triggers the Vercel deploy.
+name: Refresh transit data
+
+on:
+  schedule:
+    - cron: '0 2 3 * *' # 3rd of every month, 05:00 Istanbul
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: refresh-transit-data
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Bus stops (İETT live stop lists)
+        continue-on-error: true
+        run: node scripts/build-bus-stops.mjs
+      - name: Bus route geometry (İBB open data)
+        continue-on-error: true
+        run: node scripts/build-bus-routes.mjs
+      - name: Rail station ridership (İBB open data)
+        continue-on-error: true
+        run: node scripts/build-rail-ridership.mjs
+      - name: Commit changes
+        run: |
+          git add -A public/data
+          if git diff --cached --quiet; then
+            echo "No data changes."
+            exit 0
+          fi
+          git diff --cached --stat | tail -3
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "chore(data): monthly refresh of bus stops, routes and rail ridership"
+          git push

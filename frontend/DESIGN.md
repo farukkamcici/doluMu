@@ -56,10 +56,13 @@ Haritadaki çizgi kalınlığı ise mutlak yolcu sayısıdır (tüm ağ için te
 ## 5. Bilgi mimarisi
 
 ```
-/[locale]               Ağ haritası + saat kaydırıcısı · arama · favoriler · "Şu an" panosu
-                        (tüm raylı hatlar + Metrobüs) · yakınındaki istasyonlar
-/[locale]/line/[code]   Hattı vurgulayan harita · şu an · rahat/kaçınılacak saatler ·
-                        saatlik grafik (hattın renginde) · sefer saatleri · istasyon şeridi
+/[locale]               Ağ haritası (+ isteğe bağlı canlı otobüs katmanı) · arama · hizmet durumu ·
+                        favoriler · "Şu an" panosu (tüm raylı hatlar + Metrobüs) · yakındakiler
+/[locale]/line/[code]   Hattı vurgulayan harita · şu an (+ biraz bekleyince ne olur) · saatlik grafik ·
+                        otobüste: duraklar, canlı araçlar ve varış süreleri · planlı kalkışlar ·
+                        raylıda: istasyon şeridi (yolcu yoğunluğu çubuklarıyla) · hat künyesi ·
+                        otobüste: güvenilirlik (son 14 gün)
+/[locale]/stop/[code]   Duraktan geçen hatlar · sıradaki otobüsün tahmini varış süresi · yoğunluk
 /[locale]/settings      Dil, tema, ana ekrana ekleme, sorun bildir, hakkında, yerel veriler
 ```
 
@@ -75,10 +78,12 @@ Haritadaki çizgi kalınlığı ise mutlak yolcu sayısıdır (tüm ağ için te
 |---|---|
 | `public/data/metro_topology.json` | Metro, tramvay, füniküler, teleferik: istasyonlar, koordinatlar, renkler, hizmet saatleri |
 | `public/data/marmaray_stations.json` | Marmaray'ın 43 istasyonu ve koordinatları (OpenStreetMap, ODbL) |
-| `GET /api/lines/34/route` | Metrobüs güzergahı |
+| `public/data/bus_routes/*.json`, `bus_stops.json` | İETT güzergah geometrisi ve durak → hat dizini |
+| `public/data/rail_ridership.json` | İstasyon başına hafta içi medyan günlük giriş (İBB açık veri, en yeni yıl) |
+| `GET /api/bus/{code}/history` | Backend: son 14 günün sefer/iptal/dakiklik özeti ve saat bazlı gerçek sefer süreleri |
 | `GET /api/forecast/{code}` | Saatlik tahmin (pano için ~21 hat paralel, önbellekli) |
 
-## 7. Canlı veri (v3.1)
+## 7. Canlı veri (v3.2)
 
 Tahmin modeli geçmiş veriye dayanır; onun yanına İBB'nin canlı servislerinden "şu an gerçekte ne oluyor"
 bilgisi eklendi. Bu servislerin hiçbiri CORS desteklemediği için tarayıcı `/api/live/*` Next.js
@@ -92,10 +97,9 @@ route'larını çağırır; bunlar sunucuda İBB'ye gider ve sonucu CDN'de önbe
 | `/api/live/fares` | `GetTicketPrice` | 1 gün | Ücret bilgisi |
 | `/api/live/bus/lines` | İETT `GetHat_json` | 6 sa | Güncel hat adları, artık çalışmayan hatların gizlenmesi, yeni hatların eklenmesi, "2 biletli" tarifesi |
 | `/api/live/bus/[code]` | İETT `DurakDetay_GYY_wYonAdi` | 1 gün | Sıralı duraklar, gerçek yön adları |
-| `/api/live/bus/[code]/vehicles` | İETT `GetHatOtoKonum_json` | 30 sn | Canlı otobüsler (harita + durak şeridi), "N durak uzakta" |
+| `/api/live/bus/[code]/vehicles` | İETT `GetHatOtoKonum_json` | 30 sn | Canlı otobüsler (harita + durak şeridi), varış süreleri |
+| `/api/live/fleet` | İETT `GetFiloAracKonum_json` (tüm filo, ~6,9 bin araç) | 30 sn | Ana haritada "Otobüsler" katmanı: hareket halindeki otobüsler, 10 km/s altı kırmızı |
 | `/api/live/bus/notices` | İETT `GetDuyurular_json` | 5 dk | Duyurular |
-| `/api/live/bus/reliability` | İETT `GetIettArsivGorev_json` (dünkü ~55 bin görev) | 6 sa | "Dün": sefer, tamamlanan, iptal, zamanında kalkış oranı |
-| `/api/live/bus/ridership` | İETT `GetIettYolculukHat_json` (en yoğun 50 hat) | 6 sa | Dünkü gerçek yolculuk sayısı |
 | `/api/live/parking` | İSPARK `Park` | 5 dk | İstasyon yakınındaki otoparkların boş yeri |
 
 `public/data/bus_routes/<HAT>.json`, `scripts/build-bus-routes.mjs` ile İETT'nin güzergah veri
@@ -113,7 +117,21 @@ nereye kadar gittiği yazılır.
 
 `public/data/bus_stops.json`, `scripts/build-bus-stops.mjs` ile üretilen durak → hat dizinidir
 (13 bin durak; İETT'nin GTFS `stop_times` dosyası 1.048.576 satırda kesik olduğu için canlı servisten
-türetildi). Ayda bir yeniden üretilmesi yeterli.
+türetildi). Statik dosyaların üçü de (`bus_stops`, `bus_routes`, `rail_ridership`)
+`.github/workflows/refresh-transit-data.yml` ile her ayın 3'ünde yeniden üretilir; betikler bozuk bir
+indirmeyle eski veriyi ezmez (alt sınır kontrolü), değişiklik varsa main'e commit atılır ve Vercel yayınlar.
+
+**Sefer arşivi (backend).** `GetIettArsivGorev_json` bir günün tüm seferlerini verir (~55 bin satır, 20 MB:
+hat, depar, araç, planlanan/gerçek kalkış ve bitiş; durum `T` tamamlandı, `I` iptal). Backend her gece
+(03:40'tan itibaren saatlik, gün gelene kadar) dünü indirip hat başına özetler ve `bus_line_days`
+tablosuna yazar; açılışta eksik son 14 günü doldurur. Hat sayfasındaki **Güvenilirlik** bloğu (ilk duraktan
+±3 dk içinde kalkış oranı, iptaller, yolculuk) ve varış süreleri bu tablodan gelir.
+
+**Varış süresi.** Bir yönün uçtan uca süresi, geçen haftanın aynı günündeki gerçek sefer sürelerinin
+o saatteki medyanıdır (yoksa İETT'nin planlı süresi). Araç en yakın durağına yerleştirilir; bir durağa
+kalan süre, duraklar boyunca kalan mesafenin toplam mesafeye oranıyla ölçeklenir. İlk durakta bekleyen
+araç planlı bir sonraki kalkışta çıkar varsayılır; kısa sefer yapan araç yalnızca deparının geçtiği
+duraklar için sayılır.
 
 Bulgular: İETT araç konumları yaklaşık dakikada bir güncellenir, servis kimlik doğrulama ve hız
 sınırı uygulamaz (yine de CDN önbelleğiyle tek bir hat için en fazla 30 sn'de bir istek gider).

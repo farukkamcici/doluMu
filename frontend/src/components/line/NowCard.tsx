@@ -4,7 +4,7 @@ import { ArrowRight } from 'lucide-react';
 import { Skeleton } from '@/components/primitives/Skeleton';
 import { CrowdGlyph } from '@/components/transit/CrowdGlyph';
 import { LEVEL_TEXT } from '@/components/transit/LevelPill';
-import { findQuieterHour, hourWindows, type CrowdLevel, type DayProfile, type HourWindow } from '@/lib/crowd';
+import { findQuieterHour, type CrowdLevel, type DayProfile } from '@/lib/crowd';
 import { formatHour, type IstanbulNow } from '@/lib/time';
 import { cn } from '@/lib/utils';
 
@@ -17,9 +17,7 @@ interface NowCardProps {
   onShowTomorrow: () => void;
 }
 
-const span = (w: HourWindow) => `${formatHour(w.start)}–${formatHour(w.end % 24)}`;
-
-/** "Right now" for the line, plus the day's calm and peak windows. */
+/** "Right now" for the line, and a calmer hour soon if there is one. */
 export function NowCard({ profile, loading, now, nextServiceTime, onPickHour, onShowTomorrow }: NowCardProps) {
   const t = useTranslations('line');
   const tc = useTranslations('common');
@@ -49,26 +47,6 @@ export function NowCard({ profile, loading, now, nextServiceTime, onPickHour, on
   }
 
   const point = profile.hours[now.hour];
-  const calm = hourWindows(profile, ['quiet']).slice(0, 2);
-  const avoid = hourWindows(profile, ['peak']).slice(0, 2);
-
-  const summary = (
-    <dl className="grid grid-cols-2 border-t border-line">
-      <div className="border-r border-line px-4 py-3 sm:px-5">
-        <dt className="eyebrow">{t('calm')}</dt>
-        <dd className="mt-1 font-display text-[17px] font-semibold tabular-nums leading-snug">
-          {calm.length ? calm.map(span).join(', ') : '—'}
-        </dd>
-      </div>
-      <div className="px-4 py-3 sm:px-5">
-        <dt className="eyebrow text-signal">{t('avoid')}</dt>
-        <dd className="mt-1 font-display text-[17px] font-semibold tabular-nums leading-snug">
-          {avoid.length ? avoid.map(span).join(', ') : '—'}
-        </dd>
-      </div>
-    </dl>
-  );
-
   if (point.passengers == null) {
     const laterToday = profile.serviceHours.find((h) => h > now.hour);
     const next = nextServiceTime ?? (laterToday != null ? formatHour(laterToday) : null);
@@ -87,7 +65,6 @@ export function NowCard({ profile, loading, now, nextServiceTime, onPickHour, on
             </button>
           ) : null}
         </div>
-        {summary}
       </div>
     );
   }
@@ -129,7 +106,6 @@ export function NowCard({ profile, loading, now, nextServiceTime, onPickHour, on
           {level === 'quiet' || level === 'normal' ? t('now.goodTime') : t('now.noBetterSoon')}
         </p>
       )}
-      {summary}
     </div>
   );
 }

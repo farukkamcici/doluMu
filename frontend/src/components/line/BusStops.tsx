@@ -5,18 +5,21 @@ import { BusFront, ChevronDown } from 'lucide-react';
 import { Link } from '@/i18n/routing';
 import type { BusDirection } from '@/lib/live/types';
 import { variantEnd, type ClassifiedVehicle } from '@/lib/live/routes';
+import type { Arrival } from '@/lib/live/eta';
 import { cn } from '@/lib/utils';
 
 interface BusStopsProps {
   direction: BusDirection;
   vehicles: ClassifiedVehicle[] | undefined;
   vehiclesAt: number;
+  /** Next bus per stop code. */
+  arrivals: Map<string, Arrival>;
 }
 
 const COLLAPSED = 12;
 
-/** The line's stops in order with live buses placed at their nearest stop. */
-export function BusStops({ direction, vehicles, vehiclesAt }: BusStopsProps) {
+/** The line's stops in order: live buses at their nearest stop, and when the next one gets to each stop. */
+export function BusStops({ direction, vehicles, vehiclesAt, arrivals }: BusStopsProps) {
   const t = useTranslations('bus');
   const [expanded, setExpanded] = useState(false);
 
@@ -56,8 +59,11 @@ export function BusStops({ direction, vehicles, vehiclesAt }: BusStopsProps) {
       ) : (
         <div className="mb-3 h-5" />
       )}
-      {vehicles && offRoute ? (
-        <p className="-mt-2 mb-3 text-xs text-fg-muted">{t('offRoute', { count: offRoute })}</p>
+      {vehicles && (offRoute || arrivals.size) ? (
+        <p className="-mt-2 mb-3 text-xs text-fg-muted">
+          {arrivals.size ? t('etaNote') : null}
+          {offRoute ? ` ${t('offRoute', { count: offRoute })}` : null}
+        </p>
       ) : null}
 
       <ol className="relative">
@@ -104,7 +110,15 @@ export function BusStops({ direction, vehicles, vehiclesAt }: BusStopsProps) {
                     ))}
                   </span>
                 ) : (
-                  <span className="shrink-0 text-xs text-fg-subtle">{stop.district}</span>
+                  (() => {
+                    const next = arrivals.get(stop.code);
+                    if (!next || next.minutes == null) return null;
+                    return (
+                      <span className="shrink-0 font-display text-sm font-semibold tabular-nums text-fg-muted">
+                        {next.minutes < 1 ? t('arriving') : t('eta', { min: next.minutes })}
+                      </span>
+                    );
+                  })()
                 )}
               </Link>
             </li>

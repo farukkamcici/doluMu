@@ -4,10 +4,9 @@ import { Sheet } from '@/components/primitives/Sheet';
 import { BoardRow } from '@/components/home/NetworkBoard';
 import type { NetworkStation } from '@/lib/network';
 import { useOutagesByStation } from '@/components/live/outages';
-import { useParking } from '@/lib/live/client';
-import { distanceMeters } from '@/lib/network';
+import { useParking, useRailRidership } from '@/lib/live/client';
+import { distanceMeters, stationEntries } from '@/lib/network';
 import { useLocale } from 'next-intl';
-
 
 interface StationSheetProps {
   station: NetworkStation | null;
@@ -22,6 +21,8 @@ export function StationSheet({ station, onClose, hour }: StationSheetProps) {
   const tp = useTranslations('parking');
   const locale = useLocale();
   const parking = useParking(!!station);
+  const ridership = useRailRidership(!!station);
+  const entries = station ? stationEntries(station, ridership.data) : null;
   const nearbyParks =
     station && Number.isFinite(station.lat) && parking.data
       ? parking.data
@@ -48,6 +49,12 @@ export function StationSheet({ station, onClose, hour }: StationSheetProps) {
     <Sheet open={!!station} onOpenChange={(open) => !open && onClose()} title={station?.name ?? ''}>
       {station ? (
         <div className="-mx-5 pb-4">
+          {entries ? (
+            <p className="-mt-1 px-5 pb-4 text-sm text-fg-muted">
+              {t('entries', { count: new Intl.NumberFormat(locale, { notation: 'compact', maximumFractionDigits: 0 }).format(entries) })}
+              {ridership.data ? ` (${ridership.data.year})` : null}
+            </p>
+          ) : null}
           <p className="eyebrow px-5 pb-1">{t('lines')}</p>
           <div className="border-y border-line">
             {station.lines.map((code) => (

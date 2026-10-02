@@ -73,7 +73,7 @@ export const foldForMatch = (s: string) => normalizeQuery(s);
  * Route names from the API are upper-case ASCII ("TUZLA-TOPKAPI"). Turkish title-casing
  * would invent wrong letters (Yenikapi), so keep the casing and only tidy separators.
  */
-export function routeEndpoints(line: Pick<LineSummary, 'line'> | null | undefined): string[] {
+function routeEndpoints(line: Pick<LineSummary, 'line'> | null | undefined): string[] {
   if (!line?.line) return [];
   return line.line
     .split(/\s*[-–]\s*/)
@@ -88,14 +88,3 @@ export function routeLabel(line: Pick<LineSummary, 'line'> | null | undefined): 
 
 /** Lines suggested on the home screen before the user has favourites. */
 export const POPULAR_LINES = ['M2', 'MARMARAY', '34', 'M4', '500T', 'T1', '15F', 'M5'];
-
-/** Map stroke colours per mode (light-theme values of the --mode-* tokens). */
-export const MODE_HEX: Record<Mode, string> = {
-  bus: '#2563EB',
-  metrobus: '#BE123C',
-  rail: '#7C3AED',
-  ferry: '#0891B2',
-};
-
-export const lineColor = (code: string, typeId?: number | null) =>
-  RAIL_COLORS[code] ?? MODE_HEX[modeOf(code, typeId)];

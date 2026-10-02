@@ -7,7 +7,6 @@
     "back": "Geri",
     "close": "Kapat",
     "retry": "Tekrar dene",
-    "loading": "Yükleniyor",
     "settings": "Ayarlar",
     "home": "Ana sayfa",
     "today": "Bugün",
@@ -51,9 +50,6 @@
       "cable": "Füniküler ve teleferik"
     },
     "nextHour": "1 sa sonra",
-    "trendUp": "artıyor",
-    "trendDown": "azalıyor",
-    "trendSame": "aynı",
     "nearby": "Yakınındaki istasyonlar",
     "nearbyAction": "Konumumu kullan",
     "nearbyDenied": "Konum izni verilmedi.",
@@ -63,11 +59,16 @@
     "expandMap": "Haritayı büyüt",
     "closeMap": "Haritayı küçült",
     "busHint": "Otobüs hatları için yukarıdan ara.",
-    "quietestAt": "En sakin {hour}",
-    "busiestAt": "En yoğun {hour}",
     "trafficValue": "%{percent}",
     "traffic": "Trafik",
-    "nearbyStops": "Yakınındaki duraklar"
+    "nearbyStops": "Yakınındaki duraklar",
+    "fleet": {
+      "toggle": "Otobüsler",
+      "moving": "{count} otobüs yolda",
+      "slow": "{kmh} km/s altı: {count}",
+      "loading": "Otobüsler yükleniyor…",
+      "error": "Otobüs konumları alınamadı"
+    }
   },
   "search": {
     "label": "Hat ara",
@@ -80,7 +81,6 @@
     "noResults": "“{query}” için hat bulunamadı",
     "noResultsHint": "Hat kodunu (ör. 15F) veya durak/semt adını dene.",
     "error": "Arama şu an yapılamıyor.",
-    "results": "{count, plural, =0 {Sonuç yok} other {# hat}}",
     "stations": "İstasyonlar",
     "lines": "Hatlar",
     "stops": "Duraklar"
@@ -99,11 +99,9 @@
     "loadError": "Hat bilgisi yüklenemedi.",
     "now": {
       "title": "Şu an",
-      "at": "{time} itibarıyla",
       "quieterSoon": "{hour} · %{drop} daha sakin",
       "quieterSoonHint": "Biraz bekleyebilirsen",
       "goodTime": "Önümüzdeki saatlerde daha sakin bir zaman yok, şimdi iyi bir zaman.",
-      "closedTitle": "Şu an sefer yok",
       "nextService": "İlk sefer {time}",
       "tomorrowHint": "Yarının tahminine bak",
       "noDataTitle": "Bu hat için tahmin yok",
@@ -112,9 +110,6 @@
     },
     "chart": {
       "title": "Saatlik yoğunluk",
-      "selected": "{hour} · {level}",
-      "closedHour": "{hour} · sefer yok",
-      "legend": "Çubuklar, o günün en yoğun saatine göre oranlanır.",
       "summary": "En yoğun {peak}, en sakin {quiet}",
       "noForecast": "Bu gün için tahmin henüz hazır değil.",
       "a11y": "{hour}: {level}"
@@ -125,9 +120,7 @@
       "showAll": "Tümünü gör"
     },
     "schedule": {
-      "title": "Sefer saatleri",
-      "first": "İlk",
-      "last": "Son",
+      "title": "Planlı sefer saatleri",
       "next": "Sıradaki kalkışlar",
       "in": "{duration} sonra",
       "departsFrom": "{stop} kalkışlı",
@@ -135,24 +128,18 @@
       "seeAll": "Tüm saatler",
       "fullTitle": "{line} · günlük tarife",
       "unavailable": "Bu hat için tarife bilgisi alınamadı.",
-      "railHours": "Hizmet saatleri",
-      "railFrequency": "Sıklık genellikle 3–10 dk. Dakika bazlı metro tarifesi Metro İstanbul kaynaklı bir sorun nedeniyle geçici olarak kapalı.",
-      "marmarayNote": "Marmaray sefer saatleri için TCDD Taşımacılık kaynaklarına bakın.",
       "ferryNote": "Vapur seferleri hava koşullarına göre değişebilir; güncel tarife için iskeleye veya işletmeye bakın.",
-      "planned": "Planlı tarifedir; anlık gecikmeleri içermez."
+      "firstLast": "İlk {first} · Son {last}"
     },
     "route": {
       "title": "Güzergah",
       "stations": "{count} istasyon",
-      "start": "Başlangıç",
-      "end": "Bitiş",
-      "unavailable": "Bu hat için güzergah verisi yok.",
-      "loading": "Harita yükleniyor"
+      "unavailable": "Bu hat için güzergah verisi yok."
     },
     "details": {
       "title": "Bu tahmin nasıl hesaplanıyor?",
       "body": "Bir makine öğrenmesi modeli 2022–2024 saatlik İstanbulkart geçişlerini, takvimi (tatil, okul dönemi) ve hava tahminini kullanarak her saat için yolcu sayısı tahmin eder.",
-      "relative": "Renkler bu hattın kendi gün içi örüntüsüne göredir: “Çok yoğun”, o günün en kalabalık saatlerine yakın demektir.",
+      "relative": "Renkler bu hattın kendi gün içi örüntüsüne göredir: “Zirve”, o günün en kalabalık saatlerine yakın demektir. Bunlar canlı yoğunluk değil, tahmindir.",
       "selectedHour": "{hour} için ayrıntı",
       "passengers": "Tahmini yolcu",
       "trips": "Saatlik sefer",
@@ -162,12 +149,13 @@
       "confidenceLow": "Kapasite tahmini düşük güvenilirlikte; doluluk yüzdesi yaklaşık değerdir.",
       "confidenceStatic": "Raylı sistem kapasitesi sabit araç kapasitesi tablosundan gelir."
     },
-    "calm": "Rahat saatler",
-    "avoid": "Kaçın",
-    "noCalm": "Gün içinde belirgin bir sakin dönem yok",
     "stations": "İstasyonlar",
     "transfer": "Aktarma",
-    "stationsCount": "{count} istasyon"
+    "stationsCount": "{count} istasyon",
+    "ridership": {
+      "legend": "Gri çubuk: hafta içi günlük giriş ({year})",
+      "entries": "Hafta içi günde ~{count} giriş ({year})"
+    }
   },
   "settings": {
     "title": "Ayarlar",
@@ -193,9 +181,9 @@
     "report": "Sorun bildir",
     "reportDesc": "Hata, yanlış veri veya özellik isteği",
     "about": "Hakkında",
-    "aboutBody": "DoluMu, İstanbul’daki toplu taşıma hatları için saatlik kalabalık tahmini sunan bağımsız bir projedir. İBB veya işletmelerle resmi bir bağı yoktur.",
+    "aboutBody": "DoluMu, İstanbul’daki toplu taşıma hatları için saatlik kalabalık tahmini ve canlı hat bilgisi sunan bağımsız bir projedir. İBB veya işletmelerle resmi bir bağı yoktur.",
     "sources": "Veri kaynakları",
-    "sourcesBody": "İBB Açık Veri Portalı (saatlik yolcu verisi; İBB Açık Veri Lisansı), Metro İstanbul (hat, istasyon, hizmet durumu, asansör/yürüyen merdiven arızaları, ücretler; anlık), İETT (güncel hat listesi, duraklar, canlı araç konumları, planlı tarifeler, duyurular), Open-Meteo (hava durumu), İBB UYM (trafik endeksi), OpenStreetMap / OpenFreeMap (harita, Marmaray istasyonları).",
+    "sourcesBody": "İBB Açık Veri Portalı (saatlik yolcu verisi, raylı sistem istasyon yolcu sayıları; İBB Açık Veri Lisansı), Metro İstanbul (hat, istasyon, hizmet durumu, asansör/yürüyen merdiven arızaları, ücretler), İETT (hat listesi, duraklar, güzergahlar, canlı araç konumları, sefer arşivi, tarifeler, duyurular), İSPARK (otopark doluluğu), Open-Meteo (hava durumu), İBB UYM (trafik endeksi), OpenStreetMap / OpenFreeMap (harita, Marmaray istasyonları).",
     "data": "Verilerin",
     "dataDesc": "Favoriler ve son aramalar yalnızca bu cihazda saklanır.",
     "clearFavorites": "Favorileri temizle",
@@ -229,7 +217,6 @@
   },
   "errors": {
     "generic": "Bir şeyler ters gitti.",
-    "network": "Bağlantı kurulamadı. İnternetini kontrol edip tekrar dene.",
     "notFoundTitle": "Sayfa bulunamadı",
     "notFoundBody": "Aradığın sayfa taşınmış ya da hiç var olmamış olabilir."
   },
@@ -252,7 +239,7 @@
     "wc": "WC",
     "babyRoom": "Bebek odası",
     "masjid": "Mescit",
-    "nowAt": "Şu an"
+    "entries": "Hafta içi günde ~{count} giriş"
   },
   "live": {
     "statusTitle": "Hizmet durumu",
@@ -269,8 +256,6 @@
       "walkway": "Yürüyen bant"
     },
     "outage": "{kind} arızalı",
-    "since": "{date} tarihinden beri",
-    "busNotices": "İETT duyuruları",
     "unavailable": "Canlı bilgi şu an alınamıyor."
   },
   "facts": {
@@ -280,7 +265,6 @@
     "stops": "Durak",
     "trip": "Uçtan uca",
     "riders": "Günlük yolcu",
-    "dailyTrips": "Günlük sefer (tek yön)",
     "vehicles": "Araç",
     "headway": "Sefer sıklığı",
     "hours": "Hizmet",
@@ -291,7 +275,8 @@
     "faresTitle": "İstanbulkart ücretleri",
     "km": "{n} km",
     "min": "{n} dk",
-    "source": "Kaynak: Metro İstanbul / İETT"
+    "source": "Kaynak: Metro İstanbul / İETT",
+    "tripNow": "Uçtan uca (şu saatte)"
   },
   "bus": {
     "liveTitle": "Duraklar ve canlı otobüsler",
@@ -301,12 +286,14 @@
     "notRunning": "Bu hat İETT'nin güncel listesinde yok; artık işletilmiyor olabilir.",
     "newLineTitle": "Bu hat için tahmin yok",
     "newLineBody": "Hat, tahmin modelinin eğitildiği 2022–2024 verisinde yok. Duraklar ve canlı otobüsler yine de aşağıda.",
-    "stopsAway": "{n, plural, =0 {durakta} other {# durak uzakta}}",
     "nearest": "En yakın otobüs",
-    "noneComing": "Yaklaşan otobüs yok",
+    "noneComing": "Otobüs yok",
     "showAll": "Tüm durakları göster",
     "showLess": "Daha az göster",
-    "offRoute": "{count, plural, other {# otobüs bu hatta atanmış ama şu an güzergah dışında (garaja ya da başlangıç durağına gidiyor olabilir).}}"
+    "offRoute": "{count, plural, other {# otobüs güzergah dışında (garaja ya da ilk durağa gidiyor).}}",
+    "etaNote": "Süreler, geçen haftanın aynı günündeki gerçek sefer sürelerinden tahmin edilir.",
+    "arriving": "geliyor",
+    "eta": "{min} dk"
   },
   "stop": {
     "title": "Durak",
@@ -314,23 +301,27 @@
     "towards": "{stop} yönü",
     "notFoundTitle": "Durak bulunamadı",
     "notFoundBody": "“{code}” kodlu bir İETT durağı yok.",
-    "liveNote": "Otobüs konumları İETT'den anlık alınır; varış süresi tahmini değildir.",
+    "liveNote": "Varış süreleri canlı otobüs konumları ve İETT'nin son gerçek sefer süreleriyle tahmin edilir.",
     "linesCount": "{count, plural, other {# hat}}",
-    "terminus": "Son durak"
-  },
-  "yesterday": {
-    "title": "Dün",
-    "trips": "Sefer",
-    "completed": "Tamamlanan",
-    "cancelled": "İptal",
-    "onTime": "Zamanında kalkış",
-    "journeys": "Yolculuk",
-    "delay": "İlk duraktan kalkışlar planlanan saatten ortalama {min} dk sonra.",
-    "source": "Kaynak: İETT sefer gerçekleşme arşivi. Zamanında: planlanan saatten en fazla 3 dk sapma."
+    "terminus": "Son durak",
+    "etaStops": "{n, plural, =0 {durakta} other {# durak}}"
   },
   "parking": {
     "title": "Yakındaki İSPARK otoparkları",
     "free": "{empty} / {capacity} boş",
     "closed": "Kapalı"
+  },
+  "reliability": {
+    "title": "Güvenilirlik",
+    "days": "son {count} gün",
+    "onTime": "zamanında kalkış",
+    "yesterday": "dün",
+    "avg": "{count} günlük ortalama {pct}",
+    "summary": "Dün {trips} sefer · {cancelled} iptal",
+    "journeys": "{count} yolculuk",
+    "delay": "Kalkışlar planlanandan ortalama {min} dk geç.",
+    "early": "Kalkışlar planlanan saatte.",
+    "bar": "{date}: {pct} zamanında · {trips} sefer · {cancelled} iptal",
+    "note": "İlk duraktan, planlanan saate en fazla 3 dk sapmayla kalkan seferler. Kaynak: İETT sefer arşivi."
   }
 }

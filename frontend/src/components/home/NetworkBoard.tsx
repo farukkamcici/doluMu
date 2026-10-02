@@ -1,6 +1,6 @@
 'use client';
 import { useTranslations } from 'next-intl';
-import { ArrowDownRight, ArrowRight, ArrowUpRight } from 'lucide-react';
+import { AlertTriangle, ArrowDownRight, ArrowUpRight } from 'lucide-react';
 import { Link } from '@/i18n/routing';
 import { Skeleton } from '@/components/primitives/Skeleton';
 import { CrowdGlyph } from '@/components/transit/CrowdGlyph';
@@ -11,7 +11,6 @@ import { LEVELS, buildDayProfile, type CrowdLevel, type HourState } from '@/lib/
 import { useForecast } from '@/lib/queries';
 import { useNow } from '@/hooks/useNow';
 import { useLineDisruptions } from '@/components/live/outages';
-import { AlertTriangle } from 'lucide-react';
 import { useLineDisplayName } from '@/hooks/useLineName';
 import { cn } from '@/lib/utils';
 
@@ -43,9 +42,9 @@ export function BoardRow({ code, hour }: BoardRowProps) {
         {t('live.disruption')}
       </span>
     );
-  } else if (state && next && rank(state) >= 0 && rank(next.state) >= 0) {
-    const d = rank(next.state) - rank(state);
-    const Icon = d > 0 ? ArrowUpRight : d < 0 ? ArrowDownRight : ArrowRight;
+  } else if (state && next && rank(state) >= 0 && rank(next.state) >= 0 && rank(next.state) !== rank(state)) {
+    // Only worth a line when the level changes within the hour.
+    const Icon = rank(next.state) > rank(state) ? ArrowUpRight : ArrowDownRight;
     trend = (
       <span className="inline-flex items-center gap-1">
         <Icon className="h-3.5 w-3.5" />
@@ -62,7 +61,7 @@ export function BoardRow({ code, hour }: BoardRowProps) {
       <LineBadge code={code} />
       <div className="min-w-0 flex-1">
         <p className="truncate text-[15px] font-medium leading-tight">{name || ' '}</p>
-        <p className="mt-0.5 h-4 truncate text-xs text-fg-muted">{trend}</p>
+        {trend ? <p className="mt-0.5 truncate text-xs text-fg-muted">{trend}</p> : null}
       </div>
       <div className="flex w-24 shrink-0 flex-col items-end gap-1">
         {state ? (

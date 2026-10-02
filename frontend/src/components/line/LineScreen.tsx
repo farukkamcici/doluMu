@@ -17,10 +17,12 @@ import { Link, useRouter } from '@/i18n/routing';
 import { ApiError, type Direction } from '@/lib/api';
 import { buildDayProfile } from '@/lib/crowd';
 import { RAIL_COLORS, isMetroTopologyLine, modeOf } from '@/lib/lines';
-import { lineStations, type NetworkLine, type NetworkStation } from '@/lib/network';
-import { useForecast, useLine, useLineStatus, useSchedule } from '@/lib/queries';
+import { lineEntries, lineStations, type NetworkLine, type NetworkStation } from '@/lib/network';
+import { useBusHistory, useForecast, useLine, useLineStatus, useSchedule } from '@/lib/queries';
 import { classifyVehicles, routeThroughStops, useBusRoutes } from '@/lib/live/routes';
-import { useBusLine, useBusRegistry, useBusVehiclesMany } from '@/lib/live/client';
+import { useBusLine, useBusRegistry, useBusVehiclesMany, useRailRidership } from '@/lib/live/client';
+import { fullRunMinutes, nextArrivals } from '@/lib/live/eta';
+import { minutesToNextDeparture } from '@/lib/departures';
 import { addDays } from '@/lib/time';
 import { usePrefs } from '@/store/prefs';
 import { useNow } from '@/hooks/useNow';
@@ -35,7 +37,7 @@ import { AlertsBanner } from './AlertsBanner';
 import { StationStrip } from './StationStrip';
 import { BusStops } from './BusStops';
 import { LineFacts } from './LineFacts';
-import { Yesterday } from './Yesterday';
+import { Reliability } from './Reliability';
 import { FavoriteButton, ShareButton } from './LineActions';
 
 const DIRECTIONS: Direction[] = ['G', 'D'];
@@ -116,6 +118,8 @@ export function LineScreen({ code }: { code: string }) {
   const todayForecast = useForecast(inDb ? code : null, now.date, direction);
   const status = useLineStatus(inDb ? code : null, direction);
   const routes = useBusRoutes(busLike ? code : null);
+  const history = useBusHistory(busLike ? code : null);
+  const ridership = useRailRidership(!busLike);
   const network = useNetwork();
   const metroLine = network.metro?.lines.find((l) => l.code === (code === 'M1' ? 'M1A' : code)) ?? null;
   const disruptions = useLineDisruptions(code);
@@ -164,6 +168,22 @@ export function LineScreen({ code }: { code: string }) {
     );
   }, [vehicles.data, routes.data, liveDirection, direction, busLive.data]);
   const liveVehicles = directionVehicles;
+
+  // Running time of a full trip at this hour (same weekday last week), scaled per stop for arrivals.
+  const runMinutes = useMemo(
+    () => (busLike ? fullRunMinutes(history.data?.tripMinutes, routes.data, direction, now.hour) : null),
+    [busLike, history.data, routes.data, direction, now.hour],
+  );
+  const startWait = direction ? minutesToNextDeparture(schedule.data?.[direction], now.minutes) : null;
+  const arrivals = useMemo(
+    () => nextArrivals(liveDirection?.stops ?? [], directionVehicles, runMinutes, startWait),
+    [liveDirection, directionVehicles, runMinutes, startWait],
+  );
+  const recorded = busLike && fullRunMinutes(history.data?.tripMinutes, undefined, direction, now.hour);
+  const entries = useMemo(
+    () => (busLike ? null : lineEntries(code, ownStations, network.metro, ridership.data)),
+    [busLike, code, ownStations, network.metro, ridership.data],
+  );
   const widths = useMemo(() => ({ [code]: 5 }), [code]);
 
   useEffect(() => {
@@ -321,25 +341,38 @@ export function LineScreen({ code }: { code: string }) {
 
           {busLike && liveDirection && direction ? (
             <Block>
-              <BusStops direction={liveDirection} vehicles={vehicles.data ? directionVehicles : undefined} vehiclesAt={vehicles.dataUpdatedAt} />
+              <BusStops
+                direction={liveDirection}
+                vehicles={vehicles.data ? directionVehicles : undefined}
+                vehiclesAt={vehicles.dataUpdatedAt}
+                arrivals={arrivals}
+              />
             </Block>
           ) : null}
 
-          <Block>
-            <ScheduleCard
-              code={code}
-              mode={mode}
-              schedule={schedule.data}
-              scheduleLoading={(line.isLoading && !liveInfo) || schedule.isLoading}
-              direction={direction}
-              railHours={metroLine ? { first: metroLine.firstTime, last: metroLine.lastTime } : null}
-              nowMinutes={now.minutes}
-            />
-          </Block>
+          {busLike || mode === 'ferry' ? (
+            <Block>
+              <ScheduleCard
+                code={code}
+                mode={mode}
+                schedule={schedule.data}
+                scheduleLoading={(line.isLoading && !liveInfo) || schedule.isLoading}
+                direction={direction}
+                nowMinutes={now.minutes}
+              />
+            </Block>
+          ) : null}
 
           {!busLike && ownStations.length > 1 ? (
             <Block>
-              <StationStrip code={code} color={color ?? 'rgb(var(--fg))'} stations={ownStations} onSelect={selectStation} />
+              <StationStrip
+                code={code}
+                color={color ?? 'rgb(var(--fg))'}
+                stations={ownStations}
+                entries={entries}
+                entriesYear={ridership.data?.year ?? null}
+                onSelect={selectStation}
+              />
             </Block>
           ) : null}
 
@@ -347,17 +380,20 @@ export function LineScreen({ code }: { code: string }) {
             <LineFacts
               metroLine={metroLine}
               busInfo={liveInfo}
-              stopCount={liveDirection?.stops.length ?? null}
-              busTripMinutes={
-                // Only trust the static running time when the variant still matches today's stops.
-                ownRoute?.variant?.durationS && ownRoute.coverage >= 0.95 ? Math.round(ownRoute.variant.durationS / 60) : null
+              busTrip={
+                recorded
+                  ? { minutes: recorded, live: true }
+                  : // The planned running time only holds while the variant still matches today's stops.
+                    ownRoute?.variant?.durationS && ownRoute.coverage >= 0.95
+                    ? { minutes: ownRoute.variant.durationS / 60, live: false }
+                    : null
               }
             />
           </Block>
 
-          {busLike ? (
+          {busLike && history.data?.days.length ? (
             <Block>
-              <Yesterday code={code} />
+              <Reliability history={history.data} />
             </Block>
           ) : null}
 
@@ -367,7 +403,7 @@ export function LineScreen({ code }: { code: string }) {
             </Block>
           ) : null}
 
-          <p className="px-4 pb-12 pt-6 text-xs leading-relaxed text-fg-subtle sm:px-5">{tc('notLive')}</p>
+          <div className="pb-12" />
         </div>
       </div>
 

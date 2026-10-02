@@ -69,6 +69,7 @@ export function HomeScreen() {
     <MapPanel
       className="h-[56vh] min-h-[340px] lg:h-dvh"
       expandable={!desktop}
+      fleetToggle
       lines={network.lines}
       stations={network.stations}
       me={me}

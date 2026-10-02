@@ -7,7 +7,6 @@
     "back": "Back",
     "close": "Close",
     "retry": "Try again",
-    "loading": "Loading",
     "settings": "Settings",
     "home": "Home",
     "today": "Today",
@@ -51,9 +50,6 @@
       "cable": "Funicular and cable car"
     },
     "nextHour": "in 1 h",
-    "trendUp": "rising",
-    "trendDown": "easing",
-    "trendSame": "steady",
     "nearby": "Stations near you",
     "nearbyAction": "Use my location",
     "nearbyDenied": "Location permission was denied.",
@@ -63,11 +59,16 @@
     "expandMap": "Expand map",
     "closeMap": "Collapse map",
     "busHint": "Search above for bus lines.",
-    "quietestAt": "Quietest {hour}",
-    "busiestAt": "Busiest {hour}",
     "trafficValue": "{percent}%",
     "traffic": "Traffic",
-    "nearbyStops": "Stops near you"
+    "nearbyStops": "Stops near you",
+    "fleet": {
+      "toggle": "Buses",
+      "moving": "{count} buses moving",
+      "slow": "under {kmh} km/h: {count}",
+      "loading": "Loading buses…",
+      "error": "Bus positions unavailable"
+    }
   },
   "search": {
     "label": "Search lines",
@@ -80,7 +81,6 @@
     "noResults": "No lines found for “{query}”",
     "noResultsHint": "Try a line code (e.g. 15F) or a stop or district name.",
     "error": "Search is unavailable right now.",
-    "results": "{count, plural, =0 {No results} one {# line} other {# lines}}",
     "stations": "Stations",
     "lines": "Lines",
     "stops": "Stops"
@@ -99,11 +99,9 @@
     "loadError": "Couldn’t load this line.",
     "now": {
       "title": "Right now",
-      "at": "as of {time}",
       "quieterSoon": "{hour} · {drop}% quieter",
       "quieterSoonHint": "If you can wait a little",
       "goodTime": "It won’t get quieter in the next few hours, so now is a good time.",
-      "closedTitle": "No service right now",
       "nextService": "First departure {time}",
       "tomorrowHint": "See tomorrow’s forecast",
       "noDataTitle": "No forecast for this line",
@@ -112,9 +110,6 @@
     },
     "chart": {
       "title": "Hourly crowding",
-      "selected": "{hour} · {level}",
-      "closedHour": "{hour} · no service",
-      "legend": "Bars are relative to the busiest hour of that day.",
       "summary": "Busiest {peak}, quietest {quiet}",
       "noForecast": "The forecast for this day isn’t ready yet.",
       "a11y": "{hour}: {level}"
@@ -125,9 +120,7 @@
       "showAll": "Show all"
     },
     "schedule": {
-      "title": "Departures",
-      "first": "First",
-      "last": "Last",
+      "title": "Planned departures",
       "next": "Next departures",
       "in": "in {duration}",
       "departsFrom": "from {stop}",
@@ -135,24 +128,18 @@
       "seeAll": "All times",
       "fullTitle": "{line} · daily timetable",
       "unavailable": "Timetable isn’t available for this line.",
-      "railHours": "Operating hours",
-      "railFrequency": "Trains usually run every 3–10 min. Minute-level metro timetables are temporarily off due to an issue with the Metro İstanbul data source.",
-      "marmarayNote": "For Marmaray departures, check TCDD Taşımacılık.",
       "ferryNote": "Ferry times can change with the weather; check the pier or operator for the current timetable.",
-      "planned": "Planned timetable; real-time delays are not included."
+      "firstLast": "First {first} · Last {last}"
     },
     "route": {
       "title": "Route",
       "stations": "{count} stations",
-      "start": "Start",
-      "end": "End",
-      "unavailable": "No route data for this line.",
-      "loading": "Loading map"
+      "unavailable": "No route data for this line."
     },
     "details": {
       "title": "How is this forecast made?",
       "body": "A machine-learning model predicts riders per hour from 2022–2024 hourly İstanbulkart taps, the calendar (holidays, school terms) and the weather forecast.",
-      "relative": "Colours follow this line’s own daily pattern: “Very busy” means close to that day’s most crowded hours.",
+      "relative": "Colours follow this line's own daily pattern: “Peak” means close to the day's busiest hours. These are forecasts, not live crowding.",
       "selectedHour": "Details for {hour}",
       "passengers": "Forecast riders",
       "trips": "Trips per hour",
@@ -162,12 +149,13 @@
       "confidenceLow": "The capacity estimate has low confidence, so the occupancy figure is approximate.",
       "confidenceStatic": "Rail capacity comes from a fixed per-train capacity table."
     },
-    "calm": "Calmer hours",
-    "avoid": "Avoid",
-    "noCalm": "No clearly calm period during the day",
     "stations": "Stations",
     "transfer": "Change",
-    "stationsCount": "{count} stations"
+    "stationsCount": "{count} stations",
+    "ridership": {
+      "legend": "Grey bar: weekday daily entries ({year})",
+      "entries": "~{count} entries per weekday ({year})"
+    }
   },
   "settings": {
     "title": "Settings",
@@ -193,9 +181,9 @@
     "report": "Report a problem",
     "reportDesc": "Bug, wrong data or a feature idea",
     "about": "About",
-    "aboutBody": "DoluMu is an independent project that forecasts hourly crowding on Istanbul public transport. It is not affiliated with İBB or the operators.",
+    "aboutBody": "DoluMu is an independent project offering hourly crowd forecasts and live line information for Istanbul public transport. It is not affiliated with İBB or the operators.",
     "sources": "Data sources",
-    "sourcesBody": "İBB Open Data Portal (hourly ridership; İBB Open Data License), Metro İstanbul (lines, stations, service status, lift/escalator outages, fares; live), İETT (current lines, stops, live vehicle positions, planned timetables, notices), Open-Meteo (weather), İBB UYM (traffic index), OpenStreetMap / OpenFreeMap (map, Marmaray stations).",
+    "sourcesBody": "İBB Open Data Portal (hourly ridership, rail station ridership; İBB Open Data Licence), Metro İstanbul (lines, stations, service status, lift/escalator outages, fares), İETT (line list, stops, routes, live vehicle positions, trip archive, timetables, notices), İSPARK (car park occupancy), Open-Meteo (weather), İBB UYM (traffic index), OpenStreetMap / OpenFreeMap (map, Marmaray stations).",
     "data": "Your data",
     "dataDesc": "Favourites and recent searches are stored only on this device.",
     "clearFavorites": "Clear favourites",
@@ -229,7 +217,6 @@
   },
   "errors": {
     "generic": "Something went wrong.",
-    "network": "Couldn’t connect. Check your connection and try again.",
     "notFoundTitle": "Page not found",
     "notFoundBody": "The page you’re looking for may have moved or never existed."
   },
@@ -252,7 +239,7 @@
     "wc": "Toilet",
     "babyRoom": "Baby room",
     "masjid": "Prayer room",
-    "nowAt": "Now"
+    "entries": "~{count} entries per weekday"
   },
   "live": {
     "statusTitle": "Service status",
@@ -269,8 +256,6 @@
       "walkway": "Moving walkway"
     },
     "outage": "{kind} out of order",
-    "since": "since {date}",
-    "busNotices": "İETT notices",
     "unavailable": "Live information is unavailable right now."
   },
   "facts": {
@@ -280,7 +265,6 @@
     "stops": "Stops",
     "trip": "End to end",
     "riders": "Daily riders",
-    "dailyTrips": "Daily trips (one way)",
     "vehicles": "Vehicles",
     "headway": "Frequency",
     "hours": "Service",
@@ -291,7 +275,8 @@
     "faresTitle": "İstanbulkart fares",
     "km": "{n} km",
     "min": "{n} min",
-    "source": "Source: Metro İstanbul / İETT"
+    "source": "Source: Metro İstanbul / İETT",
+    "tripNow": "End to end (this hour)"
   },
   "bus": {
     "liveTitle": "Stops and live buses",
@@ -301,12 +286,14 @@
     "notRunning": "This line isn't in İETT's current list; it may no longer run.",
     "newLineTitle": "No forecast for this line",
     "newLineBody": "This line isn't in the 2022–2024 data the model was trained on. Stops and live buses are still below.",
-    "stopsAway": "{n, plural, =0 {at the stop} one {# stop away} other {# stops away}}",
     "nearest": "Nearest bus",
-    "noneComing": "No bus approaching",
+    "noneComing": "None coming",
     "showAll": "Show all stops",
     "showLess": "Show fewer",
-    "offRoute": "{count, plural, one {# more bus is assigned to this line but off the route right now (likely to or from the depot).} other {# more buses are assigned to this line but off the route right now (likely to or from the depot).}}"
+    "offRoute": "{count, plural, one {# bus is off route (heading to the depot or first stop).} other {# buses are off route (heading to the depot or first stop).}}",
+    "etaNote": "Times are estimated from actual running times on the same weekday last week.",
+    "arriving": "arriving",
+    "eta": "{min} min"
   },
   "stop": {
     "title": "Stop",
@@ -314,23 +301,27 @@
     "towards": "Towards {stop}",
     "notFoundTitle": "Stop not found",
     "notFoundBody": "There is no İETT stop with code “{code}”.",
-    "liveNote": "Bus positions come live from İETT; this is not an arrival-time prediction.",
+    "liveNote": "Arrival times are estimated from live bus positions and İETT's recent actual running times.",
     "linesCount": "{count, plural, one {# line} other {# lines}}",
-    "terminus": "Terminus"
-  },
-  "yesterday": {
-    "title": "Yesterday",
-    "trips": "Trips",
-    "completed": "Completed",
-    "cancelled": "Cancelled",
-    "onTime": "On-time departures",
-    "journeys": "Journeys",
-    "delay": "Departures from the first stop left a median {min} min after schedule.",
-    "source": "Source: İETT trip archive. On time: within 3 min of the planned departure."
+    "terminus": "Terminus",
+    "etaStops": "{n, plural, =0 {at stop} one {# stop} other {# stops}}"
   },
   "parking": {
     "title": "İSPARK car parks nearby",
     "free": "{empty} of {capacity} free",
     "closed": "Closed"
+  },
+  "reliability": {
+    "title": "Reliability",
+    "days": "last {count} days",
+    "onTime": "on-time departures",
+    "yesterday": "yesterday",
+    "avg": "{count}-day average {pct}",
+    "summary": "Yesterday {trips} trips · {cancelled} cancelled",
+    "journeys": "{count} journeys",
+    "delay": "Departures ran {min} min late on average.",
+    "early": "Departures left on schedule.",
+    "bar": "{date}: {pct} on time · {trips} trips · {cancelled} cancelled",
+    "note": "Trips leaving the first stop within 3 minutes of plan. Source: İETT trip archive."
   }
 }

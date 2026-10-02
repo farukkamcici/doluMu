@@ -1,6 +1,6 @@
 import 'server-only';
 import { iettJson, iettSoap, parseDataSet } from './upstream';
-import type { BusDirection, BusLineDetail, BusLineInfo, BusNotice, BusReliability, BusRidership, BusVehicle, LineReliability } from './types';
+import type { BusDirection, BusLineDetail, BusLineInfo, BusNotice, BusVehicle, Fleet } from './types';
 
 interface RawLine {
   SHATKODU: string;
@@ -89,65 +89,40 @@ export async function getBusNotices(): Promise<BusNotice[]> {
   }));
 }
 
-const ms = (s: string | null | undefined) => {
-  const m = s ? /\d+/.exec(s) : null;
-  return m ? Number(m[0]) : null;
+interface RawFleetVehicle {
+  KapiNo: string;
+  Saat: string; // "HH:MM:SS", Istanbul time
+  Enlem: string;
+  Boylam: string;
+  Hiz: string;
+}
+
+/** Seconds since Istanbul midnight. */
+const istanbulSeconds = () => {
+  const [h, m, s] = new Date().toLocaleTimeString('en-GB', { timeZone: 'Europe/Istanbul', hour12: false }).split(':').map(Number);
+  return h * 3600 + m * 60 + s;
 };
 
-const istanbulDate = (daysAgo: number) =>
-  new Date(Date.now() - daysAgo * 86_400_000).toLocaleDateString('en-CA', { timeZone: 'Europe/Istanbul' });
-
-interface RawDuty {
-  SHATKODU: string;
-  SGOREVDURUM: string;
-  DTBASLAMAZAMANI: string | null;
-  DTPLANLANANBASLANGICZAMANI: string | null;
-}
-
 /**
- * Yesterday's executed trips per line from İETT's duty archive (~55k duties, ~20 MB): how many
- * ran, how many were cancelled, and how punctual departures from the first stop were.
- * Status codes: T = completed, I = cancelled (others: partial/ongoing).
+ * Every İETT-contracted bus that reported in the last 3 minutes (GetFiloAracKonum: the whole
+ * fleet, ~6.9k vehicles, no line codes). Parked buses report too, so only moving ones are listed.
  */
-export async function getBusReliability(): Promise<BusReliability> {
-  const date = istanbulDate(1);
-  // Too large for Next's 2 MB data cache: always fetch, the route response is CDN-cached instead.
-  const duties = await iettJson<RawDuty[]>('ibb/ibb360.asmx', 'GetIettArsivGorev_json', { Tarih: date.replaceAll('-', '') }, 0);
-  const acc = new Map<string, { trips: number; completed: number; cancelled: number; delays: number[] }>();
-  for (const d of duties) {
-    const line = d.SHATKODU?.trim();
-    if (!line) continue;
-    const a = acc.get(line) ?? { trips: 0, completed: 0, cancelled: 0, delays: [] };
-    a.trips++;
-    if (d.SGOREVDURUM === 'T') a.completed++;
-    if (d.SGOREVDURUM === 'I') a.cancelled++;
-    const actual = ms(d.DTBASLAMAZAMANI);
-    const planned = ms(d.DTPLANLANANBASLANGICZAMANI);
-    if (actual && planned) {
-      const delay = (actual - planned) / 60_000;
-      if (Math.abs(delay) < 180) a.delays.push(delay);
-    }
-    acc.set(line, a);
+export async function getFleet(): Promise<Fleet> {
+  const raw = await iettJson<RawFleetVehicle[]>('FiloDurum/SeferGerceklesme.asmx', 'GetFiloAracKonum_json', {}, 30);
+  const now = istanbulSeconds();
+  const round = (n: number) => Math.round(n * 1e5) / 1e5;
+  const moving: [number, number, number][] = [];
+  let stopped = 0;
+  for (const v of raw) {
+    const [h, m, s] = (v.Saat ?? '').split(':').map(Number);
+    let age = now - (h * 3600 + m * 60 + s);
+    if (age < -120) age += 86_400;
+    const lat = Number(v.Enlem);
+    const lng = Number(v.Boylam);
+    if (!(age <= 180) || !(lat > 40.7 && lat < 41.6 && lng > 27.9 && lng < 29.95)) continue;
+    const speed = Number(v.Hiz) || 0;
+    if (speed > 0) moving.push([round(lng), round(lat), speed]);
+    else stopped++;
   }
-  const lines: Record<string, LineReliability> = {};
-  for (const [line, a] of acc) {
-    const sorted = a.delays.sort((x, y) => x - y);
-    lines[line] = {
-      trips: a.trips,
-      completed: a.completed,
-      cancelled: a.cancelled,
-      medianDelayMin: sorted.length ? Math.round(sorted[Math.floor(sorted.length / 2)] * 10) / 10 : null,
-      onTimeShare: sorted.length ? sorted.filter((x) => Math.abs(x) <= 3).length / sorted.length : null,
-    };
-  }
-  return { date, lines };
-}
-
-/** Yesterday's journeys for İETT's 50 busiest lines (GetIettYolculukHat). */
-export async function getBusRidership(): Promise<BusRidership> {
-  const date = istanbulDate(1);
-  const rows = await iettJson<{ Hat: string | null; Yolculuk: number }[]>('ibb/ibb360.asmx', 'GetIettYolculukHat_json', { Tarih: date }, 21_600);
-  const lines: Record<string, number> = {};
-  for (const r of rows) if (r.Hat) lines[r.Hat.trim()] = r.Yolculuk;
-  return { date, lines };
+  return { at: new Date().toISOString(), moving, stopped };
 }

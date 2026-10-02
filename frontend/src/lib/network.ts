@@ -42,6 +42,8 @@ export interface NetworkStation {
   lines: string[];
   /** Metro İstanbul station ids (one per line), to match equipment outages. */
   metroIds: number[];
+  /** Marmaray station order, when Marmaray calls here. */
+  marmarayOrder?: number;
   facilities?: StationFacilities;
 }
 
@@ -162,11 +164,21 @@ export const normName = (name: string) =>
 /** Stations of all rail lines, with same-name stations within 400 m merged into transfers. */
 export function buildNetworkStations(metro: MetroNetwork | undefined, marmaray: MarmarayStations | undefined): NetworkStation[] {
   const merged: NetworkStation[] = [];
-  const add = (s: { id: string; name: string; lat: number; lng: number; line: string; metroId?: number; facilities?: StationFacilities }) => {
+  const add = (s: {
+    id: string;
+    name: string;
+    lat: number;
+    lng: number;
+    line: string;
+    metroId?: number;
+    marmarayOrder?: number;
+    facilities?: StationFacilities;
+  }) => {
     const match = merged.find((m) => normName(m.name) === normName(s.name) && distanceMeters(m, s) < 400);
     if (match) {
       if (!match.lines.includes(s.line)) match.lines.push(s.line);
       if (s.metroId != null) match.metroIds.push(s.metroId);
+      if (s.marmarayOrder != null) match.marmarayOrder = s.marmarayOrder;
       if (s.facilities) {
         match.facilities = match.facilities
           ? {
@@ -187,6 +199,7 @@ export function buildNetworkStations(metro: MetroNetwork | undefined, marmaray: 
       lng: s.lng,
       lines: [s.line],
       metroIds: s.metroId != null ? [s.metroId] : [],
+      marmarayOrder: s.marmarayOrder,
       facilities: s.facilities,
     });
   };
@@ -204,7 +217,7 @@ export function buildNetworkStations(metro: MetroNetwork | undefined, marmaray: 
     });
   }
   for (const st of marmaray?.stations ?? []) {
-    add({ id: `MR-${st.order}`, name: st.name, lat: st.lat, lng: st.lng, line: 'MARMARAY' });
+    add({ id: `MR-${st.order}`, name: st.name, lat: st.lat, lng: st.lng, line: 'MARMARAY', marmarayOrder: st.order });
   }
   return merged;
 }
@@ -238,4 +251,45 @@ export function lineStations(
           : { id: `${s.line}-${s.id}`, name: s.name, lat: NaN, lng: NaN, lines: [code], metroIds: [s.id] },
     )
     .filter((s): s is NetworkStation => !!s);
+}
+
+interface Ridership {
+  metro: Record<string, number>;
+  marmaray: Record<string, number>;
+}
+
+/** Weekday entries at a station across all its lines (transfer stations add up). */
+export function stationEntries(station: NetworkStation, ridership: Ridership | undefined): number | null {
+  if (!ridership) return null;
+  const values = [
+    ...station.metroIds.map((id) => ridership.metro[id]),
+    station.marmarayOrder != null ? ridership.marmaray[station.marmarayOrder] : undefined,
+  ].filter((v): v is number => v != null);
+  return values.length ? values.reduce((a, b) => a + b, 0) : null;
+}
+
+/** Weekday entries per station id for one line's own platforms (not the transfer lines'). */
+export function lineEntries(
+  code: string,
+  stations: NetworkStation[],
+  metro: MetroNetwork | undefined,
+  ridership: Ridership | undefined,
+): Map<string, number> | null {
+  if (!ridership) return null;
+  const own = new Set(code === 'M1' ? ['M1A', 'M1B'] : [code]);
+  const lineOf = new Map((metro?.stations ?? []).map((s) => [s.id, s.line]));
+  const out = new Map<string, number>();
+  for (const st of stations) {
+    const value =
+      code === 'MARMARAY'
+        ? st.marmarayOrder != null
+          ? ridership.marmaray[st.marmarayOrder]
+          : undefined
+        : st.metroIds.filter((id) => own.has(lineOf.get(id) ?? '')).reduce<number | undefined>((sum, id) => {
+            const v = ridership.metro[id];
+            return v == null ? sum : (sum ?? 0) + v;
+          }, undefined);
+    if (value != null) out.set(st.id, value);
+  }
+  return out.size ? out : null;
 }
