@@ -5,6 +5,7 @@ Documentation for **DoluMu** — Istanbul public-transit crowding prediction. Fo
 ## Product
 
 - [product/prd.md](product/prd.md) — Product requirements.
+- [product/mobile-app-plan.md](product/mobile-app-plan.md) — Plan for the Expo (iOS + Android) app: monorepo layout, shared packages, API, roadmap.
 
 ## Reference
 
