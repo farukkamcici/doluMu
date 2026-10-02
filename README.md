@@ -169,7 +169,7 @@ Notification features are planned for future releases to alert you about:
 - **Backend:** FastAPI + LightGBM + Polars, served by Uvicorn in Docker. APScheduler runs the daily forecast and schedule-cache cron jobs in-process. Public forecast endpoints read precomputed predictions from Postgres.
 - **Database:** Postgres 15 (Docker volume).
 - **Frontend:** Next.js PWA on Vercel (unaffected by backend deploys).
-- **Production:** self-hosted on Hetzner behind Caddy (automatic TLS).
+- **Production:** self-hosted on Hetzner, deployed with Dokploy (Traefik, automatic TLS); see [docs/reference/deployment.md](docs/reference/deployment.md).
 
 ---
 

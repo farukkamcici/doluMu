@@ -1,0 +1,35 @@
+# Redeploys the API on the Hetzner server (Dokploy) when backend files change on main.
+# Frontend-only commits don't restart the API. The deploy URL (with its secret token) is a repo secret.
+name: Deploy API
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/**'
+      - 'config/**'
+      - 'frontend/public/data/**'
+      - 'Dockerfile'
+      - 'requirements-api.txt'
+      - 'constraints-api.txt'
+      - 'docker-compose.dokploy.yml'
+      - '.github/workflows/deploy-api.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-api
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Trigger Dokploy deploy
+        env:
+          DEPLOY_URL: ${{ secrets.DOKPLOY_API_DEPLOY_URL }}
+        run: |
+          curl -fsS -X POST "$DEPLOY_URL" \
+            -H 'Content-Type: application/json' \
+            -H 'X-GitHub-Event: push' \
+            -d "{\"ref\":\"${GITHUB_REF}\",\"after\":\"${GITHUB_SHA}\",\"commits\":[]}"
