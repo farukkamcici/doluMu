@@ -2,7 +2,6 @@
 import { useEffect, useRef } from 'react';
 import maplibregl, { type GeoJSONSource, type LngLatBoundsLike, type Map as MLMap } from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
-import { useTheme } from 'next-themes';
 import { useLocale } from 'next-intl';
 import type { NetworkLine, NetworkStation } from '@/lib/network';
 import { cn } from '@/lib/utils';
@@ -134,7 +133,6 @@ export default function TransitMap({
   const container = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MLMap | null>(null);
   const fitted = useRef(false);
-  const { resolvedTheme } = useTheme();
   const locale = useLocale();
   // Latest props for map event handlers and style reloads.
   const latest = useRef({ lines, stations, widths, focus, me, onLineClick, onStationClick });
@@ -295,13 +293,20 @@ export default function TransitMap({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Theme switch: repaint basemap and our layers (CSS variables have already changed).
+  // Theme switch: repaint once next-themes has applied the class to <html>. Watching the class
+  // (not `resolvedTheme`) matters: child effects run before the provider updates the DOM.
   useEffect(() => {
-    const map = mapRef.current;
-    if (!map?.getLayer('net-line')) return;
-    paintAll(map);
-    (map.getSource('net') as GeoJSONSource).setData(linesGeoJSON(latest.current.lines, latest.current.widths, cssRgb('--fg')));
-  }, [resolvedTheme]);
+    const observer = new MutationObserver(() => {
+      const map = mapRef.current;
+      if (!map?.getLayer('net-line')) return;
+      paintAll(map);
+      (map.getSource('net') as GeoJSONSource).setData(
+        linesGeoJSON(latest.current.lines, latest.current.widths, cssRgb('--fg')),
+      );
+    });
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+    return () => observer.disconnect();
+  }, []);
 
   // Data updates.
   useEffect(() => {
