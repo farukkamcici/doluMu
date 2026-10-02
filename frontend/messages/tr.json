@@ -44,8 +44,6 @@
     "searchPlaceholder": "Hat veya güzergah ara",
     "favorites": "Favoriler",
     "board": "Şu an",
-    "boardAt": "Saat {hour}",
-    "backToNow": "Şimdiye dön",
     "groups": {
       "metro": "Metro",
       "regional": "Marmaray ve Metrobüs",
@@ -56,16 +54,10 @@
     "trendUp": "artıyor",
     "trendDown": "azalıyor",
     "trendSame": "aynı",
-    "mapLegend": "Çizgi kalınlığı: o saatteki tahmini yolcu",
-    "play": "Günü oynat",
-    "pause": "Durdur",
-    "hourLabel": "Saat",
     "nearby": "Yakınındaki istasyonlar",
     "nearbyAction": "Konumumu kullan",
-    "nearbyHint": "Sana en yakın raylı sistem istasyonlarını göster.",
     "nearbyDenied": "Konum izni verilmedi.",
     "nearbyError": "Konum alınamadı.",
-    "locating": "Konum alınıyor…",
     "meters": "{m} m",
     "km": "{km} km",
     "expandMap": "Haritayı büyüt",
@@ -74,7 +66,8 @@
     "quietestAt": "En sakin {hour}",
     "busiestAt": "En yoğun {hour}",
     "trafficValue": "%{percent}",
-    "traffic": "Trafik"
+    "traffic": "Trafik",
+    "nearbyStops": "Yakınındaki duraklar"
   },
   "search": {
     "label": "Hat ara",
@@ -89,7 +82,8 @@
     "error": "Arama şu an yapılamıyor.",
     "results": "{count, plural, =0 {Sonuç yok} other {# hat}}",
     "stations": "İstasyonlar",
-    "lines": "Hatlar"
+    "lines": "Hatlar",
+    "stops": "Duraklar"
   },
   "line": {
     "favoriteAdd": "Favorilere ekle",
@@ -201,7 +195,7 @@
     "about": "Hakkında",
     "aboutBody": "DoluMu, İstanbul’daki toplu taşıma hatları için saatlik kalabalık tahmini sunan bağımsız bir projedir. İBB veya işletmelerle resmi bir bağı yoktur.",
     "sources": "Veri kaynakları",
-    "sourcesBody": "İBB Açık Veri Portalı (saatlik yolcu verisi), İETT (planlı tarifeler, duyurular), Metro İstanbul (hat ve istasyon bilgisi), Open-Meteo (hava durumu), İBB UYM (trafik endeksi), OpenStreetMap / OpenFreeMap (harita).",
+    "sourcesBody": "İBB Açık Veri Portalı (saatlik yolcu verisi; İBB Açık Veri Lisansı), Metro İstanbul (hat, istasyon, hizmet durumu, asansör/yürüyen merdiven arızaları, ücretler; anlık), İETT (güncel hat listesi, duraklar, canlı araç konumları, planlı tarifeler, duyurular), Open-Meteo (hava durumu), İBB UYM (trafik endeksi), OpenStreetMap / OpenFreeMap (harita, Marmaray istasyonları).",
     "data": "Verilerin",
     "dataDesc": "Favoriler ve son aramalar yalnızca bu cihazda saklanır.",
     "clearFavorites": "Favorileri temizle",
@@ -259,5 +253,68 @@
     "babyRoom": "Bebek odası",
     "masjid": "Mescit",
     "nowAt": "Şu an"
+  },
+  "live": {
+    "statusTitle": "Hizmet durumu",
+    "allClear": "Raylı sistemde bilinen bir aksama yok.",
+    "disruption": "Aksama",
+    "equipmentSummary": "{lifts} asansör, {escalators} yürüyen merdiven arızalı",
+    "equipmentTitle": "Arızalı asansör ve yürüyen merdivenler",
+    "announcements": "Metro İstanbul duyuruları",
+    "seeAll": "Ayrıntılar",
+    "source": "Kaynak: Metro İstanbul (anlık)",
+    "kinds": {
+      "lift": "Asansör",
+      "escalator": "Yürüyen merdiven",
+      "walkway": "Yürüyen bant"
+    },
+    "outage": "{kind} arızalı",
+    "since": "{date} tarihinden beri",
+    "busNotices": "İETT duyuruları",
+    "unavailable": "Canlı bilgi şu an alınamıyor."
+  },
+  "facts": {
+    "title": "Hat künyesi",
+    "length": "Uzunluk",
+    "stations": "İstasyon",
+    "stops": "Durak",
+    "trip": "Uçtan uca",
+    "riders": "Günlük yolcu",
+    "dailyTrips": "Günlük sefer (tek yön)",
+    "vehicles": "Araç",
+    "headway": "Sefer sıklığı",
+    "hours": "Hizmet",
+    "fare": "Tam bilet",
+    "fareStudent": "Öğrenci",
+    "fareTwo": "2 biletli hat: uzun mesafe nedeniyle iki geçiş ücreti alınır.",
+    "fares": "Tüm ücretler",
+    "faresTitle": "İstanbulkart ücretleri",
+    "km": "{n} km",
+    "min": "{n} dk",
+    "source": "Kaynak: Metro İstanbul / İETT"
+  },
+  "bus": {
+    "liveTitle": "Duraklar ve canlı otobüsler",
+    "liveCount": "{count, plural, =0 {Şu an bu yönde otobüs görünmüyor} other {Şu an bu yönde # otobüs}}",
+    "stopsCount": "{count} durak",
+    "updated": "Konumlar {time} itibarıyla",
+    "notRunning": "Bu hat İETT'nin güncel listesinde yok; artık işletilmiyor olabilir.",
+    "newLineTitle": "Bu hat için tahmin yok",
+    "newLineBody": "Hat, tahmin modelinin eğitildiği 2022–2024 verisinde yok. Duraklar ve canlı otobüsler yine de aşağıda.",
+    "stopsAway": "{n, plural, =0 {durakta} other {# durak uzakta}}",
+    "nearest": "En yakın otobüs",
+    "noneComing": "Yaklaşan otobüs yok",
+    "showAll": "Tüm durakları göster",
+    "showLess": "Daha az göster"
+  },
+  "stop": {
+    "title": "Durak",
+    "lines": "Bu duraktan geçen hatlar",
+    "towards": "{stop} yönü",
+    "notFoundTitle": "Durak bulunamadı",
+    "notFoundBody": "“{code}” kodlu bir İETT durağı yok.",
+    "liveNote": "Otobüs konumları İETT'den anlık alınır; varış süresi tahmini değildir.",
+    "linesCount": "{count, plural, other {# hat}}",
+    "terminus": "Son durak"
   }
 }

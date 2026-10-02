@@ -1,16 +1,15 @@
 'use client';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { Search, Settings } from 'lucide-react';
+import { LocateFixed, Loader2, Search, Settings } from 'lucide-react';
 import { Link, useRouter } from '@/i18n/routing';
 import { buttonVariants } from '@/components/primitives/Button';
 import { MapPanel } from '@/components/map/MapPanel';
 import { SearchDialog } from '@/components/search/SearchDialog';
 import { StationSheet } from '@/components/station/StationSheet';
-import { buildDayProfile, type DayProfile } from '@/lib/crowd';
 import { NETWORK_CODES, NETWORK_GROUPS, type NetworkStation } from '@/lib/network';
 import { useForecasts } from '@/lib/queries';
-import { formatHour } from '@/lib/time';
+import { cn } from '@/lib/utils';
 import { usePrefs } from '@/store/prefs';
 import { useNow } from '@/hooks/useNow';
 import { useMounted } from '@/hooks/useMounted';
@@ -19,12 +18,10 @@ import { useGeolocation } from '@/hooks/useGeolocation';
 import { useIsDesktop } from '@/hooks/useIsDesktop';
 import { BoardRow } from './NetworkBoard';
 import { ContextLine } from './ContextLine';
-import { HourScrubber } from './HourScrubber';
-import { NearbyStations } from './NearbyStations';
-
-/** Map stroke width (px at zoom 12) from passengers, on one scale for the whole network. */
-const flowWidth = (passengers: number | null, max: number) =>
-  passengers == null || max <= 0 ? 1.2 : 1.8 + 9 * Math.sqrt(passengers / max);
+import { NearbyStations, NearbyStops } from './NearbyStations';
+import { ServiceStatus } from '@/components/live/ServiceStatus';
+import { disruptedCodes } from '@/components/live/outages';
+import { useMetroStatus } from '@/lib/live/client';
 
 export function HomeScreen() {
   const t = useTranslations('home');
@@ -35,33 +32,16 @@ export function HomeScreen() {
   const desktop = useIsDesktop();
   const favorites = usePrefs((s) => s.favorites);
   const [searchOpen, setSearchOpen] = useState(false);
-  const [pickedHour, setPickedHour] = useState<number | null>(null);
-  const [playing, setPlaying] = useState(false);
   const [station, setStation] = useState<NetworkStation | null>(null);
   const [flyTo, setFlyTo] = useState<{ lat: number; lng: number; zoom?: number } | null>(null);
   const { state: geo, locate } = useGeolocation();
   const network = useNetwork();
-  const hour = pickedHour ?? now.hour;
+  const hour = now.hour;
+  const metroStatus = useMetroStatus();
+  const alerts = useMemo(() => disruptedCodes((metroStatus.data?.disruptions ?? []).map((d) => d.line)), [metroStatus.data]);
 
-  const forecasts = useForecasts(NETWORK_CODES, now.date);
-  const stamp = forecasts.map((f) => f.dataUpdatedAt).join(',');
-  const profiles = useMemo(() => {
-    const out: Record<string, DayProfile | undefined> = {};
-    NETWORK_CODES.forEach((code, i) => {
-      const data = forecasts[i]?.data;
-      out[code] = data ? buildDayProfile(data) : undefined;
-    });
-    return out;
-    // `forecasts` is a new array every render; its data changes are tracked by `stamp`.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [stamp]);
-
-  const widths = useMemo(() => {
-    const max = Math.max(0, ...Object.values(profiles).map((p) => p?.peakPassengers ?? 0));
-    return Object.fromEntries(
-      Object.entries(profiles).map(([code, p]) => [code, flowWidth(p?.hours[hour]?.passengers ?? null, max)]),
-    );
-  }, [profiles, hour]);
+  // Warm the forecast cache for every board row in one go.
+  useForecasts(NETWORK_CODES, now.date);
 
   // "/" opens search, like most search-first web apps.
   useEffect(() => {
@@ -84,7 +64,6 @@ export function HomeScreen() {
   const geoTarget = useMemo(() => (geo.status === 'ok' ? { lat: geo.lat, lng: geo.lng, zoom: 13.5 } : null), [geo]);
   const me = useMemo(() => (geo.status === 'ok' ? { lat: geo.lat, lng: geo.lng } : null), [geo]);
   const favs = mounted ? favorites : [];
-  const scrubbed = pickedHour !== null && pickedHour !== now.hour;
 
   const map = (
     <MapPanel
@@ -92,13 +71,12 @@ export function HomeScreen() {
       expandable={!desktop}
       lines={network.lines}
       stations={network.stations}
-      widths={widths}
       me={me}
+      alerts={alerts}
       flyTo={flyTo ?? geoTarget}
       onLineClick={(code) => router.push(`/line/${encodeURIComponent(code)}`)}
       onStationClick={selectStation}
       embedded={!desktop}
-      overlay={<HourScrubber hour={hour} onChange={setPickedHour} playing={playing} onPlayingChange={setPlaying} />}
     />
   );
 
@@ -118,18 +96,47 @@ export function HomeScreen() {
         </header>
 
         <div className="px-4 pb-4 pt-3 sm:px-5">
-          <button
-            type="button"
-            onClick={() => setSearchOpen(true)}
-            className="flex h-12 w-full items-center gap-3 rounded-lg border-[1.5px] border-fg bg-card px-3.5 text-left"
-          >
-            <Search className="h-5 w-5 shrink-0" />
-            <span className="flex-1 truncate text-fg-muted">{t('searchPlaceholder')}</span>
-            <kbd className="hidden rounded border border-line px-1.5 font-display text-xs text-fg-subtle sm:inline">/</kbd>
-          </button>
+          <div className="flex h-12 w-full items-center rounded-lg border-[1.5px] border-fg bg-card pl-3.5 pr-1.5">
+            <button type="button" onClick={() => setSearchOpen(true)} className="flex h-full min-w-0 flex-1 items-center gap-3 text-left">
+              <Search className="h-5 w-5 shrink-0" />
+              <span className="flex-1 truncate text-fg-muted">{t('searchPlaceholder')}</span>
+              <kbd className="hidden rounded border border-line px-1.5 font-display text-xs text-fg-subtle sm:inline">/</kbd>
+            </button>
+            <button
+              type="button"
+              onClick={locate}
+              disabled={geo.status === 'locating'}
+              aria-label={t('nearbyAction')}
+              title={t('nearbyAction')}
+              className={cn(
+                'ml-1.5 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition-colors',
+                geo.status === 'ok' ? 'bg-fg text-bg' : 'bg-bg-subtle text-fg hover:bg-fg/10',
+              )}
+            >
+              {geo.status === 'locating' ? <Loader2 className="h-4 w-4 animate-spin" /> : <LocateFixed className="h-4 w-4" />}
+            </button>
+          </div>
+          {geo.status === 'denied' || geo.status === 'error' ? (
+            <p className="mt-2 text-sm text-fg-muted">{geo.status === 'denied' ? t('nearbyDenied') : t('nearbyError')}</p>
+          ) : null}
         </div>
 
         {!desktop ? map : null}
+
+        {geo.status === 'ok' ? (
+        <section className="pt-6" aria-labelledby="nearby">
+          <h2 id="nearby" className="eyebrow px-4 pb-2 sm:px-5">
+            {t('nearby')}
+          </h2>
+          <div className="border-y border-line bg-card">
+            <NearbyStations stations={network.stations} geo={geo} onSelect={selectStation} />
+          </div>
+          <h2 className="eyebrow px-4 pb-2 pt-5 sm:px-5">{t('nearbyStops')}</h2>
+          <div className="border-y border-line bg-card">
+            <NearbyStops geo={geo} />
+          </div>
+        </section>
+        ) : null}
 
         {favs.length ? (
           <section className="pt-6" aria-labelledby="favorites">
@@ -144,24 +151,12 @@ export function HomeScreen() {
           </section>
         ) : null}
 
+        <ServiceStatus />
+
         <section className="pt-6" aria-labelledby="board">
-          <div className="flex items-baseline justify-between px-4 pb-1 sm:px-5">
-            <h2 id="board" className="font-display text-[26px] font-bold tracking-tight">
-              {scrubbed ? t('boardAt', { hour: formatHour(hour) }) : t('board')}
-            </h2>
-            {scrubbed ? (
-              <button
-                type="button"
-                onClick={() => {
-                  setPlaying(false);
-                  setPickedHour(null);
-                }}
-                className="text-sm font-medium underline underline-offset-4"
-              >
-                {t('backToNow')}
-              </button>
-            ) : null}
-          </div>
+          <h2 id="board" className="px-4 pb-1 font-display text-[26px] font-bold tracking-tight sm:px-5">
+            {t('board')}
+          </h2>
           {NETWORK_GROUPS.map((group) => (
             <div key={group.id} className="pt-3">
               <h3 className="eyebrow px-4 pb-1.5 sm:px-5">{t(`groups.${group.id}`)}</h3>
@@ -175,14 +170,6 @@ export function HomeScreen() {
           <p className="px-4 pt-3 text-sm text-fg-muted sm:px-5">{t('busHint')}</p>
         </section>
 
-        <section className="pt-8" aria-labelledby="nearby">
-          <h2 id="nearby" className="eyebrow px-4 pb-2 sm:px-5">
-            {t('nearby')}
-          </h2>
-          <div className="border-y border-line bg-card">
-            <NearbyStations stations={network.stations} geo={geo} onLocate={locate} onSelect={selectStation} />
-          </div>
-        </section>
 
         <footer className="px-4 pb-12 pt-8 text-xs leading-relaxed text-fg-subtle sm:px-5">
           {tc('notLive')}{' '}

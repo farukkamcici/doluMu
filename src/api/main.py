@@ -1,5 +1,6 @@
 import logging
 import os
+import threading
 import lightgbm as lgb
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
@@ -10,6 +11,7 @@ from .routers import admin, forecast, lines, nowcast, reports, schedule, status,
 from .services.store import FeatureStore
 from .services.capacity_store import CapacityStore
 from .services.route_service import route_service
+from .services.iett_registry import iett_registry
 from .utils.init_db import init_db
 from .auth import create_admin_user_if_not_exists
 from .state import AppState
@@ -52,6 +54,9 @@ async def lifespan(app: FastAPI):
     logger.info("Loading route shape data...")
     route_service.load_data()
     logger.info("Route shapes ready")
+
+    # Warm the İETT line registry in the background (search and jobs use it to skip retired lines).
+    threading.Thread(target=iett_registry.active_codes, daemon=True).start()
 
     # Start the cron job scheduler
     logger.info("Starting APScheduler for cron jobs...")

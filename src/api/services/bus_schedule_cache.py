@@ -22,6 +22,7 @@ from sqlalchemy.orm import Session
 from zoneinfo import ZoneInfo
 
 from ..models import BusScheduleCache, TransportLine
+from .iett_registry import iett_registry
 
 logger = logging.getLogger(__name__)
 
@@ -457,6 +458,13 @@ class BusScheduleCacheService:
         if limit:
             q = q.limit(limit)
         line_codes = [row[0] for row in q.all()]
+        # Lines İETT no longer runs return no timetable; asking for them only produces retries.
+        active = iett_registry.active_codes()
+        if active is not None:
+            retired = [c for c in line_codes if c not in active]
+            if retired:
+                logger.info("Skipping %d retired bus lines in prefetch", len(retired))
+            line_codes = [c for c in line_codes if c in active]
 
         stats = {
             'target_date': target.isoformat(),

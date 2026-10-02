@@ -3,8 +3,8 @@ import { useTranslations } from 'next-intl';
 import { Sheet } from '@/components/primitives/Sheet';
 import { BoardRow } from '@/components/home/NetworkBoard';
 import type { NetworkStation } from '@/lib/network';
+import { useOutagesByStation } from '@/components/live/outages';
 
-const AMENITIES = ['elevator', 'escalator', 'wc', 'babyRoom', 'masjid'] as const;
 
 interface StationSheetProps {
   station: NetworkStation | null;
@@ -15,7 +15,19 @@ interface StationSheetProps {
 /** A station: the lines calling there with their current level, and facilities. */
 export function StationSheet({ station, onClose, hour }: StationSheetProps) {
   const t = useTranslations('station');
-  const amenities = AMENITIES.filter((a) => station?.accessibility?.[a]);
+  const tl = useTranslations('live');
+  const outagesByStation = useOutagesByStation();
+  const outages = station ? station.metroIds.flatMap((id) => outagesByStation.get(id) ?? []) : [];
+  const f = station?.facilities;
+  const amenities = f
+    ? [
+        f.lifts ? `${f.lifts} ${t('elevator').toLocaleLowerCase()}` : null,
+        f.escalators ? `${f.escalators} ${t('escalator').toLocaleLowerCase()}` : null,
+        f.wc ? t('wc') : null,
+        f.babyRoom ? t('babyRoom') : null,
+        f.masjid ? t('masjid') : null,
+      ].filter(Boolean)
+    : [];
 
   return (
     <Sheet open={!!station} onOpenChange={(open) => !open && onClose()} title={station?.name ?? ''}>
@@ -28,9 +40,16 @@ export function StationSheet({ station, onClose, hour }: StationSheetProps) {
             ))}
           </div>
           <p className="eyebrow px-5 pb-1 pt-5">{t('access')}</p>
-          <p className="px-5 text-sm text-fg-muted">
-            {amenities.length ? amenities.map((a) => t(a)).join(' · ') : t('none')}
-          </p>
+          {outages.length ? (
+            <ul className="mx-5 mb-2 space-y-1">
+              {outages.map((o, i) => (
+                <li key={i} className="text-sm font-semibold text-signal">
+                  {tl('outage', { kind: tl(`kinds.${o.kind}`) })}
+                </li>
+              ))}
+            </ul>
+          ) : null}
+          <p className="px-5 text-sm text-fg-muted">{amenities.length ? amenities.join(' · ') : t('none')}</p>
         </div>
       ) : null}
     </Sheet>

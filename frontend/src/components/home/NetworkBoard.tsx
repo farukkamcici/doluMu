@@ -10,6 +10,8 @@ import { useMemo } from 'react';
 import { LEVELS, buildDayProfile, type CrowdLevel, type HourState } from '@/lib/crowd';
 import { useForecast } from '@/lib/queries';
 import { useNow } from '@/hooks/useNow';
+import { useLineDisruptions } from '@/components/live/outages';
+import { AlertTriangle } from 'lucide-react';
 import { useLineDisplayName } from '@/hooks/useLineName';
 import { cn } from '@/lib/utils';
 
@@ -29,11 +31,19 @@ export function BoardRow({ code, hour }: BoardRowProps) {
   const forecast = useForecast(code, now.date);
   const profile = useMemo(() => (forecast.data ? buildDayProfile(forecast.data) : undefined), [forecast.data]);
   const point = profile?.hours[hour];
+  const disrupted = useLineDisruptions(code).length > 0;
   const next = profile?.hours[(hour + 1) % 24];
   const state: HourState | null = forecast.isError ? 'nodata' : !profile ? null : profile.hasData ? (point?.state ?? 'nodata') : 'nodata';
 
   let trend = null;
-  if (state && next && rank(state) >= 0 && rank(next.state) >= 0) {
+  if (disrupted) {
+    trend = (
+      <span className="inline-flex items-center gap-1 font-semibold text-signal">
+        <AlertTriangle className="h-3.5 w-3.5" />
+        {t('live.disruption')}
+      </span>
+    );
+  } else if (state && next && rank(state) >= 0 && rank(next.state) >= 0) {
     const d = rank(next.state) - rank(state);
     const Icon = d > 0 ? ArrowUpRight : d < 0 ? ArrowDownRight : ArrowRight;
     trend = (

@@ -6,7 +6,6 @@ import { Button } from '@/components/primitives/Button';
 import { Sheet } from '@/components/primitives/Sheet';
 import type { BusSchedule, Direction } from '@/lib/api';
 import type { Mode } from '@/lib/lines';
-import type { TopologyLine } from '@/lib/topology';
 import { formatDuration, parseClock } from '@/lib/time';
 import { cn } from '@/lib/utils';
 
@@ -37,7 +36,8 @@ interface ScheduleCardProps {
   schedule: BusSchedule | undefined;
   scheduleLoading: boolean;
   direction: Direction | null;
-  topoLine: TopologyLine | null;
+  /** Rail operating hours from Metro İstanbul. */
+  railHours: { first: string; last: string } | null;
   /** Minutes since Istanbul midnight. */
   nowMinutes: number;
 }
@@ -58,7 +58,7 @@ function FirstLast({ first, last }: { first: string; last: string }) {
   );
 }
 
-export function ScheduleCard({ code, mode, schedule, scheduleLoading, direction, topoLine, nowMinutes }: ScheduleCardProps) {
+export function ScheduleCard({ code, mode, schedule, scheduleLoading, direction, railHours, nowMinutes }: ScheduleCardProps) {
   const t = useTranslations('line.schedule');
   const tc = useTranslations('common');
   const [open, setOpen] = useState(false);
@@ -70,7 +70,7 @@ export function ScheduleCard({ code, mode, schedule, scheduleLoading, direction,
     return (
       <div className="space-y-3 px-4 py-5 sm:px-5">
         <h2 className="eyebrow">{t('railHours')}</h2>
-        {topoLine ? <FirstLast first={topoLine.first_time} last={topoLine.last_time} /> : null}
+        {railHours ? <FirstLast first={railHours.first} last={railHours.last} /> : null}
         <p className="text-sm text-fg-muted">{note}</p>
       </div>
     );

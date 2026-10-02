@@ -7,12 +7,13 @@ import { useRouter } from '@/i18n/routing';
 import { LineBadge } from '@/components/transit/LineBadge';
 import { Skeleton } from '@/components/primitives/Skeleton';
 import { useLine, useLineSearch } from '@/lib/queries';
-import { foldForMatch, modeOf, POPULAR_LINES, routeLabel } from '@/lib/lines';
+import { foldForMatch, isMetroTopologyLine, modeOf, POPULAR_LINES, routeLabel } from '@/lib/lines';
 import { usePrefs } from '@/store/prefs';
 import { useMounted } from '@/hooks/useMounted';
 import { useDebouncedValue } from '@/hooks/useDebouncedValue';
 import { useLineName } from '@/hooks/useLineName';
 import { useNetwork } from '@/hooks/useNetwork';
+import { useBusRegistry, useBusStops } from '@/lib/live/client';
 import { cn } from '@/lib/utils';
 
 interface Row {
@@ -50,17 +51,36 @@ export function SearchDialog({ open, onOpenChange }: SearchDialogProps) {
     return network.stations.filter((s) => foldForMatch(s.name).includes(q)).slice(0, 4);
   }, [debounced, network.stations]);
 
+  // İETT's live registry: hide bus lines that no longer run, add current lines the forecast DB lacks.
+  const registry = useBusRegistry();
+  const busStops = useBusStops(open && foldForMatch(debounced).length >= 3);
+  const stopHits = useMemo(() => {
+    const q = foldForMatch(debounced);
+    if (q.length < 3 || !busStops.data) return [];
+    return busStops.data.filter((s) => foldForMatch(s.name).includes(q)).slice(0, 4);
+  }, [debounced, busStops.data]);
+
   const rows: Row[] = useMemo(() => {
     if (searching) {
-      return (search.data ?? []).map((r) => ({
-        code: r.line_name,
-        typeId: r.transport_type_id,
-        subtitle: routeLabel(r),
-      }));
+      const live = registry.data ? new Map(registry.data.map((l) => [l.code, l])) : null;
+      const fromApi: Row[] = (search.data ?? [])
+        .filter((r) => r.transport_type_id !== 1 || !live || live.has(r.line_name))
+        .map((r) => ({
+          code: r.line_name,
+          typeId: r.transport_type_id,
+          subtitle: r.transport_type_id === 1 && live?.get(r.line_name)?.name ? routeLabel({ line: live.get(r.line_name)!.name }) : routeLabel(r),
+        }));
+      const seen = new Set(fromApi.map((r) => r.code));
+      const q = foldForMatch(debounced);
+      const extra: Row[] = (registry.data ?? [])
+        .filter((l) => !seen.has(l.code) && !isMetroTopologyLine(l.code) && (foldForMatch(l.code).startsWith(q) || (q.length >= 3 && foldForMatch(l.name).includes(q))))
+        .slice(0, 6)
+        .map((l) => ({ code: l.code, typeId: 1, subtitle: routeLabel({ line: l.name }) }));
+      return [...fromApi, ...extra];
     }
     const base = mounted && recents.length ? recents : POPULAR_LINES;
     return base.map((code) => ({ code }));
-  }, [searching, search.data, mounted, recents]);
+  }, [searching, search.data, mounted, recents, registry.data, debounced]);
 
   const setOpen = (next: boolean) => {
     if (!next) {
@@ -113,7 +133,7 @@ export function SearchDialog({ open, onOpenChange }: SearchDialogProps) {
     );
   } else if (searching && search.isError) {
     content = <p className="px-5 py-10 text-center text-sm text-fg-muted">{t('error')}</p>;
-  } else if (searching && rows.length === 0 && stationHits.length === 0 && search.isFetched) {
+  } else if (searching && rows.length === 0 && stationHits.length === 0 && stopHits.length === 0 && search.isFetched) {
     content = (
       <div className="flex flex-col items-center px-6 py-12 text-center">
         <SearchX className="h-8 w-8 text-fg-subtle" />
@@ -154,6 +174,34 @@ export function SearchDialog({ open, onOpenChange }: SearchDialogProps) {
               ))}
             </ul>
             {rows.length ? <p className="eyebrow px-3 pb-1 pt-3">{t('lines')}</p> : null}
+          </div>
+        ) : null}
+        {stopHits.length ? (
+          <div className="border-b border-line px-2 pb-2 pt-3">
+            <p className="eyebrow px-3 pb-1">{t('stops')}</p>
+            <ul>
+              {stopHits.map((s) => (
+                <li key={s.code}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setOpen(false);
+                      router.push(`/stop/${s.code}`);
+                    }}
+                    className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-left hover:bg-bg-subtle"
+                  >
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-[15px] font-medium">
+                        <Highlight text={s.name} query={debounced} />
+                      </span>
+                      <span className="block truncate text-xs text-fg-muted">
+                        {s.district} · {[...new Set(s.lines.map((l) => l.code))].slice(0, 8).join(', ')}
+                      </span>
+                    </span>
+                  </button>
+                </li>
+              ))}
+            </ul>
           </div>
         ) : null}
         <ul ref={listRef} role="listbox" id="search-results" aria-label={t('label')} className="p-2">

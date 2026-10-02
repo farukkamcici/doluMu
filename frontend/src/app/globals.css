@@ -154,36 +154,3 @@
 .maplibregl-popup-tip {
   display: none;
 }
-
-/* Hour scrubber: thin ink track, square thumb, like a timetable cursor. */
-.hour-range {
-  -webkit-appearance: none;
-  appearance: none;
-  height: 28px;
-  background: transparent;
-  cursor: pointer;
-}
-.hour-range::-webkit-slider-runnable-track {
-  height: 2px;
-  background: rgb(var(--fg) / 0.25);
-}
-.hour-range::-moz-range-track {
-  height: 2px;
-  background: rgb(var(--fg) / 0.25);
-}
-.hour-range::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  width: 14px;
-  height: 22px;
-  margin-top: -10px;
-  border-radius: 2px;
-  background: rgb(var(--fg));
-  border: 2px solid rgb(var(--card));
-}
-.hour-range::-moz-range-thumb {
-  width: 12px;
-  height: 20px;
-  border-radius: 2px;
-  background: rgb(var(--fg));
-  border: 2px solid rgb(var(--card));
-}

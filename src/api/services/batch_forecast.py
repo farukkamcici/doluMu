@@ -16,6 +16,7 @@ from .bus_schedule_cache import bus_schedule_cache_service
 from .metro_schedule_cache import metro_schedule_cache_service
 from .metro_service import metro_service
 from .marmaray_service import marmaray_service
+from .iett_registry import iett_registry
 
 logger = logging.getLogger(__name__)
 
@@ -69,9 +70,14 @@ def run_daily_forecast_job(
         logger.info(f"Starting daily forecast job for {num_days} day(s) starting from: {target_date} (Job ID: {job_log.id})")
 
         # Fetch all available lines
-        all_lines = db.query(TransportLine.line_name).all()
-        line_names = [line[0] for line in all_lines]
-        logger.info(f"Found {len(line_names)} lines to process.")
+        all_lines = db.query(TransportLine.line_name, TransportLine.transport_type_id).all()
+        # Skip bus lines İETT no longer runs (the line list dates from 2022–24 ridership data).
+        active = iett_registry.active_codes()
+        line_names = [
+            name for name, type_id in all_lines
+            if active is None or type_id != 1 or name in active
+        ]
+        logger.info(f"Found {len(line_names)} lines to process ({len(all_lines) - len(line_names)} retired skipped).")
 
         rail_line_codes = set(metro_service.get_lines().keys())
 

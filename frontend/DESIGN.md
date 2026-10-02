@@ -78,7 +78,34 @@ Haritadaki çizgi kalınlığı ise mutlak yolcu sayısıdır (tüm ağ için te
 | `GET /api/lines/34/route` | Metrobüs güzergahı |
 | `GET /api/forecast/{code}` | Saatlik tahmin (pano için ~21 hat paralel, önbellekli) |
 
-## 7. Kurallar
+## 7. Canlı veri (v3.1)
+
+Tahmin modeli geçmiş veriye dayanır; onun yanına İBB'nin canlı servislerinden "şu an gerçekte ne oluyor"
+bilgisi eklendi. Bu servislerin hiçbiri CORS desteklemediği için tarayıcı `/api/live/*` Next.js
+route'larını çağırır; bunlar sunucuda İBB'ye gider ve sonucu CDN'de önbelleğe alır
+(`s-maxage` + uzun `stale-while-revalidate`). Bir servis düşerse ilgili bölüm sessizce gizlenir.
+
+| Route | Kaynak | Önbellek | Kullanıldığı yer |
+|---|---|---|---|
+| `/api/live/metro/network` | Metro İstanbul `GetLines`, `GetStations` | 6 sa | Harita ağı, istasyonlar (yeni istasyonlar dahil), hat künyesi, hizmet saatleri |
+| `/api/live/metro/status` | `GetServiceStatuses`, `GetAnnouncements`, `GetFaultyEquipment*` | 2 dk | Aksama bandı, haritada kırmızı kesik çizgi, asansör/yürüyen merdiven arızaları |
+| `/api/live/fares` | `GetTicketPrice` | 1 gün | Ücret bilgisi |
+| `/api/live/bus/lines` | İETT `GetHat_json` | 6 sa | Güncel hat adları, artık çalışmayan hatların gizlenmesi, yeni hatların eklenmesi, "2 biletli" tarifesi |
+| `/api/live/bus/[code]` | İETT `DurakDetay_GYY_wYonAdi` | 1 gün | Sıralı duraklar, gerçek yön adları |
+| `/api/live/bus/[code]/vehicles` | İETT `GetHatOtoKonum_json` | 30 sn | Canlı otobüsler (harita + durak şeridi), "N durak uzakta" |
+| `/api/live/bus/notices` | İETT `GetDuyurular_json` | 5 dk | Duyurular |
+
+`public/data/bus_stops.json`, `scripts/build-bus-stops.mjs` ile üretilen durak → hat dizinidir
+(13 bin durak; İETT'nin GTFS `stop_times` dosyası 1.048.576 satırda kesik olduğu için canlı servisten
+türetildi). Ayda bir yeniden üretilmesi yeterli.
+
+Bulgular: İETT araç konumları yaklaşık dakikada bir güncellenir, servis kimlik doğrulama ve hız
+sınırı uygulamaz (yine de CDN önbelleğiyle tek bir hat için en fazla 30 sn'de bir istek gider).
+Metrobüs 34, 34AS, 34BZ… varyantlarıyla işlediği için Metrobüs sayfası tüm varyantların araçlarını
+birleştirir; araçlar yön harfine göre değil bulundukları durağa göre yerleştirilir. İETT, metro
+onarımlarında aynı kodla (ör. M7) aktarma otobüsü çalıştırabildiği için raylı kodlar önceliklidir.
+
+## 8. Kurallar
 
 - Renk tek başına anlam taşımaz; her seviye bir kelime ve figür sayısıyla birlikte gösterilir.
 - Saat hesapları `Europe/Istanbul` diliminde yapılır.

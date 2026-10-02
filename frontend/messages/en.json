@@ -44,8 +44,6 @@
     "searchPlaceholder": "Search a line or route",
     "favorites": "Favourites",
     "board": "Right now",
-    "boardAt": "At {hour}",
-    "backToNow": "Back to now",
     "groups": {
       "metro": "Metro",
       "regional": "Marmaray and Metrobüs",
@@ -56,16 +54,10 @@
     "trendUp": "rising",
     "trendDown": "easing",
     "trendSame": "steady",
-    "mapLegend": "Line width: forecast riders in that hour",
-    "play": "Play the day",
-    "pause": "Pause",
-    "hourLabel": "Hour",
     "nearby": "Stations near you",
     "nearbyAction": "Use my location",
-    "nearbyHint": "Show the rail stations closest to you.",
     "nearbyDenied": "Location permission was denied.",
     "nearbyError": "Couldn’t get your location.",
-    "locating": "Locating…",
     "meters": "{m} m",
     "km": "{km} km",
     "expandMap": "Expand map",
@@ -74,7 +66,8 @@
     "quietestAt": "Quietest {hour}",
     "busiestAt": "Busiest {hour}",
     "trafficValue": "{percent}%",
-    "traffic": "Traffic"
+    "traffic": "Traffic",
+    "nearbyStops": "Stops near you"
   },
   "search": {
     "label": "Search lines",
@@ -89,7 +82,8 @@
     "error": "Search is unavailable right now.",
     "results": "{count, plural, =0 {No results} one {# line} other {# lines}}",
     "stations": "Stations",
-    "lines": "Lines"
+    "lines": "Lines",
+    "stops": "Stops"
   },
   "line": {
     "favoriteAdd": "Add to favourites",
@@ -201,7 +195,7 @@
     "about": "About",
     "aboutBody": "DoluMu is an independent project that forecasts hourly crowding on Istanbul public transport. It is not affiliated with İBB or the operators.",
     "sources": "Data sources",
-    "sourcesBody": "İBB Open Data Portal (hourly ridership), İETT (planned timetables, notices), Metro İstanbul (lines and stations), Open-Meteo (weather), İBB UYM (traffic index), OpenStreetMap / OpenFreeMap (map).",
+    "sourcesBody": "İBB Open Data Portal (hourly ridership; İBB Open Data License), Metro İstanbul (lines, stations, service status, lift/escalator outages, fares; live), İETT (current lines, stops, live vehicle positions, planned timetables, notices), Open-Meteo (weather), İBB UYM (traffic index), OpenStreetMap / OpenFreeMap (map, Marmaray stations).",
     "data": "Your data",
     "dataDesc": "Favourites and recent searches are stored only on this device.",
     "clearFavorites": "Clear favourites",
@@ -259,5 +253,68 @@
     "babyRoom": "Baby room",
     "masjid": "Prayer room",
     "nowAt": "Now"
+  },
+  "live": {
+    "statusTitle": "Service status",
+    "allClear": "No known disruptions on rail lines.",
+    "disruption": "Disruption",
+    "equipmentSummary": "{lifts} lifts, {escalators} escalators out of order",
+    "equipmentTitle": "Lifts and escalators out of order",
+    "announcements": "Metro İstanbul announcements",
+    "seeAll": "Details",
+    "source": "Source: Metro İstanbul (live)",
+    "kinds": {
+      "lift": "Lift",
+      "escalator": "Escalator",
+      "walkway": "Moving walkway"
+    },
+    "outage": "{kind} out of order",
+    "since": "since {date}",
+    "busNotices": "İETT notices",
+    "unavailable": "Live information is unavailable right now."
+  },
+  "facts": {
+    "title": "Line facts",
+    "length": "Length",
+    "stations": "Stations",
+    "stops": "Stops",
+    "trip": "End to end",
+    "riders": "Daily riders",
+    "dailyTrips": "Daily trips (one way)",
+    "vehicles": "Vehicles",
+    "headway": "Frequency",
+    "hours": "Service",
+    "fare": "Full fare",
+    "fareStudent": "Student",
+    "fareTwo": "Two-fare line: long-distance journeys are charged twice.",
+    "fares": "All fares",
+    "faresTitle": "İstanbulkart fares",
+    "km": "{n} km",
+    "min": "{n} min",
+    "source": "Source: Metro İstanbul / İETT"
+  },
+  "bus": {
+    "liveTitle": "Stops and live buses",
+    "liveCount": "{count, plural, =0 {No buses in this direction right now} one {# bus in this direction now} other {# buses in this direction now}}",
+    "stopsCount": "{count} stops",
+    "updated": "Positions as of {time}",
+    "notRunning": "This line isn't in İETT's current list; it may no longer run.",
+    "newLineTitle": "No forecast for this line",
+    "newLineBody": "This line isn't in the 2022–2024 data the model was trained on. Stops and live buses are still below.",
+    "stopsAway": "{n, plural, =0 {at the stop} one {# stop away} other {# stops away}}",
+    "nearest": "Nearest bus",
+    "noneComing": "No bus approaching",
+    "showAll": "Show all stops",
+    "showLess": "Show fewer"
+  },
+  "stop": {
+    "title": "Stop",
+    "lines": "Lines at this stop",
+    "towards": "Towards {stop}",
+    "notFoundTitle": "Stop not found",
+    "notFoundBody": "There is no İETT stop with code “{code}”.",
+    "liveNote": "Bus positions come live from İETT; this is not an arrival-time prediction.",
+    "linesCount": "{count, plural, one {# line} other {# lines}}",
+    "terminus": "Terminus"
   }
 }

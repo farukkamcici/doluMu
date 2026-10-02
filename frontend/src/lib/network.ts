@@ -1,5 +1,6 @@
 import type { RouteShape } from './api';
 import { RAIL_COLORS } from './lines';
+import type { MetroLine, MetroNetwork, MetroStation } from './live/types';
 import type { Topology } from './topology';
 
 /** Lines shown on the network map and the "right now" board, grouped like station signage. */
@@ -21,7 +22,16 @@ export interface NetworkLine {
   id: string;
   color: string | null;
   style: LineStyle;
-  coords: [number, number][]; // [lng, lat]
+  /** One or more polylines ([lng, lat]); branches are separate segments. */
+  segments: [number, number][][];
+}
+
+export interface StationFacilities {
+  lifts: number;
+  escalators: number;
+  wc: boolean;
+  masjid: boolean;
+  babyRoom: boolean;
 }
 
 export interface NetworkStation {
@@ -31,7 +41,9 @@ export interface NetworkStation {
   lat: number;
   /** Line codes calling here (transfer stations merged). */
   lines: string[];
-  accessibility?: Record<string, boolean>;
+  /** Metro İstanbul station ids (one per line), to match equipment outages. */
+  metroIds: number[];
+  facilities?: StationFacilities;
 }
 
 export interface MarmarayStations {
@@ -44,44 +56,36 @@ export async function fetchMarmaray(): Promise<MarmarayStations> {
   return res.json();
 }
 
-const forecastCode = (topologyCode: string) => (topologyCode === 'M1A' || topologyCode === 'M1B' ? 'M1' : topologyCode);
+export const forecastCode = (metroCode: string) => (metroCode === 'M1A' || metroCode === 'M1B' ? 'M1' : metroCode);
 
-export function buildNetworkLines(
-  topology: Topology | undefined,
-  marmaray: MarmarayStations | undefined,
-  metrobus: RouteShape | undefined,
-): NetworkLine[] {
-  const out: NetworkLine[] = [];
-  for (const [code, line] of Object.entries(topology?.lines ?? {})) {
-    const coords = [...line.stations]
-      .sort((a, b) => a.order - b.order)
-      .filter((s) => s.coordinates?.lat && s.coordinates?.lng)
-      .map((s) => [s.coordinates.lng, s.coordinates.lat] as [number, number]);
-    if (coords.length > 1) {
-      out.push({ code: forecastCode(code), id: code, color: RAIL_COLORS[code] ?? line.color, style: 'metro', coords });
-    }
-  }
-  if (marmaray?.stations.length) {
-    out.push({
-      code: 'MARMARAY',
-      id: 'MARMARAY',
-      color: null,
-      style: 'railway',
-      coords: [...marmaray.stations].sort((a, b) => a.order - b.order).map((s) => [s.lng, s.lat]),
-    });
-  }
-  const brt = metrobus?.G?.length ? metrobus.G : metrobus?.D;
-  if (brt?.length) {
-    out.push({ code: '34', id: '34', color: null, style: 'brt', coords: brt.map(([lat, lng]) => [lng, lat]) });
-  }
-  // Wide Metrobüs/Marmaray strokes go underneath so metro lines stay visible on top.
-  return [...out.filter((l) => l.style !== 'metro'), ...out.filter((l) => l.style === 'metro')];
+/** The bundled snapshot in the live API's shape, used when Metro İstanbul is unreachable. */
+export function topologyToNetwork(topology: Topology): MetroNetwork {
+  const lines: MetroLine[] = Object.entries(topology.lines).map(([code, l]) => ({
+    code,
+    name: l.description,
+    nameEn: l.description_en ?? l.description,
+    color: l.color,
+    firstTime: l.first_time,
+    lastTime: l.last_time,
+    facts: { lengthKm: null, stations: null, vehicles: null, tripMinutes: null, dailyRiders: null, dailyTrips: null, headway: [] },
+  }));
+  const stations: MetroStation[] = Object.entries(topology.lines).flatMap(([code, l]) =>
+    l.stations.map((s) => ({
+      id: s.id,
+      line: code,
+      name: s.description || s.name,
+      order: s.order,
+      lat: s.coordinates?.lat ?? null,
+      lng: s.coordinates?.lng ?? null,
+      lifts: s.accessibility?.elevator ? 1 : 0,
+      escalators: s.accessibility?.escalator ? 1 : 0,
+      wc: !!s.accessibility?.wc,
+      masjid: !!s.accessibility?.masjid,
+      babyRoom: !!s.accessibility?.babyRoom,
+    })),
+  );
+  return { lines, stations, fetchedAt: '' };
 }
-
-const norm = (name: string) =>
-  name
-    .toLocaleLowerCase('tr-TR')
-    .replace(/[^a-z0-9çğıöşü]/g, '');
 
 /** Metres between two points (equirectangular is plenty at city scale). */
 export function distanceMeters(a: { lat: number; lng: number }, b: { lat: number; lng: number }) {
@@ -91,34 +95,114 @@ export function distanceMeters(a: { lat: number; lng: number }, b: { lat: number
   return Math.sqrt(x * x + y * y) * 6_371_000;
 }
 
-/** Stations of all rail lines, with same-name stations within 400 m merged into transfers. */
-export function buildNetworkStations(
-  topology: Topology | undefined,
+type Pt = { lat: number; lng: number };
+
+/**
+ * Station order is a list, but some lines branch (M2 Sanayi–Seyrantepe). A station far from the
+ * previous one starts a new segment from its nearest earlier station instead of a long zigzag.
+ */
+function segmentsFor(points: Pt[]): [number, number][][] {
+  if (points.length < 2) return [];
+  const gaps = points.slice(1).map((p, i) => distanceMeters(points[i], p)).sort((a, b) => a - b);
+  const typical = gaps[Math.floor(gaps.length / 2)] || 1000;
+  const segments: Pt[][] = [[points[0]]];
+  for (let i = 1; i < points.length; i++) {
+    const p = points[i];
+    const current = segments[segments.length - 1];
+    const last = current[current.length - 1];
+    if (distanceMeters(last, p) > Math.max(3 * typical, 3000)) {
+      const anchor = points.slice(0, i).reduce((best, q) => (distanceMeters(q, p) < distanceMeters(best, p) ? q : best));
+      segments.push([anchor, p]);
+    } else {
+      current.push(p);
+    }
+  }
+  return segments.filter((s) => s.length > 1).map((s) => s.map((p) => [p.lng, p.lat]));
+}
+
+const orderedWithCoords = (stations: MetroStation[], line: string) =>
+  stations
+    .filter((s) => s.line === line && s.lat != null && s.lng != null)
+    .sort((a, b) => a.order - b.order)
+    .map((s) => ({ lat: s.lat!, lng: s.lng! }));
+
+export function buildNetworkLines(
+  metro: MetroNetwork | undefined,
   marmaray: MarmarayStations | undefined,
-): NetworkStation[] {
+  metrobus: RouteShape | undefined,
+): NetworkLine[] {
+  const out: NetworkLine[] = [];
+  for (const line of metro?.lines ?? []) {
+    const segments = segmentsFor(orderedWithCoords(metro!.stations, line.code));
+    if (segments.length) {
+      out.push({ code: forecastCode(line.code), id: line.code, color: RAIL_COLORS[line.code] ?? line.color, style: 'metro', segments });
+    }
+  }
+  if (marmaray?.stations.length) {
+    out.push({
+      code: 'MARMARAY',
+      id: 'MARMARAY',
+      color: null,
+      style: 'railway',
+      segments: [[...marmaray.stations].sort((a, b) => a.order - b.order).map((s) => [s.lng, s.lat])],
+    });
+  }
+  const brt = metrobus?.G?.length ? metrobus.G : metrobus?.D;
+  if (brt?.length) {
+    out.push({ code: '34', id: '34', color: null, style: 'brt', segments: [brt.map(([lat, lng]) => [lng, lat])] });
+  }
+  // Wide Metrobüs/Marmaray strokes go underneath so metro lines stay visible on top.
+  return [...out.filter((l) => l.style !== 'metro'), ...out.filter((l) => l.style === 'metro')];
+}
+
+export const normName = (name: string) =>
+  name
+    .toLocaleLowerCase('tr-TR')
+    .replace(/[^a-z0-9çğıöşü]/g, '');
+
+/** Stations of all rail lines, with same-name stations within 400 m merged into transfers. */
+export function buildNetworkStations(metro: MetroNetwork | undefined, marmaray: MarmarayStations | undefined): NetworkStation[] {
   const merged: NetworkStation[] = [];
-  const add = (s: Omit<NetworkStation, 'lines'> & { line: string }) => {
-    const match = merged.find((m) => norm(m.name) === norm(s.name) && distanceMeters(m, s) < 400);
+  const add = (s: { id: string; name: string; lat: number; lng: number; line: string; metroId?: number; facilities?: StationFacilities }) => {
+    const match = merged.find((m) => normName(m.name) === normName(s.name) && distanceMeters(m, s) < 400);
     if (match) {
       if (!match.lines.includes(s.line)) match.lines.push(s.line);
-      match.accessibility ??= s.accessibility;
+      if (s.metroId != null) match.metroIds.push(s.metroId);
+      if (s.facilities) {
+        match.facilities = match.facilities
+          ? {
+              lifts: match.facilities.lifts + s.facilities.lifts,
+              escalators: match.facilities.escalators + s.facilities.escalators,
+              wc: match.facilities.wc || s.facilities.wc,
+              masjid: match.facilities.masjid || s.facilities.masjid,
+              babyRoom: match.facilities.babyRoom || s.facilities.babyRoom,
+            }
+          : s.facilities;
+      }
       return;
     }
-    merged.push({ id: s.id, name: s.name, lng: s.lng, lat: s.lat, lines: [s.line], accessibility: s.accessibility });
+    merged.push({
+      id: s.id,
+      name: s.name,
+      lat: s.lat,
+      lng: s.lng,
+      lines: [s.line],
+      metroIds: s.metroId != null ? [s.metroId] : [],
+      facilities: s.facilities,
+    });
   };
 
-  for (const [code, line] of Object.entries(topology?.lines ?? {})) {
-    for (const st of line.stations) {
-      if (!st.coordinates?.lat) continue;
-      add({
-        id: `${code}-${st.id}`,
-        name: st.description || st.name,
-        lat: st.coordinates.lat,
-        lng: st.coordinates.lng,
-        line: forecastCode(code),
-        accessibility: st.accessibility,
-      });
-    }
+  for (const st of metro?.stations ?? []) {
+    if (st.lat == null || st.lng == null) continue;
+    add({
+      id: `${st.line}-${st.id}`,
+      name: st.name,
+      lat: st.lat,
+      lng: st.lng,
+      line: forecastCode(st.line),
+      metroId: st.id,
+      facilities: { lifts: st.lifts, escalators: st.escalators, wc: st.wc, masjid: st.masjid, babyRoom: st.babyRoom },
+    });
   }
   for (const st of marmaray?.stations ?? []) {
     add({ id: `MR-${st.order}`, name: st.name, lat: st.lat, lng: st.lng, line: 'MARMARAY' });
@@ -126,15 +210,15 @@ export function buildNetworkStations(
   return merged;
 }
 
-/** Ordered stations of one line, as the merged network stations (so transfers are known). */
+/** Ordered stations of one line, as merged network stations (so transfers are known). */
 export function lineStations(
   code: string,
-  topology: Topology | undefined,
+  metro: MetroNetwork | undefined,
   marmaray: MarmarayStations | undefined,
   stations: NetworkStation[],
 ): NetworkStation[] {
   const find = (name: string, lat: number, lng: number) =>
-    stations.find((s) => s.lines.includes(code) && norm(s.name) === norm(name) && distanceMeters(s, { lat, lng }) < 400);
+    stations.find((s) => s.lines.includes(code) && normName(s.name) === normName(name) && distanceMeters(s, { lat, lng }) < 400);
 
   if (code === 'MARMARAY') {
     return (marmaray?.stations ?? [])
@@ -143,11 +227,16 @@ export function lineStations(
       .map((s) => find(s.name, s.lat, s.lng))
       .filter((s): s is NetworkStation => !!s);
   }
-  const topo = topology?.lines[code] ?? (code === 'M1' ? topology?.lines.M1A : undefined);
-  return (topo?.stations ?? [])
-    .slice()
+  const metroCode = code === 'M1' ? 'M1A' : code;
+  // New stations can lack coordinates in Metro İstanbul's feed: keep them in the list (no map point).
+  return (metro?.stations ?? [])
+    .filter((s) => s.line === metroCode)
     .sort((a, b) => a.order - b.order)
-    .filter((s) => s.coordinates?.lat)
-    .map((s) => find(s.description || s.name, s.coordinates.lat, s.coordinates.lng))
+    .map(
+      (s): NetworkStation | undefined =>
+        s.lat != null && s.lng != null
+          ? find(s.name, s.lat, s.lng)
+          : { id: `${s.line}-${s.id}`, name: s.name, lat: NaN, lng: NaN, lines: [code], metroIds: [s.id] },
+    )
     .filter((s): s is NetworkStation => !!s);
 }

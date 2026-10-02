@@ -5,7 +5,7 @@ import { useTranslations } from 'next-intl';
 import { useRouter } from '@/i18n/routing';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/primitives/Button';
-import { canGoBack } from '@/lib/nav';
+import { backTarget } from '@/lib/nav';
 
 interface AppBarProps {
   title?: ReactNode;
@@ -20,8 +20,9 @@ export function AppBar({ title, back = true, actions, className }: AppBarProps) 
   const router = useRouter();
 
   const goBack = () => {
-    if (canGoBack()) router.back();
-    else router.push('/');
+    const target = backTarget();
+    if (target) router.push(target);
+    else router.back();
   };
 
   return (

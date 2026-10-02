@@ -1,20 +1,19 @@
 'use client';
 import { useMemo } from 'react';
 import { useTranslations } from 'next-intl';
-import { LocateFixed } from 'lucide-react';
-import { Button } from '@/components/primitives/Button';
 import { LineBadge } from '@/components/transit/LineBadge';
+import { Link } from '@/i18n/routing';
+import { useBusStops } from '@/lib/live/client';
 import { distanceMeters, type NetworkStation } from '@/lib/network';
 import type { GeoState } from '@/hooks/useGeolocation';
 
 interface NearbyStationsProps {
   stations: NetworkStation[];
   geo: GeoState;
-  onLocate: () => void;
   onSelect: (station: NetworkStation) => void;
 }
 
-export function NearbyStations({ stations, geo, onLocate, onSelect }: NearbyStationsProps) {
+export function NearbyStations({ stations, geo, onSelect }: NearbyStationsProps) {
   const t = useTranslations('home');
 
   const nearest = useMemo(() => {
@@ -27,20 +26,6 @@ export function NearbyStations({ stations, geo, onLocate, onSelect }: NearbyStat
 
   const distance = (m: number) =>
     m < 1000 ? t('meters', { m: Math.round(m / 10) * 10 }) : t('km', { km: (m / 1000).toFixed(1) });
-
-  if (geo.status !== 'ok') {
-    return (
-      <div className="flex items-center justify-between gap-4 px-4 py-4 sm:px-5">
-        <p className="text-sm text-fg-muted">
-          {geo.status === 'denied' ? t('nearbyDenied') : geo.status === 'error' ? t('nearbyError') : t('nearbyHint')}
-        </p>
-        <Button size="sm" onClick={onLocate} disabled={geo.status === 'locating'} className="shrink-0">
-          <LocateFixed className="h-4 w-4" />
-          {geo.status === 'locating' ? t('locating') : t('nearbyAction')}
-        </Button>
-      </div>
-    );
-  }
 
   return (
     <ul>
@@ -63,6 +48,46 @@ export function NearbyStations({ stations, geo, onLocate, onSelect }: NearbyStat
           </button>
         </li>
       ))}
+    </ul>
+  );
+}
+
+/** Closest İETT stops with the lines calling there (static stop index, loaded on demand). */
+export function NearbyStops({ geo }: { geo: GeoState }) {
+  const t = useTranslations('home');
+  const stops = useBusStops(geo.status === 'ok');
+  const nearest = useMemo(() => {
+    if (geo.status !== 'ok' || !stops.data) return [];
+    return stops.data
+      .map((s) => ({ stop: s, d: distanceMeters(geo, s) }))
+      .sort((a, b) => a.d - b.d)
+      .slice(0, 5);
+  }, [stops.data, geo]);
+  const distance = (m: number) =>
+    m < 1000 ? t('meters', { m: Math.round(m / 10) * 10 }) : t('km', { km: (m / 1000).toFixed(1) });
+
+  if (!stops.data) return <div className="h-14 animate-pulse bg-fg/[0.04]" />;
+  return (
+    <ul>
+      {nearest.map(({ stop, d }) => {
+        const codes = [...new Set(stop.lines.map((l) => l.code))];
+        return (
+          <li key={stop.code} className="border-b border-line last:border-b-0">
+            <Link href={`/stop/${stop.code}`} className="flex items-center gap-3 px-4 py-3 hover:bg-card-hover sm:px-5">
+              <span className="min-w-0 flex-1">
+                <span className="block truncate text-[15px] font-medium">{stop.name}</span>
+                <span className="mt-1 flex flex-wrap gap-1">
+                  {codes.slice(0, 6).map((code) => (
+                    <LineBadge key={code} code={code} typeId={1} size="sm" />
+                  ))}
+                  {codes.length > 6 ? <span className="self-center text-xs text-fg-muted">+{codes.length - 6}</span> : null}
+                </span>
+              </span>
+              <span className="shrink-0 font-display text-sm font-semibold tabular-nums text-fg-muted">{distance(d)}</span>
+            </Link>
+          </li>
+        );
+      })}
     </ul>
   );
 }

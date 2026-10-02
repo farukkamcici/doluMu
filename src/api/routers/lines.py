@@ -6,6 +6,7 @@ from ..db import get_db
 from ..models import TransportLine
 from ..services.route_service import route_service
 from ..services.metro_service import metro_service
+from ..services.iett_registry import iett_registry
 from pydantic import BaseModel
 import unicodedata
 
@@ -86,7 +87,7 @@ def search_lines(query: str, db: Session = Depends(get_db)):
     )
 
     # Search in line_name (flexible) and line description (standard)
-    lines = db.query(TransportLine, ordering_logic.label('relevance_score')).filter(
+    query_filter = db.query(TransportLine, ordering_logic.label('relevance_score')).filter(
         or_(
             TransportLine.line_name.ilike(search_query),
             TransportLine.line.ilike(search_query),
@@ -94,7 +95,14 @@ def search_lines(query: str, db: Session = Depends(get_db)):
             # Check if "KM42" (db) matches "km42" (user input "km 42")
             db_line_compact.ilike(compact_search_pattern)
         )
-    ).order_by(
+    )
+    # Hide bus lines İETT no longer runs (only when the live registry is available).
+    active = iett_registry.active_codes()
+    if active is not None:
+        query_filter = query_filter.filter(
+            or_(TransportLine.transport_type_id != 1, TransportLine.line_name.in_(sorted(active)))
+        )
+    lines = query_filter.order_by(
         ordering_logic,
         TransportLine.line_name
     ).limit(15).all()

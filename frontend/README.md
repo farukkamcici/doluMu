@@ -27,7 +27,9 @@ Barlow / Barlow Semi Condensed
 |---|---|
 | `/[locale]` | Home: network map with hour scrubber, search, favourites, "right now" board, nearby stations |
 | `/[locale]/line/[code]?dir=G\|D&day=today\|tomorrow` | Line: focused map, now + calm/avoid windows, hourly chart, departures, station strip, methodology |
+| `/[locale]/stop/[code]` | İETT stop: lines calling there, nearest live bus per line (in stops) |
 | `/[locale]/settings` | Language, theme, install, report a problem, about, local data |
+| `/api/live/*` | Server-side proxies to Metro İstanbul / İETT live services, CDN-cached (see DESIGN.md §7) |
 | `/[locale]/forecast` | Redirects home (v1 favourites page) |
 | `/[locale]/admin` | Admin panel (unchanged v1 code, JS) |
 
@@ -51,11 +53,12 @@ src/
     crowd.ts           relative crowd levels, quieter-hour suggestion, calm/peak windows
     network.ts         rail network + Metrobüs geometry, merged stations, nearest stations
     lines.ts           modes, official rail colours, search normalisation
+    live/              upstream clients (server), route payload types, client hooks
     time.ts            Europe/Istanbul clock helpers
   store/prefs.ts       favourites + recent lines (localStorage, v1-compatible key)
 messages/{tr,en}.json  UI copy
 public/data/           metro_topology.json, marmaray_static_schedule.json (both also read by the backend),
-                       marmaray_stations.json (OpenStreetMap, ODbL)
+                       marmaray_stations.json (OpenStreetMap, ODbL), bus_stops.json (scripts/build-bus-stops.mjs)
 ```
 
 ## Conventions

@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Accessibility, ChevronDown } from 'lucide-react';
+import { useOutagesByStation } from '@/components/live/outages';
 import { LineBadge } from '@/components/transit/LineBadge';
 import type { NetworkStation } from '@/lib/network';
 import { cn } from '@/lib/utils';
@@ -19,7 +20,8 @@ const COLLAPSED = 8;
 /** Strip map like the one above train doors: the line's colour as a spine, transfers marked. */
 export function StationStrip({ code, color, stations, onSelect }: StationStripProps) {
   const t = useTranslations('line');
-  const ts = useTranslations('station');
+  const tl = useTranslations('live');
+  const outagesByStation = useOutagesByStation();
   const [expanded, setExpanded] = useState(false);
   const long = stations.length > COLLAPSED + 2;
   const shown = long && !expanded ? stations.slice(0, COLLAPSED) : stations;
@@ -57,9 +59,27 @@ export function StationStrip({ code, color, stations, onSelect }: StationStripPr
                 <span className={cn('min-w-0 flex-1 truncate text-[15px]', (transfers.length || terminus) && 'font-semibold')}>
                   {station.name}
                 </span>
-                {station.accessibility?.elevator ? (
-                  <Accessibility className="h-4 w-4 shrink-0 text-fg-muted" aria-label={ts('elevator')} />
-                ) : null}
+                {(() => {
+                  const outages = station.metroIds.flatMap((id) => outagesByStation.get(id) ?? []);
+                  const liftDown = outages.some((o) => o.kind === 'lift');
+                  if (liftDown) {
+                    return (
+                      <span className="shrink-0 rounded bg-signal px-1.5 py-0.5 font-display text-[11px] font-semibold uppercase tracking-wide text-white">
+                        {tl('outage', { kind: tl('kinds.lift') })}
+                      </span>
+                    );
+                  }
+                  if (outages.length) {
+                    return (
+                      <span className="shrink-0 font-display text-[11px] font-semibold uppercase tracking-wide text-signal">
+                        {tl('outage', { kind: tl(`kinds.${outages[0].kind}`) })}
+                      </span>
+                    );
+                  }
+                  return station.facilities?.lifts ? (
+                    <Accessibility className="h-4 w-4 shrink-0 text-fg-muted" aria-label={tl('kinds.lift')} />
+                  ) : null;
+                })()}
                 {transfers.length ? (
                   <span className="flex shrink-0 gap-1" aria-label={t('transfer')}>
                     {transfers.map((l) => (

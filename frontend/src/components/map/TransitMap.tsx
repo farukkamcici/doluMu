@@ -10,7 +10,7 @@ import { cn } from '@/lib/utils';
 // for both themes, so a theme switch is a repaint rather than a style reload.
 const STYLE_URL = 'https://tiles.openfreemap.org/styles/positron';
 const ISTANBUL: [number, number] = [28.98, 41.03];
-const DEFAULT_WIDTH = 3;
+const DEFAULT_WIDTH = 4;
 
 export interface TransitMapProps {
   lines: NetworkLine[];
@@ -20,6 +20,10 @@ export interface TransitMapProps {
   /** Highlight one line code and fade the rest. */
   focus?: string | null;
   me?: { lat: number; lng: number } | null;
+  /** Line codes with a live disruption: drawn with a signal-red dashed overlay. */
+  alerts?: string[];
+  /** Live vehicles (buses) to plot. */
+  vehicles?: { id: string; lat: number; lng: number }[];
   /** Fly to this point (e.g. a station picked from a list). */
   flyTo?: { lat: number; lng: number; zoom?: number } | null;
   onLineClick?: (code: string) => void;
@@ -29,8 +33,23 @@ export interface TransitMapProps {
   className?: string;
 }
 
-const cssVar = (name: string) => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+// Fallbacks keep layer creation valid if theme CSS hasn't loaded yet (repainted once it has).
+const FALLBACK: Record<string, string> = { '--map-land': '#efede7', '--fg': '21 21 20', '--signal': '214 40 31' };
+const cssVar = (name: string) =>
+  getComputedStyle(document.documentElement).getPropertyValue(name).trim() || FALLBACK[name] || '#888888';
 const cssRgb = (name: string) => `rgb(${cssVar(name).split(/\s+/).join(',')})`;
+
+/** Theme CSS can arrive after the map style (e.g. dev CSS chunks); wait for it before painting. */
+function paintWhenReady(map: MLMap, lines: () => { lines: NetworkLine[]; widths?: Record<string, number>; alerts: string[] }, tries = 0) {
+  if (!getComputedStyle(document.documentElement).getPropertyValue('--map-land').trim()) {
+    if (tries < 50) window.setTimeout(() => paintWhenReady(map, lines, tries + 1), 100);
+    return;
+  }
+  if (!map.getLayer('net-line')) return;
+  paintAll(map);
+  const { lines: l, widths, alerts } = lines();
+  (map.getSource('net') as GeoJSONSource | undefined)?.setData(linesGeoJSON(l, widths, cssRgb('--fg'), alerts));
+}
 
 const HIDDEN = /^(building|aeroway|railway|highway-shield|road_shield|airport|highway-name-(path|minor))/;
 
@@ -47,7 +66,7 @@ function paintAll(map: MLMap) {
     ink: cssRgb('--fg'),
   };
   for (const { id, type } of map.getStyle().layers ?? []) {
-    if (id.startsWith('net-') || id.startsWith('station') || id.startsWith('me')) continue;
+    if (id.startsWith('net-') || id.startsWith('station') || id.startsWith('me') || id === 'vehicles') continue;
     if (HIDDEN.test(id)) {
       map.setLayoutProperty(id, 'visibility', 'none');
     } else if (type === 'background') {
@@ -73,13 +92,30 @@ function paintAll(map: MLMap) {
   }
 }
 
-function linesGeoJSON(lines: NetworkLine[], widths: Record<string, number> | undefined, ink: string) {
+function linesGeoJSON(lines: NetworkLine[], widths: Record<string, number> | undefined, ink: string, alerts: string[] = []) {
   return {
     type: 'FeatureCollection' as const,
     features: lines.map((l) => ({
       type: 'Feature' as const,
-      properties: { code: l.code, style: l.style, c: l.color ?? ink, w: widths?.[l.code] ?? DEFAULT_WIDTH },
-      geometry: { type: 'LineString' as const, coordinates: l.coords },
+      properties: {
+        code: l.code,
+        style: l.style,
+        c: l.color ?? ink,
+        w: widths?.[l.code] ?? DEFAULT_WIDTH,
+        alert: alerts.includes(l.code),
+      },
+      geometry: { type: 'MultiLineString' as const, coordinates: l.segments },
+    })),
+  };
+}
+
+function vehiclesGeoJSON(vehicles: { id: string; lat: number; lng: number }[]) {
+  return {
+    type: 'FeatureCollection' as const,
+    features: vehicles.map((v) => ({
+      type: 'Feature' as const,
+      properties: { id: v.id },
+      geometry: { type: 'Point' as const, coordinates: [v.lng, v.lat] },
     })),
   };
 }
@@ -87,7 +123,7 @@ function linesGeoJSON(lines: NetworkLine[], widths: Record<string, number> | und
 function stationsGeoJSON(stations: NetworkStation[]) {
   return {
     type: 'FeatureCollection' as const,
-    features: stations.map((s) => ({
+    features: stations.filter((s) => Number.isFinite(s.lat) && Number.isFinite(s.lng)).map((s) => ({
       type: 'Feature' as const,
       properties: { id: s.id, name: s.name, transfer: s.lines.length > 1 },
       geometry: { type: 'Point' as const, coordinates: [s.lng, s.lat] },
@@ -96,7 +132,7 @@ function stationsGeoJSON(stations: NetworkStation[]) {
 }
 
 function boundsOf(lines: NetworkLine[]): LngLatBoundsLike | null {
-  const pts = lines.flatMap((l) => l.coords);
+  const pts = lines.flatMap((l) => l.segments.flat());
   if (pts.length < 2) return null;
   const lngs = pts.map((p) => p[0]);
   const lats = pts.map((p) => p[1]);
@@ -124,6 +160,8 @@ export default function TransitMap({
   widths,
   focus = null,
   me = null,
+  alerts = [],
+  vehicles = [],
   flyTo = null,
   onLineClick,
   onStationClick,
@@ -135,8 +173,8 @@ export default function TransitMap({
   const fitted = useRef(false);
   const locale = useLocale();
   // Latest props for map event handlers and style reloads.
-  const latest = useRef({ lines, stations, widths, focus, me, onLineClick, onStationClick });
-  latest.current = { lines, stations, widths, focus, me, onLineClick, onStationClick };
+  const latest = useRef({ lines, stations, widths, focus, me, alerts, vehicles, onLineClick, onStationClick });
+  latest.current = { lines, stations, widths, focus, me, alerts, vehicles, onLineClick, onStationClick };
 
   // Create the map once.
   useEffect(() => {
@@ -171,9 +209,10 @@ export default function TransitMap({
     const install = () => {
       const ink = cssRgb('--fg');
       const land = cssVar('--map-land');
-      const { lines, stations, widths } = latest.current;
+      const { lines, stations, widths, alerts, vehicles } = latest.current;
 
-      map.addSource('net', { type: 'geojson', data: linesGeoJSON(lines, widths, ink) });
+      map.addSource('net', { type: 'geojson', data: linesGeoJSON(lines, widths, ink, alerts) });
+      map.addSource('vehicles', { type: 'geojson', data: vehiclesGeoJSON(vehicles) });
       map.addSource('stations', { type: 'geojson', data: stationsGeoJSON(stations) });
       map.addSource('me', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
 
@@ -198,6 +237,14 @@ export default function TransitMap({
         source: 'net',
         filter: ['==', ['get', 'style'], 'railway'],
         paint: { 'line-color': land, 'line-width': width(0.45), 'line-dasharray': [3, 3] },
+      });
+      // Live disruption: signal-red dashes over the affected line.
+      map.addLayer({
+        id: 'net-alert',
+        type: 'line',
+        source: 'net',
+        filter: ['==', ['get', 'alert'], true],
+        paint: { 'line-color': cssRgb('--signal'), 'line-width': width(0.5), 'line-dasharray': [1.5, 1.5] },
       });
       map.addLayer({
         id: 'net-hit',
@@ -241,6 +288,17 @@ export default function TransitMap({
         paint: { 'text-color': ink, 'text-halo-color': land, 'text-halo-width': 1.6 },
       });
       map.addLayer({
+        id: 'vehicles',
+        type: 'circle',
+        source: 'vehicles',
+        paint: {
+          'circle-radius': ['interpolate', ['linear'], ['zoom'], 9, 3.5, 14, 7],
+          'circle-color': cssRgb('--signal'),
+          'circle-stroke-color': '#ffffff',
+          'circle-stroke-width': 1.5,
+        },
+      });
+      map.addLayer({
         id: 'me-halo',
         type: 'circle',
         source: 'me',
@@ -252,7 +310,7 @@ export default function TransitMap({
         source: 'me',
         paint: { 'circle-radius': 6, 'circle-color': '#2f6feb', 'circle-stroke-color': '#fff', 'circle-stroke-width': 2 },
       });
-      paintAll(map);
+      paintWhenReady(map, () => latest.current);
       applyFocus(map, latest.current.focus);
       applyMe(map, latest.current.me);
 
@@ -301,8 +359,10 @@ export default function TransitMap({
       if (!map?.getLayer('net-line')) return;
       paintAll(map);
       (map.getSource('net') as GeoJSONSource).setData(
-        linesGeoJSON(latest.current.lines, latest.current.widths, cssRgb('--fg')),
+        linesGeoJSON(latest.current.lines, latest.current.widths, cssRgb('--fg'), latest.current.alerts),
       );
+      map.setPaintProperty('net-alert', 'line-color', cssRgb('--signal'));
+      map.setPaintProperty('vehicles', 'circle-color', cssRgb('--signal'));
     });
     observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
     return () => observer.disconnect();
@@ -313,7 +373,7 @@ export default function TransitMap({
     const map = mapRef.current;
     const src = map?.getSource('net') as GeoJSONSource | undefined;
     if (!map || !src) return;
-    src.setData(linesGeoJSON(lines, widths, cssRgb('--fg')));
+    src.setData(linesGeoJSON(lines, widths, cssRgb('--fg'), latest.current.alerts));
     if (!fitted.current) {
       const b = boundsOf(focus ? lines.filter((l) => l.code === focus) : lines);
       if (b) {
@@ -327,6 +387,17 @@ export default function TransitMap({
     const src = mapRef.current?.getSource('stations') as GeoJSONSource | undefined;
     src?.setData(stationsGeoJSON(stations));
   }, [stations]);
+
+  const alertKey = alerts.join(',');
+  useEffect(() => {
+    const src = mapRef.current?.getSource('net') as GeoJSONSource | undefined;
+    src?.setData(linesGeoJSON(latest.current.lines, latest.current.widths, cssRgb('--fg'), latest.current.alerts));
+  }, [alertKey]);
+
+  useEffect(() => {
+    const src = mapRef.current?.getSource('vehicles') as GeoJSONSource | undefined;
+    src?.setData(vehiclesGeoJSON(vehicles));
+  }, [vehicles]);
 
   useEffect(() => {
     if (mapRef.current?.getLayer('net-line')) applyFocus(mapRef.current, focus);
