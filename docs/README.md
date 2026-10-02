@@ -10,6 +10,7 @@ Documentation for **DoluMu** — Istanbul public-transit crowding prediction. Fo
 
 - [reference/technical-overview.md](reference/technical-overview.md) — System technical overview.
 - [reference/technical-qa.md](reference/technical-qa.md) — Technical Q&A.
+- [reference/istanbul-open-data.md](reference/istanbul-open-data.md) — Istanbul transport & city APIs and datasets (Metro İstanbul, İETT, Marmaray, ferries, İSPARK, traffic), live-tested, with gotchas.
 - [ibb_api_doc.pdf](ibb_api_doc.pdf) — İBB open-data API reference.
 - [data_quality_log.txt](data_quality_log.txt) / [data_quality_log_pl.txt](data_quality_log_pl.txt) — Data-quality notes from the offline pipeline.
 
