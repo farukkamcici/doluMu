@@ -112,3 +112,20 @@ class BusScheduleCache(Base):
     __table_args__ = (
         UniqueConstraint('line_code', 'valid_for', 'day_type', name='uq_bus_line_valid_day_type'),
     )
+
+
+class BusLineDay(Base):
+    """What a bus line actually did on one day, from İETT's trip archive (GetIettArsivGorev)."""
+    __tablename__ = "bus_line_days"
+
+    date = Column(Date, primary_key=True)
+    line_code = Column(String, primary_key=True, index=True)
+    trips = Column(Integer, nullable=False)
+    completed = Column(Integer, nullable=False)
+    cancelled = Column(Integer, nullable=False)
+    median_delay_min = Column(Float, nullable=True)
+    on_time_share = Column(Float, nullable=True)
+    # Journeys that day; İETT only publishes the 50 busiest lines (GetIettYolculukHat).
+    journeys = Column(Integer, nullable=True)
+    # Median actual running time per route variant and start hour: {"500T_G_D0": {"7": 96.5}}.
+    trip_minutes = Column(JSON, nullable=False, default=dict)

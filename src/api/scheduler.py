@@ -17,6 +17,7 @@ from .models import DailyForecast, JobExecution
 from .services.batch_forecast import run_daily_forecast_job
 from .services.metro_schedule_cache import metro_schedule_cache_service
 from .services.bus_schedule_cache import bus_schedule_cache_service
+from .services.iett_archive import sync_history
 from .state import get_model, get_feature_store, get_capacity_store
 
 logger = logging.getLogger(__name__)
@@ -31,6 +32,7 @@ job_stats = {
     'data_quality_check': {'last_run': None, 'last_status': None, 'run_count': 0, 'error_count': 0},
     'metro_schedule_prefetch': {'last_run': None, 'last_status': None, 'run_count': 0, 'error_count': 0},
     'bus_schedule_prefetch': {'last_run': None, 'last_status': None, 'run_count': 0, 'error_count': 0},
+    'iett_archive_sync': {'last_run': None, 'last_status': None, 'run_count': 0, 'error_count': 0},
 }
 
 metro_cache_state: Dict[str, Optional[Dict]] = {
@@ -827,6 +829,23 @@ def refresh_single_bus_line_job(line_code: str, target_date: Optional[date] = No
         db.close()
 
 
+def sync_iett_archive():
+    """Store missing days of İETT's trip archive (no-op once yesterday is in)."""
+    job_name = 'iett_archive_sync'
+    try:
+        stored = sync_history()
+        job_stats[job_name]['last_status'] = 'success'
+        if stored:
+            logger.info(f"✅ [CRON] İETT archive stored: {stored}")
+    except Exception as e:
+        job_stats[job_name]['error_count'] += 1
+        job_stats[job_name]['last_status'] = 'failed'
+        logger.error(f"❌ [CRON] İETT archive sync failed: {e}")
+    finally:
+        job_stats[job_name]['last_run'] = datetime.now()
+        job_stats[job_name]['run_count'] += 1
+
+
 # ============================================================================
 # SCHEDULER LIFECYCLE MANAGEMENT
 # ============================================================================
@@ -890,6 +909,17 @@ def start_scheduler():
         name="Verify Data Quality",
         replace_existing=True,
         misfire_grace_time=3600
+    )
+
+    # JOB 6: Yesterday's İETT trip archive (published overnight; retried hourly until it lands)
+    scheduler.add_job(
+        sync_iett_archive,
+        trigger=CronTrigger(hour="3-11", minute=40, timezone="Europe/Istanbul"),
+        id="iett_archive_sync",
+        name="Store İETT Trip Archive",
+        replace_existing=True,
+        misfire_grace_time=3600,
+        coalesce=True
     )
 
     # Start the scheduler
