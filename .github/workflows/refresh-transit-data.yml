@@ -1,5 +1,5 @@
 # Monthly refresh of the static transit snapshots the app ships (İETT stops and route geometry,
-# rail station ridership). Each script refuses to overwrite good data with a broken download;
+# Metro İstanbul topology, rail station ridership). Each script refuses to overwrite good data with a broken download;
 # a commit to main triggers the Vercel deploy.
 name: Refresh transit data
 
@@ -33,6 +33,9 @@ jobs:
       - name: Bus route geometry (İBB open data)
         continue-on-error: true
         run: node scripts/build-bus-routes.mjs
+      - name: Metro topology (Metro İstanbul live API)
+        continue-on-error: true
+        run: node scripts/build-metro-topology.mjs
       - name: Rail station ridership (İBB open data)
         continue-on-error: true
         run: node scripts/build-rail-ridership.mjs
@@ -46,5 +49,5 @@ jobs:
           git diff --cached --stat | tail -3
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git commit -m "chore(data): monthly refresh of bus stops, routes and rail ridership"
+          git commit -m "chore(data): monthly refresh of transit snapshots"
           git push
