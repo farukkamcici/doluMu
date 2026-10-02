@@ -1,251 +1,218 @@
-# DoluMu mobil uygulama planı (Expo, iOS + Android)
+# DoluMu iOS uygulaması: plan (v2)
 
-> Durum: plan · Tarih: 2 Ekim 2026 · Kapsam: mevcut web ürününü temiz bir yapıyla mobile taşımak.
+> Durum: onaya hazır plan · 2 Ekim 2026 · Ürün sahibi kararları bu dokümanda.
 > Tahmin modeline dokunulmaz (tez çalışması); uygulama yalnızca modelin çıktısını gösterir.
 
-## 0. Özet
+## 0. Kararlar (özet)
 
-- **Tek kod tabanı, iki uygulama.** Repo bir monorepo'ya dönüşür: `apps/web` (bugünkü Next.js sitesi,
-  aynen kalır), `apps/mobile` (yeni Expo uygulaması) ve ikisinin ortak kullandığı `packages/*`.
-- **Ortak mantık taşınır, arayüz yeniden yazılır.** Bugün `frontend/src/lib` ve `hooks` altında
-  platformdan bağımsız ~1.700 satır iş mantığı var: kalabalık seviyeleri, varış süresi tahmini,
-  güzergah ve araç sınıflandırması, ağ haritası kurulumu, tarifeler, veri tipleri, TanStack Query
-  hook'ları. Bunlar ortak paketlere taşınır. Ekranlar React Native ile yeniden yazılır; DOM
-  bileşenleri mobilde çalışmaz.
-- **Backend değişmez, sadece adresleri sabitlenir.** Mobil uygulama da web'in kullandığı iki API'yi
-  çağırır: FastAPI (tahminler, geçmiş) ve Next.js'teki `/api/live/*` ara katmanı (İBB servisleri).
-  Uygulamanın içine gömülen adresler sonradan kolayca değiştirilemediği için önce kalıcı alan adları
-  ve sürümlü yollar (`/v1`) belirlenir.
-- **Stack:** Expo SDK 57 · Expo Router · React Native 0.87 · MapLibre React Native · NativeWind ·
-  TanStack Query · Zustand + MMKV · use-intl · EAS Build / Submit / Update.
-- **Süre:** web ile eşdeğer ilk sürüm ~6–7 hafta; bildirimler ve widget'lar ayrı bir faz.
+| Konu | Karar |
+|---|---|
+| Ad | **DoluMu** · paket kimliği `app.dolumu` |
+| Platform | Önce **iOS** (Apple ekibi `G88QSG6V2M` · Faruk KAMÇICI). Android aynı kodla sonra. |
+| Ücret | Ücretsiz. Reklam yok, uygulama içi satın alma yok. |
+| Hesap | **Yok.** Favoriler cihazda saklanır. Bildirimler için cihaz anonim bir kimlikle kaydolur. |
+| Siteyle ilişki | **Tamamen bağımsız.** Site sarmalanmaz, sitenin kodu ya da `/api/live/*` katmanı kullanılmaz. |
+| API | **Tek API: FastAPI backend** (`ibb-transport.onthewifi.com/api/v1`). Sitedeki canlı veri katmanı backend'e taşınır; hesaplar (varış süresi, araç sınıflandırması, güzergah) sunucuda yapılır ve uygulamaya hazır veri gider. |
+| Kod | Ayrı repo: **`farukkamcici/dolumu-mobile`** (gizli). Backend değişiklikleri bu repoda (`ibb-transport`). |
+| Görsel dil | Mevcut **kâğıt & mürekkep** kimliği (Barlow, sinyal kırmızısı, hat renkleri), iOS desenleriyle yeniden kurulur. |
+| Stack | Expo SDK 57 · Expo Router · React Native 0.87 (New Architecture) · TypeScript strict · MapLibre RN 11 · Reanimated + Gesture Handler · @gorhom/bottom-sheet 5 · TanStack Query 5 · Zustand + MMKV · use-intl · expo-notifications · expo-haptics · expo-location · Sentry |
+| Derleme | EAS Build (bulut). Bu Mac'te yalnızca Xcode 27 beta var; Apple beta Xcode ile yapılan derlemeleri mağazaya kabul etmiyor. |
 
-## 1. Hedef ve kapsam
+## 1. Ürün
 
-**v1 (mağazaya ilk çıkış): web ile aynı özellikler, mobilde daha iyi çalışan hâliyle**
+### 1.1 v1 kapsamı
+1. **Harita ana ekran.** Tam ekran ağ haritası, üstünde sürüklenebilir alt panel. Panelde arama,
+   hizmet durumu, favoriler, yakınındakiler ve "Şu an" panosu. Haritada isteğe bağlı canlı otobüs katmanı.
+2. **Hat.**
+   - Tüm hatlarda: şu anki yoğunluk, "biraz bekleyebilirsen" önerisi, saatlik grafik (bugün/yarın).
+   - Otobüste: canlı otobüsler, durak listesi ve her durak için varış süresi, planlı kalkışlar, güvenilirlik (14 gün).
+   - Raylıda: istasyon şeridi (arızalar, yoğunluk çubukları), hat künyesi, aksama bandı.
+3. **Durak.** Geçen hatlar, en yakın varışa göre sıralı; olanaklar (kapalı durak, akıllı ekran, engelli
+   erişimi); **"Otobüs yaklaşınca haber ver"** düğmesi.
+4. **İstasyon** (alt panelde). Sıradaki trenler, geçen hatlar ve yoğunlukları, asansör/yürüyen merdiven
+   durumu, yakındaki İSPARK otoparkları.
+5. **Arama.** Hat, istasyon, durak; son aramalar.
+6. **Favoriler.** Hat ve istasyon; bildirim abonelikleri buradan yönetilir.
+7. **Ayarlar.** Dil (TR/EN), tema, bildirimler, sorun bildir, hakkında ve veri kaynakları, gizlilik.
 
-- Ağ haritası: canlı aksamalar, istasyonlar, isteğe bağlı canlı otobüs katmanı.
-- Arama: hat, istasyon, durak.
-- "Şu an" panosu, favoriler, yakınındaki istasyon ve duraklar (sıradaki tren ve otobüsle).
-- Hat sayfası:
-  - Tüm hatlarda: şu anki yoğunluk ve saatlik grafik.
-  - Otobüste: canlı otobüsler, duraklar ve varış süreleri, güvenilirlik.
-  - Raylıda: istasyon şeridi, arızalar, istasyon yoğunluğu.
-- Durak sayfası, istasyon kartı (sıradaki trenler, olanaklar, İSPARK).
-- Ayarlar: dil (TR/EN), tema, sorun bildirme, hakkında ve veri kaynakları.
+### 1.2 Bildirimler (ürün kararı)
 
-**v2 (yalnızca uygulamada yapılabilenler):** favori hattaki aksama için bildirim, ana ekran widget'ı,
-iOS Live Activity ile otobüs varışı, Siri/App Intents kısayolları.
-
-**Kapsam dışı:** hesap açma ve oturum, tahmin modelinde değişiklik, yönetici paneli (web'de kalır).
-
-## 2. Mimari kararlar
-
-| Konu | Karar | Neden | Elenen alternatif |
+| Bildirim | v1 | Varsayılan | Neden |
 |---|---|---|---|
-| Çerçeve | **Expo (managed) + development build** | Tek kod, iki platform. EAS ile derleme, mağazaya gönderme ve uygulama güncellemesi gerektirmeyen JS güncellemesi hazır. Yerel modüller (MapLibre, MMKV) config plugin ile eklenir. | Bare React Native (bakım yükü), Flutter (TS ile yazılmış mantık yeniden kullanılamaz) |
-| Yönlendirme | **Expo Router** | Dosya tabanlı; Next'teki `/line/[code]`, `/stop/[code]` yapısının aynısı. Derin bağlantılar kendiliğinden çalışır. | React Navigation'ı elle kurmak |
-| Web | **Next.js kalır** | SEO, sunucu tarafı render, `/api/live/*` ara katmanı ve oturmuş arayüz. Expo'nun web çıktısı bunların yerini tutmaz. | Expo Router ile web + mobil tek uygulama |
-| Monorepo | **pnpm workspaces + Turborepo** | Paylaşılan paketler, önbellekli derleme ve test. | Ayrı repolar (mantık kopyalanır, zamanla ayrışır) |
-| Harita | **@maplibre/maplibre-react-native 11** | Web ile aynı MapLibre stili (OpenFreeMap + kâğıt/mürekkep renkleri), aynı veri ve katman mantığı. Expo Go'da çalışmaz, development build gerekir. | react-native-maps (Apple/Google haritası, bizim renk dilimiz uygulanamaz) |
-| Stil | **NativeWind 4 + ortak tasarım token'ları** | Web'deki Tailwind sınıfları ve CSS değişkenleri aynı token'lardan üretilir; açık/koyu tema aynı kalır. | StyleSheet ile elle (tutarlılık zor), Tamagui (yeni bir dil öğrenmek) |
-| Veri çekme | **TanStack Query 5** (web ile aynı) | Hook'lar ve önbellek anahtarları ortak; kalıcı önbellek ile çevrimdışı açılış. | — |
-| Yerel durum | **Zustand + MMKV** | Web'deki `prefs` store'u aynen kalır, sadece depolama katmanı değişir. | AsyncStorage (yavaş) |
-| Çeviri | **use-intl** (next-intl'in çekirdeği) | `messages/tr.json` ve `en.json` ile ICU biçimi olduğu gibi kullanılır. | i18next (tüm mesajları dönüştürmek gerekir) |
-| Alt panel | **@gorhom/bottom-sheet 5** | Harita üstünde sürüklenebilir panel: arama, yakındakiler, pano. Mobil haritalı uygulamaların standart deseni. | — |
-| Hata takibi | **Sentry (Expo entegrasyonu)** | Mağaza sürümündeki çökmeleri görmek için. Kişisel veri toplanmaz. | — |
+| **Otobüsüm yaklaşınca** (durakta "haber ver": seçilen hat ~N dk uzaklığa gelince tek bildirim) | ✅ | Kullanıcı başlatır | En değerli an: durağa ne zaman çıkacağını bilmek. 60 dk sonra kendiliğinden kapanır. |
+| **Favori raylı hatta aksama** (Metro İstanbul aksama bildirdiğinde, bitince ikinci bildirim) | ✅ | Favori eklenince açık | Az ve önemli; yol planını değiştirir. |
+| **Favori istasyonda asansör/yürüyen merdiven arızası** | ✅ | Kapalı, istasyon kartından açılır | Engelli ve bebek arabalı yolcu için kritik, diğerleri için gürültü. |
+| İETT duyuruları (iptal edilen sefer vb.) | ❌ | — | Günde 250+ duyuru, sefer bazında; bildirim olarak çok gürültülü. Hat sayfasında gösterilir. |
 
-## 3. Hedef repo yapısı
+Kurallar:
+- Aynı konu için 1 saatte en fazla 1 bildirim.
+- Bildirim metni ne olduğunu ve ne yapılacağını söyler ("M7'de aksama: Yıldız–Mecidiyeköy arası kapalı").
+- Bildirime dokununca ilgili ekran açılır.
+- İzin istenme anı: ilk "haber ver" veya favori ekleme. Açılışta izin istenmez.
+
+### 1.3 UX ilkeleri (sitedekilerin mobil karşılığı)
+- Tek elle kullanım: önemli eylemler ekranın alt yarısında. Alt panelin 3 durak noktası var:
+  arama çubuğu / yarım / tam.
+- Tek bakışta durum: her listede seviye kelime + figür ile gösterilir (renk tek başına anlam taşımaz).
+- Gerçek zamanlı his: konumlar 30 sn'de bir yenilenir, değişiklik yumuşak animasyonla gelir;
+  "şimdi"/"1 dk" gibi değerler saniyelik saatle güncellenir.
+- Haptik geri bildirim: yön değiştirme, favori ekleme, alarm kurma.
+- Boş ve hata durumları: canlı veri yoksa bölüm sessizce gizlenir ya da tek satırlık açıklama gösterilir; tam sayfa hata ekranı yok.
+- Erişilebilirlik:
+  - VoiceOver etiketleri ("500T, 4. Levent yönü, 6 dakika").
+  - Dynamic Type, en az 44 pt dokunma alanı.
+  - Hareket azaltma ayarına uyum.
+- Açık/koyu tema sistemi izler; harita aynı stilin iki renk setiyle çizilir.
+
+## 2. Tek API: backend `/api/v1`
+
+Uygulama yalnızca bu uçları çağırır. Yanıtlar ekranlara göre tasarlanır: bir ekran = bir veya iki istek.
+Hesaplanabilen her şey sunucuda hesaplanır.
+
+| Uç | İçerik | Önbellek | Bugünkü karşılığı |
+|---|---|---|---|
+| `GET /v1/network` | Raylı hatlar (geometri, renk, saatler), birleşik istasyonlar (aktarma, olanaklar, yoğunluk), Marmaray, Metrobüs | 6 sa | sitede `useNetwork` + `/api/live/metro/network` |
+| `GET /v1/status` | Aksamalar, arıza özetleri, duyurular | 2 dk | `/api/live/metro/status` |
+| `GET /v1/board?hour=` | Ağdaki her hattın şimdiki ve bir sonraki saat seviyesi | 10 dk | sitede 21 ayrı tahmin isteği |
+| `GET /v1/search?q=` | Hatlar (güncel İETT listesi + raylı), istasyonlar, duraklar | 1 sa | `/lines/search` + istemcide filtre |
+| `GET /v1/lines/{code}` | Başlık, tür, yönler ve sıralı duraklar, künye, ücret, planlı kalkışlar, güvenilirlik | 1 sa | 6–7 ayrı istek |
+| `GET /v1/lines/{code}/forecast?date=&dir=` | Saatlik tahmin + profil (seviyeler sunucuda) | 30 dk | `/forecast/{code}` |
+| `GET /v1/lines/{code}/live?dir=` | Sınıflandırılmış araçlar (seferde / güzergah dışı), her durak için sıradaki varış, güzergah çizgisi | 30 sn | araçlar + istemcide `classifyVehicles`, `nextArrivals`, `routeThroughStops` |
+| `GET /v1/stops/{code}` | Durak, olanaklar, hatlar ve her biri için varış + şimdiki seviye | 30 sn | durak başına N×4 istek |
+| `GET /v1/nearby?lat=&lng=` | En yakın istasyonlar (sıradaki trenle) ve duraklar | 1 dk | istemcide hesap |
+| `GET /v1/stations/{id}` | Sıradaki trenler, arızalar, olanaklar, İSPARK, yoğunluk | 1 dk | 4–5 istek |
+| `GET /v1/fleet` | Hareket hâlindeki otobüsler | 30 sn | `/api/live/fleet` |
+| `GET /v1/fares` | Ücret tablosu | 1 gün | `/api/live/fares` |
+| `POST /v1/devices` | Anonim cihaz kaydı: Expo push token, dil → `device_id` | — | yeni |
+| `PUT /v1/devices/{id}/subscriptions` | Favori hatlar (aksama), istasyonlar (arıza) | — | yeni |
+| `POST /v1/alarms` / `DELETE /v1/alarms/{id}` | "Otobüs yaklaşınca": durak, hat, yön, eşik (dk) | — | yeni |
+
+**Uygulama ilkeleri**
+- Sitedeki TypeScript mantığı Python'a taşınır: `metro.ts`, `iett.ts`, `city.ts`, `routes.ts`, `eta.ts`,
+  `network.ts`. Yaklaşık 1.000 satır, birim testleriyle birlikte. Site kendi katmanıyla çalışmaya devam
+  eder; istenirse sonra bu API'ye geçer.
+- Önbellek:
+  - Bellek içi TTL önbellek (`cachetools`) + İBB hata verirse son başarılı yanıtı sunma.
+  - Yanıtlarda `Cache-Control` ve ETag; gzip.
+- Statik veri (durak dizini, güzergahlar, topoloji, istasyon yoğunluğu) aylık GitHub Action ile üretilmeye
+  devam eder; backend bunları repodan okur (topolojiyi zaten böyle okuyor).
+- Sözleşme: FastAPI'nin OpenAPI şemasından uygulama için tipli istemci üretilir (`openapi-typescript` +
+  `openapi-fetch`). Uç değişirse uygulamadaki tip kontrolü hatayı yakalar.
+- Uyumluluk: mağazadaki eski sürümler aylarca yaşar. `/v1` geriye uyumlu değişir; uyumu bozan
+  değişiklik `/v2` olur. İstemci her istekte `X-App-Version` gönderir.
+- Adres: bugünkü dinamik DNS adresi kullanılır. Değişmesi gerekirse yeni adres uygulamaya EAS Update
+  ile (mağaza incelemesi olmadan) gönderilebilsin diye adres derleme sırasında değil, JS yapılandırmasında tutulur.
+
+**Bildirim altyapısı (backend)**
+- Tablolar: `devices` (anonim kimlik, push token, dil, son görülme), `subscriptions`,
+  `alarms` (durak, hat, yön, eşik, son geçerlilik), `notification_log` (tekrarları önlemek için).
+- Job'lar (APScheduler):
+  - 2 dk'da bir: Metro durumunu ve arızaları öncekiyle karşılaştır, abonelere değişikliği bildir.
+  - 30 sn'de bir: aktif alarmlar için hattın varış tahminini hesapla; eşik aşılınca bildir ve alarmı kapat.
+- Gönderim: Expo Push API (gönderim makbuzları kontrol edilir, geçersiz token'lar silinir).
+- Gizlilik: konum ya da kişisel veri saklanmaz. Cihaz kaydı 90 gün kullanılmazsa silinir.
+
+## 3. Uygulama (repo: `dolumu-mobile`)
 
 ```
-ibb-transport/
-├─ apps/
-│  ├─ web/                  ← bugünkü frontend/ (Next.js, /api/live/* ara katmanı burada kalır)
-│  └─ mobile/               ← yeni Expo uygulaması
-│     ├─ app/               ← Expo Router ekranları
-│     │  ├─ _layout.tsx     ← sağlayıcılar: Query, tema, çeviri, panel
-│     │  ├─ index.tsx       ← harita + alt panel (ana ekran)
-│     │  ├─ line/[code].tsx
-│     │  ├─ stop/[code].tsx
-│     │  └─ settings.tsx
-│     ├─ components/        ← RN bileşenleri (map/, line/, stop/, station/, transit/)
-│     ├─ app.config.ts      ← paket kimliği, izin metinleri, eklentiler, derin bağlantılar
-│     └─ eas.json           ← derleme profilleri: development / preview / production
-├─ packages/
-│  ├─ core/                 ← saf TS, platformdan bağımsız iş mantığı (React içermez)
-│  ├─ api/                  ← API istemcisi + TanStack Query hook'ları (adresler dışarıdan verilir)
-│  ├─ i18n/                 ← messages/tr.json, en.json
-│  └─ tokens/               ← renkler, tipografi, boşluklar → web için CSS değişkenleri, mobil için NativeWind teması
-├─ src/api/                 ← FastAPI (değişmez)
-├─ docs/
-├─ turbo.json · pnpm-workspace.yaml
-└─ .github/workflows/       ← CI (tip kontrolü, lint, test) + aylık veri yenileme
+dolumu-mobile/
+├─ app/                       ← Expo Router
+│  ├─ _layout.tsx             ← sağlayıcılar (Query + MMKV kalıcılığı, tema, çeviri, bildirim yönlendirme)
+│  ├─ index.tsx               ← harita + alt panel
+│  ├─ line/[code].tsx
+│  ├─ stop/[code].tsx
+│  ├─ settings/index.tsx · settings/notifications.tsx · settings/about.tsx
+│  └─ +not-found.tsx
+├─ src/
+│  ├─ api/                    ← OpenAPI'den üretilen tipler + istemci + Query hook'ları
+│  ├─ features/               ← home, line, stop, station, search, favorites, alarms, notifications
+│  ├─ map/                    ← MapLibre stili (kâğıt/mürekkep renkleri), katmanlar, ikonlar
+│  ├─ ui/                     ← temel bileşenler: Text, Button, Sheet, LevelPill, CrowdGlyph, LineBadge, HourlyBars
+│  ├─ theme/                  ← token'lar (renk, tipografi, boşluk, yarıçap), açık/koyu
+│  ├─ i18n/                   ← tr.json, en.json (sitedekinden başlanır, sonra ayrı yaşar)
+│  └─ lib/                    ← saat (Europe/Istanbul), biçimlendirme, haptik, depolama
+├─ assets/                    ← fontlar (Barlow), ikon, açılış ekranı, otobüs işaretleri
+├─ app.config.ts · eas.json
+└─ .github/workflows/ci.yml   ← tip kontrolü, lint, test, OpenAPI şeması uyum kontrolü
 ```
 
-`frontend/public/data/*` (durak dizini, güzergahlar, topoloji…) web'de servis edilmeye devam eder; mobil
-bunları aynı adresten indirir ve önbelleğe alır (bkz. §6.4).
+- **Yeniden kullanım:** sitedeki bileşenler kopyalanmaz. Tasarım token'ları, metinler, kalabalık seviye
+  mantığı ve görsel dil referans alınır. Hesaplar backend'e taşındığı için uygulamada iş mantığı çok az kalır.
+- **Harita:**
+  - MapLibre RN + OpenFreeMap positron, sitedeki yeniden renklendirme kuralları.
+  - Katmanlar: ağ, aksama, istasyonlar, odaktaki hat, canlı otobüsler (ikon), filo noktaları, kullanıcı konumu.
+  - Expo Go'da çalışmaz; development build kullanılır.
+- **Çevrimdışı:** TanStack Query önbelleği MMKV'de. Uygulama ağ olmadan son görülen veriyle açılır ve bunu belirtir.
+- **Derin bağlantılar:** `dolumu://line/500T`. Universal Links site bağımsız olduğu için v1'de yok;
+  istenirse sonra eklenir.
+- **Minimum iOS:** 17.
 
-### 3.1 Dosyaların nereye taşınacağı
-
-| Bugün (`frontend/src`) | Yeni yer | Not |
-|---|---|---|
-| `lib/crowd.ts`, `lib/time.ts`, `lib/departures.ts`, `lib/lines.ts` | `packages/core` | Değişmeden taşınır |
-| `lib/network.ts`, `lib/topology.ts` | `packages/core` | `fetchTopology` / `fetchMarmaray` çağrıları `packages/api`'ye geçer |
-| `lib/live/types.ts`, `eta.ts`, `routes.ts` (hesaplama kısmı) | `packages/core` | `useBusRoutes` hook'u `packages/api`'ye |
-| `lib/api.ts`, `lib/queries.ts`, `lib/live/client.ts`, `lib/live/nextTrains.ts` | `packages/api` | Kodda 16 yerde göreli adres (`'/api/live/…'`, `'/data/…'`) var; hepsi `createApi({ apiBase, liveBase, dataBase })` ile dışarıdan verilen adrese bağlanır |
-| `hooks/useNetwork.ts`, `useLineName.ts` | `packages/api` | Platformdan bağımsız |
-| `hooks/useNow.ts`, `useGeolocation.ts`, `useIsDesktop.ts`, `usePwaInstall.ts` | Her uygulamada ayrı | Tarayıcıya özgü; mobilde `expo-location` ve `AppState` ile yazılır |
-| `store/prefs.ts` | `packages/core` (store) + uygulamaya göre depolama | Web: localStorage, mobil: MMKV |
-| `lib/live/upstream.ts`, `metro.ts`, `iett.ts`, `city.ts`, `respond.ts` | `apps/web` (sunucu) | Ara katman sunucuda kalır; uygulama İBB'yi doğrudan çağırmaz |
-| `components/**` | `apps/web` | Mobil karşılıkları `apps/mobile/components` altında yeniden yazılır |
-
-Bu bölme ilk hafta yapılır ve web hiç bozulmadan yayına devam eder. Mobil işe ondan sonra başlanır.
-
-## 4. API ve backend
-
-1. **Kalıcı alan adları.** FastAPI bugün `ibb-transport.onthewifi.com` adresinde; bu bir dinamik DNS
-   adresi. Uygulamanın içine gömülecek adres sonradan kolay değişmediği için önce `api.dolumu.app`
-   (Caddy → FastAPI) açılır. Canlı veri ara katmanı `www.dolumu.app/api/live/*` olarak kalır.
-2. **Sürümlü yollar.** Mobil için `/v1/...` takma adları eklenir: FastAPI'de `APIRouter(prefix="/v1")`,
-   Next'te rewrite. Eski sürüm uygulamalar mağazada aylarca yaşayacağı için uyumu bozan
-   değişiklikler `/v2` ile yapılır.
-3. **Sözleşme.** Canlı uçların yanıt tipleri `packages/core/types` içinde zod şemalarıyla tanımlanır;
-   web ara katmanı ve mobil istemci aynı şemayı kullanır. FastAPI'nin OpenAPI çıktısından
-   `packages/api` için tipler üretilir (`openapi-typescript`).
-4. **Uygulama neden İBB'yi doğrudan çağırmıyor?** Mobilde CORS sorunu yok, ama yine de ara katmandan
-   geçilmesinin üç nedeni var:
-   - Önbellek: binlerce kullanıcı yerine tek bir sunucu İBB'yi çağırır.
-   - Bakım: SOAP ayrıştırma ve sınıflandırma mantığı tek yerde kalır.
-   - Esneklik: İBB bir servisi değiştirdiğinde düzeltme uygulama güncellemesi beklemeden sunucuda yapılır.
-5. **Maliyet ve kapasite.** Mobil trafik `/api/live/*` için Vercel fonksiyon çağrılarını artırır. CDN
-   önbelleği (30 sn – 6 sa) yükün büyük kısmını alır. Kullanım Vercel Hobby limitlerine yaklaşırsa iki
-   seçenek var: Pro plana geçmek ya da ara katmanı Hetzner'de küçük bir Node servisi olarak
-   çalıştırmak (aynı `packages/core` kodunu kullanır).
-6. **Hız sınırı.** Caddy'de IP başına makul bir sınır, API yanıtlarında `X-App-Version` takibi.
-
-## 5. Ekranlar ve gezinme
-
-Web'deki bilgi mimarisi korunur, mobil desenlere uyarlanır:
-
-| Web | Mobil |
-|---|---|
-| Ana sayfa: üstte harita, altta kaydırılan liste | **Tam ekran harita + alt panel** (3 durak noktası: arama çubuğu / yarım / tam). Panelde arama, hizmet durumu, favoriler, yakındakiler, "Şu an" panosu. Konum düğmesi haritanın köşesinde. |
-| Arama diyaloğu | Panel tam açılır, klavye odaklanır; son aramalar ve popüler hatlar |
-| İstasyon kartı (sayfanın üstünde açılan panel) | Aynı alt panel üzerinde istasyon görünümü: sıradaki trenler, hatlar, olanaklar, İSPARK |
-| `/line/[code]` | Yığına eklenen ekran: üstte harita (dokununca tam ekran), altta bloklar. Yön seçimi segment kontrolüyle. |
-| `/stop/[code]` | Yığına eklenen ekran: hatlar en yakın varışa göre sıralı, aşağı çekince yenileme |
-| `/settings` | Yığına eklenen ekran; "Ana ekrana ekle" yerine uygulama sürümü ve bildirim izinleri |
-
-- **Sekme çubuğu yok.** Tek ana ekran ve harita odaklı akış, Citymapper ve Apple Maps'teki gibi.
-  Favoriler panelin en üstünde durur.
-- **Derin bağlantılar:** `https://www.dolumu.app/tr/line/500T` uygulamada açılır (iOS Universal Links,
-  Android App Links). Web'e `/.well-known/apple-app-site-association` ve `assetlinks.json` eklenir.
-- **Erişilebilirlik:** her seviye kelime + figür ile gösterilir (renk tek başına anlam taşımaz, web'deki
-  kural), VoiceOver/TalkBack etiketleri, Dynamic Type desteği, en az 44 pt dokunma alanı.
-
-## 6. Uygulama içi altyapı
-
-### 6.1 Tasarım sistemi
-`packages/tokens` tek kaynaktır: kâğıt/mürekkep renkleri, sinyal kırmızısı, hat renkleri, harita
-renkleri, tipografi ölçeği. Web için CSS değişkenleri, mobil için NativeWind teması buradan üretilir.
-Fontlar (Barlow, Barlow Semi Condensed) `expo-font` ile pakete gömülür. Açık/koyu tema sistem ayarını
-izler, ayarlardan değiştirilebilir.
-
-### 6.2 Harita
-- MapLibre RN ile aynı OpenFreeMap positron stili, aynı yeniden renklendirme kuralları
-  (`paintAll` mantığı tokens'tan beslenir).
-- Katmanlar web'deki gibi: ağ, aksama, istasyonlar, otobüs ikonları, filo noktaları.
-- Otobüs ikonları SVG yerine paketlenmiş PNG olarak eklenir.
-- Mobilde iki parmak kuralı yok: harita tam ekran, panel sürüklenerek açılıyor.
-
-### 6.3 Konum
-`expo-location`, yalnızca uygulama açıkken ve kullanıcı konum düğmesine bastığında kullanılır. Arka
-planda konum alınmaz (mağaza incelemesi ve gizlilik açısından da en temiz yol).
-
-### 6.4 Çevrimdışı ve önbellek
-- TanStack Query önbelleği MMKV'ye yazılır: uygulama ağ olmadan da son görülen veriyle açılır.
-- Statik veri:
-  - Durak dizini (1,2 MB), topoloji ve Marmaray istasyonları uygulamaya gömülü bir başlangıç kopyasıyla gelir.
-  - Açılışta ETag ile güncellik kontrol edilir; yenisi varsa indirilir. Böylece aylık veri yenilemesi
-    uygulama güncellemesi gerektirmez.
-- Güzergah dosyaları (toplam 23 MB) gömülmez; hat açıldıkça indirilip önbelleğe alınır.
-
-### 6.5 Çeviri ve bölge
-`packages/i18n` mesajları, `use-intl` sağlayıcısı. Varsayılan dil cihaz diline göre seçilir
-(`expo-localization`). Tüm saat hesapları web'deki gibi `Europe/Istanbul` diliminde yapılır.
-
-## 7. Yalnızca uygulamada olacaklar (v2)
-
-| Özellik | Gerekenler |
-|---|---|
-| **Aksama bildirimi** (favori hattında aksama, asansör arızası, iptal edilen sefer) | `expo-notifications` + Expo Push. Backend'de: cihaz token tablosu (hesap yok, anonim) ve 2 dakikada bir Metro durumu ile İETT duyurularındaki değişikliği bulup bildirim gönderen bir job. |
-| **Ana ekran widget'ı** (favori hat: şu anki seviye + sıradaki tren/otobüs) | iOS WidgetKit / Android Glance, Expo config plugin ile (`expo-apple-targets` vb.). Veri, uygulama grubuyla paylaşılan önbellekten okunur. |
-| **Live Activity** (seçilen otobüsün varışı kilit ekranında) | iOS ActivityKit; güncellemeler push ile. Varış tahmini mantığı zaten `packages/core`'da. |
-| **Siri / App Intents kısayolları** ("500T nerede?") | iOS App Intents. |
-
-## 8. Kalite, test, yayın hattı
+## 4. Kalite
 
 - **Test:**
-  - `packages/core`'daki saf mantık (varış süresi, güzergah sınıflandırma, seviyeler, tarife) için Vitest
-    birim testleri. Bugün bu mantığın testi yok; taşırken eklenir.
-  - Mobil uçtan uca akışlar için Maestro: aç → ara → hat → durak.
-- **CI (GitHub Actions):** her PR'da tip kontrolü, lint ve test (Turborepo önbellekli). `main`'e push'ta
-  web yine Vercel'e gider.
-- **EAS:**
-  - `development`: geliştirme sürümü.
-  - `preview`: TestFlight ve Play internal test.
-  - `production`: mağaza.
-  - JS düzeltmeleri EAS Update ile mağaza incelemesi beklemeden dağıtılır. Yerel modül değişikliği
-    gerektiren güncellemeler mağazadan gider.
-- **Performans hedefleri:**
-  - Soğuk açılış < 2 sn (orta seviye Android).
+  - Backend: taşınan mantık için pytest (varış süresi, sınıflandırma, güzergah, bildirim kuralları).
+  - Uygulama: bileşen ve hook testleri (Jest + RNTL); kritik akışlar için Maestro (aç → ara → hat → durak → haber ver).
+- **CI:**
+  - Her iki repoda PR başına tip kontrolü, lint ve test.
+  - Uygulama CI'ı backend'in OpenAPI şemasını çekip üretilen tiplerle karşılaştırır.
+- **EAS profilleri:**
+  - `development`: simülatör ve cihaz.
+  - `preview`: TestFlight.
+  - `production`: App Store.
+  - JS düzeltmeleri EAS Update ile.
+- **İzleme:** Sentry (çökme + performans, kişisel veri kapalı).
+- **Hedefler:**
+  - Soğuk açılış < 1,5 sn (iPhone 12).
   - Harita 60 fps.
-  - Filo katmanında 3 bin nokta takılmadan çizilir.
-  - Uygulama boyutu < 40 MB.
-- **İzleme:** Sentry (çökme + performans). Analitik, isteğe bağlı ve kişisel veri içermeyen bir araçla
-  (karar §11'de).
+  - Panel sürüklemesi takılmadan.
+  - Uygulama boyutu < 30 MB.
 
-## 9. Mağaza hazırlığı
+## 5. Mağaza
 
-- Apple Developer (99 $/yıl) ve Google Play Console (25 $ tek seferlik) hesapları.
-- Paket kimliği önerisi: `app.dolumu`.
-- İzin metinleri: konum ("Yakınındaki istasyon ve durakları göstermek için"). İlk sürümde bildirim izni yok.
+- App Store Connect kaydı: DoluMu, kategori Navigasyon, ücretsiz, Türkiye + tüm ülkeler, TR/EN açıklama.
 - Gizlilik:
-  - iOS gizlilik etiketi ve Android Veri Güvenliği formu: veri toplanmıyor; çökme verisi anonim.
-  - iOS Privacy Manifest.
-- **Apple 4.2 (yetersiz işlev) riski:** "web sitesini sarmalayan uygulama" diye reddedilmemek için ilk
-  sürümde yerel harita, alt panel, çevrimdışı açılış ve derin bağlantılar bulunur. Bildirim/widget
-  v2'de bu konumu daha da güçlendirir.
-- Atıflar (Hakkında ekranı): İBB Açık Veri Lisansı, OpenStreetMap (ODbL), OpenFreeMap. Uygulamanın İBB
-  ile resmi bir bağı olmadığı açıkça yazılır.
-- Mağaza görselleri: 6,7" ve 6,1" iPhone, Android telefon ekran görüntüleri; TR ve EN açıklamalar.
+  - Etiket: "Veri toplanmıyor", yalnızca anonim çökme verisi.
+  - Privacy Manifest.
+  - Gizlilik politikası sayfası (GitHub Pages; siteden bağımsız).
+- İzin metinleri:
+  - Konum: yalnızca uygulama açıkken, yakındaki istasyon ve durakları göstermek için.
+  - Bildirim: ilk kullanımda, gerekçesiyle.
+- Atıflar: İBB Açık Veri Lisansı, OpenStreetMap (ODbL), OpenFreeMap. "İBB ile resmi bağı yoktur" notu.
+- Apple 4.2 (yetersiz işlev) riski düşük: yerel harita, alt panel, bildirimler ve alarm var.
 
-## 10. Yol haritası
+## 6. Yol haritası
 
-| Faz | Süre | Teslim | Bitti sayılması için |
-|---|---|---|---|
-| **0 · Temel** | 1 hafta | Monorepo (pnpm + Turborepo), `packages/core` · `api` · `i18n` · `tokens`, `frontend/` → `apps/web`, `api.dolumu.app`, `/v1` yolları, core birim testleri | Web canlıda hiçbir şey değişmeden çalışıyor; CI yeşil |
-| **1 · İskelet** | 1 hafta | Expo uygulaması, development build (iOS + Android), Expo Router, sağlayıcılar, tema, fontlar, çeviri, MapLibre ile ağ haritası | Simülatörde ve gerçek cihazda harita ve tema çalışıyor |
-| **2 · Ana akışlar** | 2–3 hafta | Ana ekran paneli, arama, hat (otobüs + raylı), durak, istasyon paneli, favoriler, ayarlar, konum | Web'deki her ekranın mobil karşılığı var; temel akışların Maestro testleri geçiyor |
-| **3 · Cila ve beta** | 1–2 hafta | Çevrimdışı önbellek, derin bağlantılar, erişilebilirlik, performans, Sentry, mağaza görselleri, TestFlight + Play internal | 10–20 kişilik kapalı beta; çökmesiz oturum oranı > %99,5 |
-| **4 · Mağaza** | ~1 hafta (inceleme dahil) | App Store + Google Play v1.0 | İki mağazada yayında |
-| **5 · v2** | 3–4 hafta | Aksama bildirimleri, widget, Live Activity | — |
-
-## 11. Senin karar vermen gerekenler
-
-1. Uygulama adı ve paket kimliği (`DoluMu`, `app.dolumu`?).
-2. Apple ve Google geliştirici hesapları hangi isim/şirket adına açılacak.
-3. `api.dolumu.app` için DNS (alan adı Vercel'de mi, başka bir kayıt firmasında mı?).
-4. Analitik: hiç olmasın mı, yoksa anonim kullanım ölçümü mü?
-5. v2'deki bildirimler ilk sürüme yetişsin mi? Apple 4.2 riskini azaltır ama süreyi ~2 hafta uzatır.
-
-## 12. Riskler
-
-| Risk | Etki | Önlem |
+| Faz | İçerik | Bitti sayılması için |
 |---|---|---|
-| MapLibre RN ve yeni React Native sürümü arasında uyumsuzluk | Harita çalışmaz | Faz 1'in ilk işi harita prototipi; sorun çıkarsa `react-native-maps` ile geçici çözüm |
-| Monorepo'da web (Next 16) ve Expo'nun farklı React/RN sürümleri istemesi | Derleme hataları | Her uygulama kendi React sürümünü tanımlar; Expo'nun monorepo kılavuzu izlenir (gerekirse pnpm `node-linker=hoisted`) |
-| İBB servislerinin kesilmesi veya değişmesi | Canlı bölümler boş kalır | Ara katman zaten sessizce geri çekiliyor; mobilde de bölümler gizlenir. Düzeltme sunucuda yapılır, uygulama güncellemesi gerekmez. |
-| Dinamik DNS'teki backend adresi | Uygulama sonradan backend'e erişemez | Faz 0'da `api.dolumu.app` |
-| Apple 4.2 reddi | Yayın gecikir | Yerel harita ve panel, çevrimdışı çalışma, derin bağlantı; gerekirse bildirimleri öne çekmek |
-| Tahmin modeline yanlışlıkla dokunulması | Tez | Uygulama yalnızca mevcut uçları okur; model ve eğitim kodu kapsam dışı |
+| **0 · API v1** | Canlı veri katmanını Python'a taşıma, `/v1` uçları, önbellek, testler, OpenAPI | Tüm `/v1` uçları canlıda, testler yeşil, site etkilenmemiş |
+| **1 · İskelet** | Repo, Expo, development build, tema, fontlar, çeviri, API istemcisi, harita | iOS simülatörde ağ haritası ve tema çalışıyor |
+| **2 · Ekranlar** | Ana ekran paneli, arama, hat, durak, istasyon, favoriler, ayarlar, konum | Sitedeki her işlevin mobil karşılığı var |
+| **3 · Bildirimler** | Cihaz kaydı, abonelikler, alarm, backend job'ları, izin akışı | Gerçek cihazda aksama ve "haber ver" bildirimi geliyor |
+| **4 · Cila → TestFlight** | Animasyonlar, haptik, erişilebilirlik, çevrimdışı, Sentry, ikon ve açılış ekranı | TestFlight'ta kapalı beta |
+| **5 · App Store** | Mağaza metinleri, ekran görüntüleri, gizlilik, inceleme | Yayında |
+| **6 · Sonra** | Android (Play), widget, Live Activity, sitenin de `/v1`'e geçmesi | — |
+
+Faz 0 ile 1 paralel yürüyebilir. Benim tarafımda iş hızlı ilerler; takvimi senin denemelerin ve Apple
+incelemesi belirler.
+
+## 7. Senin yapman gerekenler
+
+Bunlar Apple hesabına giriş ve iki aşamalı doğrulama gerektirdiği için benim yerine yapamayacağım adımlar:
+
+1. **İlk derlemede** `eas build -p ios` sırasında Apple ID ile giriş. EAS dağıtım sertifikasını ve push
+   anahtarını (APNs) kendisi oluşturur.
+2. **App Store Connect API anahtarı** (Users and Access → Integrations → App Store Connect API, rol: App
+   Manager). Bundan sonra TestFlight'a gönderimleri ben otomatik yaparım.
+3. **TestFlight'ta deneme** ve geri bildirim.
+4. **Mağaza metinleri ve ekran görüntülerinin onayı.** Hazırlarım, sen onaylarsın.
+
+## 8. Riskler
+
+| Risk | Önlem |
+|---|---|
+| Canlı veri mantığını Python'a taşırken davranış farkı | Aynı girdilerle TS ve Python çıktısını karşılaştıran testler (500T, 19, M2 örnekleri) |
+| Küçük VPS'te (2 çekirdek, 3,7 GB) yük | Uç başına önbellek, gzip, İBB çağrılarının tek seferde paylaşılması. Gerekirse sunucuyu büyütmek. |
+| Dinamik DNS adresinin değişmesi | Adres JS yapılandırmasında; EAS Update ile değiştirilebilir |
+| MapLibre RN ile yeni RN sürümü uyumu | Faz 1'in ilk işi harita prototipi |
+| Bildirim gürültüsü | Yalnızca 3 tür, saatlik sınır, istasyon arıza bildirimleri varsayılan kapalı |
+| Modelin yanlışlıkla değişmesi | `/v1` yalnızca mevcut tahminleri okur; model ve eğitim kodu kapsam dışı |
