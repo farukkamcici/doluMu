@@ -1,10 +1,7 @@
 'use client';
 import { useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { Clock, Info } from 'lucide-react';
-import { Card } from '@/components/primitives/Card';
 import { Skeleton } from '@/components/primitives/Skeleton';
-import { Notice } from '@/components/primitives/Notice';
 import { Button } from '@/components/primitives/Button';
 import { Sheet } from '@/components/primitives/Sheet';
 import type { BusSchedule, Direction } from '@/lib/api';
@@ -45,122 +42,102 @@ interface ScheduleCardProps {
   nowMinutes: number;
 }
 
-export function ScheduleCard({
-  code,
-  mode,
-  schedule,
-  scheduleLoading,
-  direction,
-  topoLine,
-  nowMinutes,
-}: ScheduleCardProps) {
+function FirstLast({ first, last }: { first: string; last: string }) {
+  const t = useTranslations('line.schedule');
+  return (
+    <div className="flex gap-8">
+      <div>
+        <p className="eyebrow">{t('first')}</p>
+        <p className="font-display text-[28px] font-bold leading-tight tabular-nums">{first}</p>
+      </div>
+      <div>
+        <p className="eyebrow">{t('last')}</p>
+        <p className="font-display text-[28px] font-bold leading-tight tabular-nums">{last}</p>
+      </div>
+    </div>
+  );
+}
+
+export function ScheduleCard({ code, mode, schedule, scheduleLoading, direction, topoLine, nowMinutes }: ScheduleCardProps) {
   const t = useTranslations('line.schedule');
   const tc = useTranslations('common');
   const [open, setOpen] = useState(false);
 
-  const departures = useMemo(
-    () => (direction ? toDepartures(schedule?.[direction]) : []),
-    [schedule, direction],
-  );
-
-  const header = (
-    <h2 className="mb-4 flex items-center gap-2 text-[15px] font-semibold">
-      <Clock className="h-4 w-4 text-fg-muted" />
-      {mode === 'rail' && topoLine ? t('railHours') : t('title')}
-    </h2>
-  );
+  const departures = useMemo(() => (direction ? toDepartures(schedule?.[direction]) : []), [schedule, direction]);
 
   if (mode === 'rail' || mode === 'ferry') {
-    const note =
-      mode === 'ferry' ? t('ferryNote') : code === 'MARMARAY' ? t('marmarayNote') : t('railFrequency');
+    const note = mode === 'ferry' ? t('ferryNote') : code === 'MARMARAY' ? t('marmarayNote') : t('railFrequency');
     return (
-      <Card className="p-5">
-        {header}
-        {topoLine ? (
-          <div className="mb-4 grid grid-cols-2 gap-3">
-            <Stat label={t('first')} value={topoLine.first_time} />
-            <Stat label={t('last')} value={topoLine.last_time} />
-          </div>
-        ) : null}
-        <Notice icon={<Info className="h-4 w-4" />}>{note}</Notice>
-      </Card>
+      <div className="space-y-3 px-4 py-5 sm:px-5">
+        <h2 className="eyebrow">{t('railHours')}</h2>
+        {topoLine ? <FirstLast first={topoLine.first_time} last={topoLine.last_time} /> : null}
+        <p className="text-sm text-fg-muted">{note}</p>
+      </div>
     );
   }
 
   if (scheduleLoading) {
     return (
-      <Card className="space-y-4 p-5">
-        <Skeleton className="h-5 w-32" />
-        <div className="grid grid-cols-2 gap-3">
-          <Skeleton className="h-16" />
-          <Skeleton className="h-16" />
-        </div>
-        <Skeleton className="h-12" />
-      </Card>
+      <div className="space-y-3 px-4 py-5 sm:px-5">
+        <Skeleton className="h-4 w-32" />
+        <Skeleton className="h-10 w-48" />
+        <Skeleton className="h-24 w-full" />
+      </div>
     );
   }
 
   if (!departures.length) {
     return (
-      <Card className="p-5">
-        {header}
-        <Notice icon={<Info className="h-4 w-4" />}>{t('unavailable')}</Notice>
-      </Card>
+      <div className="space-y-2 px-4 py-5 sm:px-5">
+        <h2 className="eyebrow">{t('title')}</h2>
+        <p className="text-sm text-fg-muted">{t('unavailable')}</p>
+      </div>
     );
   }
 
-  const upcoming = departures.filter((d) => d.minutes >= nowMinutes).slice(0, 3);
+  const upcoming = departures.filter((d) => d.minutes >= nowMinutes).slice(0, 4);
   const from = direction ? schedule?.meta?.[direction]?.start : null;
   const labels = { min: tc('min'), hour: tc('hour') };
 
   return (
-    <Card className="p-5">
-      {header}
-      <div className="grid grid-cols-2 gap-3">
-        <Stat label={t('first')} value={departures[0].label} />
-        <Stat label={t('last')} value={departures[departures.length - 1].label} />
+    <div className="px-4 py-5 sm:px-5">
+      <div className="mb-3 flex items-baseline justify-between gap-3">
+        <h2 className="eyebrow">{t('title')}</h2>
+        {from ? <p className="truncate text-xs text-fg-muted">{t('departsFrom', { stop: from })}</p> : null}
       </div>
+      <FirstLast first={departures[0].label} last={departures[departures.length - 1].label} />
 
-      <div className="mt-5">
-        <div className="mb-2 flex flex-wrap items-baseline justify-between gap-x-3">
-          <p className="text-sm font-medium">{t('next')}</p>
-          {from ? <p className="truncate text-xs text-fg-muted">{t('departsFrom', { stop: from })}</p> : null}
-        </div>
-        {upcoming.length ? (
-          <ul className="divide-y divide-line overflow-hidden rounded-xl border border-line">
-            {upcoming.map((d, i) => (
-              <li key={d.minutes} className={cn('flex items-center justify-between px-4 py-3', i === 0 && 'bg-bg-subtle')}>
-                <span className="text-base font-semibold tabular-nums">{d.label}</span>
-                <span className={cn('text-sm tabular-nums', i === 0 ? 'font-medium text-brand' : 'text-fg-muted')}>
-                  {t('in', { duration: formatDuration(d.minutes - nowMinutes, labels) })}
-                </span>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className="rounded-xl bg-bg-subtle px-4 py-3 text-sm text-fg-muted">{t('noMoreToday')}</p>
-        )}
-      </div>
+      <p className="eyebrow mb-1 mt-5">{t('next')}</p>
+      {upcoming.length ? (
+        <ul className="border-t border-line">
+          {upcoming.map((d, i) => (
+            <li key={d.minutes} className="flex items-baseline justify-between border-b border-line py-2.5">
+              <span className={cn('font-display text-xl font-bold tabular-nums', i > 0 && 'text-fg-muted')}>{d.label}</span>
+              <span className={cn('text-sm tabular-nums', i === 0 ? 'font-semibold' : 'text-fg-muted')}>
+                {t('in', { duration: formatDuration(d.minutes - nowMinutes, labels) })}
+              </span>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="py-2 text-sm text-fg-muted">{t('noMoreToday')}</p>
+      )}
 
       <div className="mt-4 flex items-center justify-between gap-3">
         <p className="text-xs text-fg-subtle">{t('planned')}</p>
-        <Button size="sm" variant="secondary" onClick={() => setOpen(true)}>
+        <Button size="sm" onClick={() => setOpen(true)}>
           {t('seeAll')}
         </Button>
       </div>
 
-      <Sheet open={open} onOpenChange={setOpen} title={t('fullTitle', { line: code })} description={from ? t('departsFrom', { stop: from }) : undefined}>
+      <Sheet
+        open={open}
+        onOpenChange={setOpen}
+        title={t('fullTitle', { line: code })}
+        description={from ? t('departsFrom', { stop: from }) : undefined}
+      >
         <FullTimetable departures={departures} nowMinutes={nowMinutes} />
       </Sheet>
-    </Card>
-  );
-}
-
-function Stat({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-xl bg-bg-subtle px-4 py-3">
-      <p className="text-xs text-fg-muted">{label}</p>
-      <p className="mt-0.5 text-lg font-semibold tabular-nums">{value}</p>
     </div>
   );
 }
@@ -178,16 +155,11 @@ function FullTimetable({ departures, nowMinutes }: { departures: Departure[]; no
   return (
     <div className="divide-y divide-line pb-4">
       {rows.map(([hour, items]) => (
-        <div key={hour} className="flex gap-4 py-2.5">
-          <span className="w-8 shrink-0 pt-0.5 text-sm font-semibold tabular-nums text-fg-muted">
-            {String(hour % 24).padStart(2, '0')}
-          </span>
-          <div className="flex flex-wrap gap-x-3 gap-y-1">
+        <div key={hour} className="flex gap-4 py-2">
+          <span className="w-8 shrink-0 font-display text-base font-bold tabular-nums">{String(hour % 24).padStart(2, '0')}</span>
+          <div className="flex flex-wrap gap-x-3 gap-y-1 pt-px">
             {items.map((d) => (
-              <span
-                key={d.minutes}
-                className={cn('text-sm tabular-nums', d.minutes < nowMinutes ? 'text-fg-subtle' : 'text-fg')}
-              >
+              <span key={d.minutes} className={cn('text-[15px] tabular-nums', d.minutes < nowMinutes && 'text-fg-subtle line-through')}>
                 {String(d.minutes % 60).padStart(2, '0')}
               </span>
             ))}

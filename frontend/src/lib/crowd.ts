@@ -117,3 +117,24 @@ export function daySummary(profile: DayProfile) {
   const quiet = pool.reduce((a, b) => (b.passengers! < a.passengers! ? b : a));
   return { peakHour: peak.hour, quietHour: quiet.hour };
 }
+
+export interface HourWindow {
+  start: number;
+  /** Exclusive. */
+  end: number;
+}
+
+/** Consecutive runs of hours in `states`, within daytime by default (night hours are rarely useful). */
+export function hourWindows(profile: DayProfile, states: HourState[], from = 6, to = 24): HourWindow[] {
+  const runs: HourWindow[] = [];
+  let start: number | null = null;
+  for (let h = from; h <= to; h++) {
+    const inRun = h < to && states.includes(profile.hours[h]?.state);
+    if (inRun && start === null) start = h;
+    if (!inRun && start !== null) {
+      runs.push({ start, end: h });
+      start = null;
+    }
+  }
+  return runs;
+}

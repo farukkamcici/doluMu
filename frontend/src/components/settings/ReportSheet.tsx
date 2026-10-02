@@ -15,7 +15,7 @@ const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 type ReportType = ReportPayload['report_type'];
 
 const inputClass =
-  'w-full rounded-xl border border-line bg-bg px-3.5 py-2.5 text-base outline-none transition-colors placeholder:text-fg-subtle focus:border-brand focus:ring-2 focus:ring-brand/20';
+  'w-full rounded-md border-[1.5px] border-line bg-bg px-3.5 py-2.5 text-base outline-none transition-colors placeholder:text-fg-subtle focus:border-fg';
 
 export function ReportSheet({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
   const t = useTranslations('report');
@@ -62,7 +62,7 @@ export function ReportSheet({ open, onOpenChange }: { open: boolean; onOpenChang
     >
       {mutation.isSuccess ? (
         <div className="flex flex-col items-center gap-3 py-10 text-center">
-          <CheckCircle2 className="h-10 w-10 text-brand" />
+          <CheckCircle2 className="h-10 w-10" />
           <p className="font-medium">{t('success')}</p>
         </div>
       ) : (

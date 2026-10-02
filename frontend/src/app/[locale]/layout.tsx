@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 import type { ReactNode } from 'react';
-import { Geist, Geist_Mono } from 'next/font/google';
+import { Barlow, Barlow_Semi_Condensed } from 'next/font/google';
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages, getTranslations, setRequestLocale } from 'next-intl/server';
 import { notFound } from 'next/navigation';
@@ -9,8 +9,13 @@ import { locales } from '@/i18n/config';
 import Providers from '@/components/app/Providers';
 import '../globals.css';
 
-const geistSans = Geist({ variable: '--font-geist-sans', subsets: ['latin', 'latin-ext'] });
-const geistMono = Geist_Mono({ variable: '--font-geist-mono', subsets: ['latin'] });
+// DIN-like grotesque, close to transit wayfinding type; condensed cut for line codes and numbers.
+const sans = Barlow({ variable: '--font-sans', subsets: ['latin', 'latin-ext'], weight: ['400', '500', '600', '700'] });
+const display = Barlow_Semi_Condensed({
+  variable: '--font-display',
+  subsets: ['latin', 'latin-ext'],
+  weight: ['500', '600', '700'],
+});
 
 type Params = { params: Promise<{ locale: string }> };
 
@@ -43,8 +48,8 @@ export const viewport: Viewport = {
   initialScale: 1,
   viewportFit: 'cover',
   themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#f6f7f9' },
-    { media: '(prefers-color-scheme: dark)', color: '#090d18' },
+    { media: '(prefers-color-scheme: light)', color: '#efede7' },
+    { media: '(prefers-color-scheme: dark)', color: '#0e0e0f' },
   ],
 };
 
@@ -56,7 +61,7 @@ export default async function RootLayout({ children, params }: Params & { childr
 
   return (
     <html lang={locale} suppressHydrationWarning>
-      <body className={`${geistSans.variable} ${geistMono.variable} font-sans`}>
+      <body className={`${sans.variable} ${display.variable} font-sans`}>
         <NextIntlClientProvider locale={locale} messages={messages}>
           <Providers>{children}</Providers>
         </NextIntlClientProvider>

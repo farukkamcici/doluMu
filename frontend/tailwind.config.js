@@ -26,6 +26,7 @@ module.exports = {
           fg: token('brand-fg'),
           soft: token('brand-soft'),
         },
+        signal: token('signal'),
         level: {
           quiet: token('level-quiet'),
           normal: token('level-normal'),
@@ -50,17 +51,19 @@ module.exports = {
         text: '#F8FAFC',
       },
       fontFamily: {
-        sans: ['var(--font-geist-sans)', 'ui-sans-serif', 'system-ui', 'sans-serif'],
-        mono: ['var(--font-geist-mono)', 'ui-monospace', 'monospace'],
+        sans: ['var(--font-sans)', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        display: ['var(--font-display)', 'var(--font-sans)', 'ui-sans-serif', 'sans-serif'],
       },
       borderRadius: {
-        xl: '0.875rem',
-        '2xl': '1.25rem',
-        '3xl': '1.75rem',
+        DEFAULT: '0.25rem',
+        md: '0.375rem',
+        lg: '0.5rem',
+        xl: '0.75rem',
+        '2xl': '1rem',
       },
       boxShadow: {
-        card: '0 1px 2px rgb(15 23 42 / 0.04), 0 1px 3px rgb(15 23 42 / 0.06)',
-        pop: '0 12px 32px -8px rgb(15 23 42 / 0.25), 0 4px 12px -4px rgb(15 23 42 / 0.12)',
+        card: '0 1px 0 rgb(0 0 0 / 0.04)',
+        pop: '0 10px 30px -10px rgb(0 0 0 / 0.35), 0 2px 6px -2px rgb(0 0 0 / 0.12)',
       },
       keyframes: {
         'fade-in': { from: { opacity: '0' }, to: { opacity: '1' } },

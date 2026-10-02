@@ -12,6 +12,7 @@ import { usePrefs } from '@/store/prefs';
 import { useMounted } from '@/hooks/useMounted';
 import { useDebouncedValue } from '@/hooks/useDebouncedValue';
 import { useLineName } from '@/hooks/useLineName';
+import { useNetwork } from '@/hooks/useNetwork';
 import { cn } from '@/lib/utils';
 
 interface Row {
@@ -40,6 +41,14 @@ export function SearchDialog({ open, onOpenChange }: SearchDialogProps) {
   const debounced = useDebouncedValue(query.trim(), 200);
   const search = useLineSearch(debounced);
   const searching = debounced.length > 0;
+
+  // Rail stations match by name too ("Bostancı" → M4, M8, Marmaray).
+  const network = useNetwork();
+  const stationHits = useMemo(() => {
+    const q = foldForMatch(debounced);
+    if (q.length < 3) return [];
+    return network.stations.filter((s) => foldForMatch(s.name).includes(q)).slice(0, 4);
+  }, [debounced, network.stations]);
 
   const rows: Row[] = useMemo(() => {
     if (searching) {
@@ -104,7 +113,7 @@ export function SearchDialog({ open, onOpenChange }: SearchDialogProps) {
     );
   } else if (searching && search.isError) {
     content = <p className="px-5 py-10 text-center text-sm text-fg-muted">{t('error')}</p>;
-  } else if (searching && rows.length === 0 && search.isFetched) {
+  } else if (searching && rows.length === 0 && stationHits.length === 0 && search.isFetched) {
     content = (
       <div className="flex flex-col items-center px-6 py-12 text-center">
         <SearchX className="h-8 w-8 text-fg-subtle" />
@@ -117,12 +126,34 @@ export function SearchDialog({ open, onOpenChange }: SearchDialogProps) {
       <>
         {heading ? (
           <div className="flex items-center justify-between px-5 pb-1 pt-4">
-            <p className="text-xs font-medium uppercase tracking-wide text-fg-subtle">{heading}</p>
+            <p className="eyebrow">{heading}</p>
             {mounted && recents.length && !searching ? (
-              <button type="button" onClick={clearRecents} className="text-xs font-medium text-brand hover:underline">
+              <button type="button" onClick={clearRecents} className="text-xs font-semibold underline underline-offset-4">
                 {t('clearRecents')}
               </button>
             ) : null}
+          </div>
+        ) : null}
+        {stationHits.length ? (
+          <div className="border-b border-line px-2 pb-2 pt-3">
+            <p className="eyebrow px-3 pb-1">{t('stations')}</p>
+            <ul>
+              {stationHits.map((s) => (
+                <li key={s.id} className="flex items-center gap-3 rounded-md px-3 py-2">
+                  <span className="min-w-0 flex-1 truncate text-[15px] font-medium">
+                    <Highlight text={s.name} query={debounced} />
+                  </span>
+                  <span className="flex shrink-0 flex-wrap justify-end gap-1">
+                    {s.lines.map((code) => (
+                      <button key={code} type="button" onClick={() => go(code)} aria-label={code}>
+                        <LineBadge code={code} size="sm" />
+                      </button>
+                    ))}
+                  </span>
+                </li>
+              ))}
+            </ul>
+            {rows.length ? <p className="eyebrow px-3 pb-1 pt-3">{t('lines')}</p> : null}
           </div>
         ) : null}
         <ul ref={listRef} role="listbox" id="search-results" aria-label={t('label')} className="p-2">
@@ -134,7 +165,7 @@ export function SearchDialog({ open, onOpenChange }: SearchDialogProps) {
                 onMouseMove={() => setActive(index)}
                 onClick={() => go(row.code)}
                 className={cn(
-                  'flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left',
+                  'flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-left',
                   index === active ? 'bg-bg-subtle' : 'hover:bg-bg-subtle',
                 )}
               >
@@ -160,7 +191,7 @@ export function SearchDialog({ open, onOpenChange }: SearchDialogProps) {
           className={cn(
             'fixed z-50 flex flex-col bg-card text-fg focus:outline-none',
             'inset-0 data-[state=open]:animate-fade-in',
-            'sm:inset-auto sm:left-1/2 sm:top-[10vh] sm:max-h-[75vh] sm:w-[min(92vw,36rem)] sm:-translate-x-1/2 sm:rounded-3xl sm:shadow-pop',
+            'sm:inset-auto sm:left-1/2 sm:top-[10vh] sm:max-h-[75vh] sm:w-[min(92vw,36rem)] sm:-translate-x-1/2 sm:rounded-xl sm:border-[1.5px] sm:border-fg sm:shadow-pop',
           )}
         >
           <Dialog.Title className="sr-only">{t('label')}</Dialog.Title>
@@ -249,7 +280,7 @@ function Highlight({ text, query }: { text: string; query: string }) {
   return (
     <>
       {text.slice(0, index)}
-      <mark className="rounded bg-brand-soft px-0.5 font-semibold text-brand">{text.slice(index, index + q.length)}</mark>
+      <mark className="bg-transparent font-bold text-fg underline decoration-2 underline-offset-2">{text.slice(index, index + q.length)}</mark>
       {text.slice(index + q.length)}
     </>
   );

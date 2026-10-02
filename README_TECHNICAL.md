@@ -8,7 +8,7 @@
 
 This project implements a **LightGBM-based global forecasting model** for hourly public transportation ridership prediction in Istanbul. The current production model (`lgbm_transport_v7`) uses a stable **18-column feature set** (lags/rolling stats + weather + calendar + categorical line code) and is served by a **FastAPI** backend with **PostgreSQL persistence**, a **Polars-backed FeatureStore**, and **APScheduler** jobs for automated forecast generation and cache prefetch.
 
-The UI is a mobile-first **Next.js 16** web app (TypeScript, TanStack Query, Tailwind, next-intl TR/EN, Leaflet + OpenFreeMap vector basemap). It shows crowding **relative to each line's own daily peak** and suggests quieter hours; see `frontend/DESIGN.md` for the product and design decisions.
+The UI is a mobile-first **Next.js 16** web app (TypeScript, TanStack Query, Tailwind, next-intl TR/EN, MapLibre GL on a recoloured OpenFreeMap basemap). Its home screen is a network map of Istanbul rail + Metrobüs whose line widths show forecast riders per hour; crowd levels are **relative to each line's own daily peak** and the app suggests quieter hours; see `frontend/DESIGN.md` for the product and design decisions.
 
 ---
 
@@ -51,7 +51,7 @@ The codebase follows a **modular data science architecture** with clear separati
 │   └── processed/          # Model-ready feature matrices + split datasets
 ├── models/                 # Serialized LightGBM boosters (.txt format)
 ├── reports/                # Evaluation metrics, SHAP analysis, visualizations
-└── frontend/               # Next.js PWA with Leaflet integration
+└── frontend/               # Next.js web app (MapLibre network map)
 ```
 
 ### Pipeline Flow

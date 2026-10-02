@@ -2,7 +2,7 @@
 import { useState, type ReactNode } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import { useTheme } from 'next-themes';
-import { ChevronRight, Database, Download, Info, MessageSquareWarning, Palette } from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
 import { AppBar } from '@/components/app/AppBar';
 import { Card } from '@/components/primitives/Card';
 import { Segmented } from '@/components/primitives/Segmented';
@@ -34,8 +34,8 @@ export function SettingsScreen() {
   return (
     <>
       <AppBar title={t('title')} />
-      <main className="mx-auto max-w-2xl space-y-6 px-4 pb-16 pt-2 sm:px-6">
-        <Group icon={<Palette className="h-4 w-4" />} title={t('appearance')}>
+      <main className="mx-auto max-w-2xl space-y-7 pb-16 pt-2">
+        <Group title={t('appearance')}>
           <Row label={t('language')}>
             <Segmented
               className="w-44"
@@ -65,7 +65,7 @@ export function SettingsScreen() {
           </Row>
         </Group>
 
-        <Group icon={<Download className="h-4 w-4" />} title={t('app')}>
+        <Group title={t('app')}>
           <Row label={t('install')} description={t('installDesc')}>
             {installState === 'installed' ? (
               <span className="text-sm font-medium text-fg-muted">{t('installed')}</span>
@@ -81,11 +81,11 @@ export function SettingsScreen() {
           </Row>
         </Group>
 
-        <Group icon={<MessageSquareWarning className="h-4 w-4" />} title={t('support')}>
+        <Group title={t('support')}>
           <button
             type="button"
             onClick={() => setReportOpen(true)}
-            className="flex w-full items-center gap-3 px-4 py-3.5 text-left transition-colors hover:bg-card-hover"
+            className="flex w-full items-center gap-3 px-4 py-3.5 text-left transition-colors hover:bg-card-hover sm:px-5"
           >
             <span className="min-w-0 flex-1">
               <span className="block text-sm font-medium">{t('report')}</span>
@@ -95,7 +95,7 @@ export function SettingsScreen() {
           </button>
         </Group>
 
-        <Group icon={<Database className="h-4 w-4" />} title={t('data')} description={t('dataDesc')}>
+        <Group title={t('data')} description={t('dataDesc')}>
           <Row label={t('clearFavorites')} description={t('count', { count: mounted ? favorites.length : 0 })}>
             <ConfirmButton disabled={!mounted || !favorites.length} onConfirm={clearFavorites} />
           </Row>
@@ -105,8 +105,8 @@ export function SettingsScreen() {
         </Group>
 
         <section id="about" className="scroll-mt-20">
-          <Group icon={<Info className="h-4 w-4" />} title={t('about')}>
-            <div className="space-y-4 px-4 py-4 text-sm leading-relaxed text-fg-muted">
+          <Group title={t('about')}>
+            <div className="space-y-4 px-4 py-4 text-sm leading-relaxed text-fg-muted sm:px-5">
               <p>{t('aboutBody')}</p>
               <p>{td('body')}</p>
               <p>{td('relative')}</p>
@@ -130,7 +130,7 @@ export function SettingsScreen() {
           <ol className="space-y-3 pb-6">
             {(['iosStep1', 'iosStep2', 'iosStep3'] as const).map((key, i) => (
               <li key={key} className="flex items-start gap-3 text-sm">
-                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand-soft text-xs font-semibold text-brand">
+                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-fg font-display text-sm font-bold text-bg">
                   {i + 1}
                 </span>
                 <span className="pt-0.5">{t(key)}</span>
@@ -146,23 +146,18 @@ export function SettingsScreen() {
 }
 
 function Group({
-  icon,
   title,
   description,
   children,
 }: {
-  icon: ReactNode;
   title: string;
   description?: string;
   children: ReactNode;
 }) {
   return (
     <div className="space-y-2">
-      <div className="flex items-center gap-2 px-1 text-fg-muted">
-        {icon}
-        <h2 className="text-sm font-semibold">{title}</h2>
-      </div>
-      {description ? <p className="px-1 text-sm text-fg-muted">{description}</p> : null}
+      <h2 className="eyebrow px-4 sm:px-5">{title}</h2>
+      {description ? <p className="px-4 text-sm text-fg-muted sm:px-5">{description}</p> : null}
       <Card className="divide-y divide-line overflow-hidden">{children}</Card>
     </div>
   );
@@ -170,7 +165,7 @@ function Group({
 
 function Row({ label, description, children }: { label: string; description?: string; children: ReactNode }) {
   return (
-    <div className="flex items-center justify-between gap-3 px-4 py-3.5">
+    <div className="flex items-center justify-between gap-3 px-4 py-3.5 sm:px-5">
       <div className="min-w-0 flex-1">
         <p className="text-sm font-medium">{label}</p>
         {description ? <p className="text-sm text-fg-muted">{description}</p> : null}

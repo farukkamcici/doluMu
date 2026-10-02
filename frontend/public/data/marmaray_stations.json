@@ -1,0 +1,264 @@
+{
+ "source": "OpenStreetMap relation 9987139 (Marmaray: Halkalı - Gebze), fetched 2026-10-02 via Overpass API",
+ "license": "ODbL 1.0, © OpenStreetMap contributors",
+ "stations": [
+  {
+   "order": 1,
+   "name": "Halkalı",
+   "lat": 41.018485,
+   "lng": 28.766686
+  },
+  {
+   "order": 2,
+   "name": "Mustafa Kemal",
+   "lat": 41.006194,
+   "lng": 28.773797
+  },
+  {
+   "order": 3,
+   "name": "Küçükçekmece",
+   "lat": 40.98852,
+   "lng": 28.772831
+  },
+  {
+   "order": 4,
+   "name": "Florya",
+   "lat": 40.97282,
+   "lng": 28.78757
+  },
+  {
+   "order": 5,
+   "name": "Florya Akvaryum",
+   "lat": 40.96778,
+   "lng": 28.79691
+  },
+  {
+   "order": 6,
+   "name": "Yeşilköy",
+   "lat": 40.962585,
+   "lng": 28.824859
+  },
+  {
+   "order": 7,
+   "name": "Yeşilyurt",
+   "lat": 40.965448,
+   "lng": 28.837458
+  },
+  {
+   "order": 8,
+   "name": "Ataköy",
+   "lat": 40.98016,
+   "lng": 28.856232
+  },
+  {
+   "order": 9,
+   "name": "Bakırköy",
+   "lat": 40.980312,
+   "lng": 28.872443
+  },
+  {
+   "order": 10,
+   "name": "Yeni Mahalle",
+   "lat": 40.981666,
+   "lng": 28.881051
+  },
+  {
+   "order": 11,
+   "name": "Zeytinburnu-Fişekhane",
+   "lat": 40.985849,
+   "lng": 28.905513
+  },
+  {
+   "order": 12,
+   "name": "Kazlıçeşme",
+   "lat": 40.99261,
+   "lng": 28.916898
+  },
+  {
+   "order": 13,
+   "name": "Yenikapı",
+   "lat": 41.005092,
+   "lng": 28.951626
+  },
+  {
+   "order": 14,
+   "name": "Sirkeci",
+   "lat": 41.013415,
+   "lng": 28.977362
+  },
+  {
+   "order": 15,
+   "name": "Üsküdar",
+   "lat": 41.025611,
+   "lng": 29.013334
+  },
+  {
+   "order": 16,
+   "name": "Ayrılık Çeşmesi",
+   "lat": 41.000317,
+   "lng": 29.030096
+  },
+  {
+   "order": 17,
+   "name": "Söğütlüçeşme",
+   "lat": 40.990665,
+   "lng": 29.037921
+  },
+  {
+   "order": 18,
+   "name": "Feneryolu",
+   "lat": 40.978723,
+   "lng": 29.04883
+  },
+  {
+   "order": 19,
+   "name": "Göztepe",
+   "lat": 40.979136,
+   "lng": 29.062652
+  },
+  {
+   "order": 20,
+   "name": "Erenköy",
+   "lat": 40.97163,
+   "lng": 29.076308
+  },
+  {
+   "order": 21,
+   "name": "Suadiye",
+   "lat": 40.960408,
+   "lng": 29.084406
+  },
+  {
+   "order": 22,
+   "name": "Bostancı",
+   "lat": 40.953874,
+   "lng": 29.094869
+  },
+  {
+   "order": 23,
+   "name": "Küçükyalı",
+   "lat": 40.946205,
+   "lng": 29.107172
+  },
+  {
+   "order": 24,
+   "name": "İdealtepe",
+   "lat": 40.937807,
+   "lng": 29.114169
+  },
+  {
+   "order": 25,
+   "name": "Süreyya Plajı",
+   "lat": 40.926745,
+   "lng": 29.124194
+  },
+  {
+   "order": 26,
+   "name": "Maltepe",
+   "lat": 40.920765,
+   "lng": 29.133252
+  },
+  {
+   "order": 27,
+   "name": "Cevizli",
+   "lat": 40.910021,
+   "lng": 29.155964
+  },
+  {
+   "order": 28,
+   "name": "Atalar",
+   "lat": 40.89878,
+   "lng": 29.169121
+  },
+  {
+   "order": 29,
+   "name": "Başak",
+   "lat": 40.890305,
+   "lng": 29.177399
+  },
+  {
+   "order": 30,
+   "name": "Kartal",
+   "lat": 40.888644,
+   "lng": 29.191029
+  },
+  {
+   "order": 31,
+   "name": "Yunus",
+   "lat": 40.884519,
+   "lng": 29.210374
+  },
+  {
+   "order": 32,
+   "name": "Pendik",
+   "lat": 40.880272,
+   "lng": 29.231734
+  },
+  {
+   "order": 33,
+   "name": "Kaynarca",
+   "lat": 40.871326,
+   "lng": 29.255905
+  },
+  {
+   "order": 34,
+   "name": "Tersane",
+   "lat": 40.861096,
+   "lng": 29.273206
+  },
+  {
+   "order": 35,
+   "name": "Güzelyalı",
+   "lat": 40.856799,
+   "lng": 29.283632
+  },
+  {
+   "order": 36,
+   "name": "Aydıntepe",
+   "lat": 40.852289,
+   "lng": 29.293101
+  },
+  {
+   "order": 37,
+   "name": "İçmeler",
+   "lat": 40.845648,
+   "lng": 29.29997
+  },
+  {
+   "order": 38,
+   "name": "Tuzla",
+   "lat": 40.829986,
+   "lng": 29.322168
+  },
+  {
+   "order": 39,
+   "name": "Çayırova",
+   "lat": 40.810479,
+   "lng": 29.347361
+  },
+  {
+   "order": 40,
+   "name": "GTÜ-Fatih",
+   "lat": 40.80753,
+   "lng": 29.364108
+  },
+  {
+   "order": 41,
+   "name": "Osmangazi",
+   "lat": 40.799206,
+   "lng": 29.380057
+  },
+  {
+   "order": 42,
+   "name": "Darıca",
+   "lat": 40.791366,
+   "lng": 29.391821
+  },
+  {
+   "order": 43,
+   "name": "Gebze",
+   "lat": 40.783875,
+   "lng": 29.410736
+  }
+ ]
+}

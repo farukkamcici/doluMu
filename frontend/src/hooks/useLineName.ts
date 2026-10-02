@@ -2,7 +2,7 @@
 import { useLocale } from 'next-intl';
 import type { LineSummary } from '@/lib/api';
 import { isMetroTopologyLine, routeLabel } from '@/lib/lines';
-import { useTopology } from '@/lib/queries';
+import { useLine, useTopology } from '@/lib/queries';
 import { topologyLine } from '@/lib/topology';
 
 /**
@@ -20,3 +20,10 @@ export function useLineName(code: string, meta: Pick<LineSummary, 'line'> | null
 // The mode is shown next to the name, so "… Metro Hattı" / "… Tram Line" is redundant.
 const SUFFIX = /\s+(metro|tramvay|füniküler|teleferik)\s+hattı$|\s+(metro|tram|funicular)\s+line$|\s+aerial cable car line$/i;
 const stripLineSuffix = (name: string) => name.replace(SUFFIX, '').trim();
+
+/** Same as useLineName, fetching line metadata only when the topology can't name the line. */
+export function useLineDisplayName(code: string): string {
+  const needsMeta = !(isMetroTopologyLine(code) || code === 'M1');
+  const meta = useLine(needsMeta ? code : null);
+  return useLineName(code, meta.data);
+}

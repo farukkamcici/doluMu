@@ -28,34 +28,53 @@
   },
   "levels": {
     "quiet": "Sakin",
-    "normal": "Normal",
-    "busy": "Yoğun",
-    "peak": "Çok yoğun",
+    "normal": "Orta",
+    "busy": "Kalabalık",
+    "peak": "Zirve",
     "closed": "Sefer yok",
     "nodata": "Veri yok"
   },
   "levelHints": {
-    "quiet": "Günün en sakin dönemlerinden",
-    "normal": "Bu hat için ortalama yoğunluk",
-    "busy": "Kalabalık, oturacak yer bulmak zor olabilir",
-    "peak": "Günün en yoğun saatleri"
+    "quiet": "Günün sakin saatlerinden",
+    "normal": "Bu hat için olağan yoğunluk",
+    "busy": "Kalabalık, yer bulmak zorlaşır",
+    "peak": "Günün en kalabalık saatleri"
   },
   "home": {
-    "title": "Hangi hatla gidiyorsun?",
-    "subtitle": "Binmeden önce ne kadar kalabalık olacağını gör.",
-    "searchPlaceholder": "Hat ara: M2, 500T, Kadıköy…",
-    "favorites": "Favorilerin",
-    "recents": "Son baktıkların",
-    "popular": "Popüler hatlar",
+    "searchPlaceholder": "Hat veya güzergah ara",
+    "favorites": "Favoriler",
+    "board": "Şu an",
+    "boardAt": "Saat {hour}",
+    "backToNow": "Şimdiye dön",
+    "groups": {
+      "metro": "Metro",
+      "regional": "Marmaray ve Metrobüs",
+      "tram": "Tramvay",
+      "cable": "Füniküler ve teleferik"
+    },
+    "nextHour": "1 sa sonra",
+    "trendUp": "artıyor",
+    "trendDown": "azalıyor",
+    "trendSame": "aynı",
+    "mapLegend": "Çizgi kalınlığı: o saatteki tahmini yolcu",
+    "play": "Günü oynat",
+    "pause": "Durdur",
+    "hourLabel": "Saat",
+    "nearby": "Yakınındaki istasyonlar",
+    "nearbyAction": "Konumumu kullan",
+    "nearbyHint": "Sana en yakın raylı sistem istasyonlarını göster.",
+    "nearbyDenied": "Konum izni verilmedi.",
+    "nearbyError": "Konum alınamadı.",
+    "locating": "Konum alınıyor…",
+    "meters": "{m} m",
+    "km": "{km} km",
+    "expandMap": "Haritayı büyüt",
+    "closeMap": "Haritayı küçült",
+    "busHint": "Otobüs hatları için yukarıdan ara.",
     "quietestAt": "En sakin {hour}",
     "busiestAt": "En yoğun {hour}",
-    "noServiceNow": "Şu an sefer yok",
-    "emptyFavoritesTitle": "Sık kullandığın hatları kaydet",
-    "emptyFavoritesBody": "Bir hattı açıp yıldıza dokun; burada anlık yoğunluğuyla birlikte görünsün.",
-    "weather": "Hava",
-    "traffic": "Trafik",
-    "trafficValue": "%{percent} yoğun",
-    "rain": "{mm} mm yağış"
+    "trafficValue": "%{percent}",
+    "traffic": "Trafik"
   },
   "search": {
     "label": "Hat ara",
@@ -68,7 +87,9 @@
     "noResults": "“{query}” için hat bulunamadı",
     "noResultsHint": "Hat kodunu (ör. 15F) veya durak/semt adını dene.",
     "error": "Arama şu an yapılamıyor.",
-    "results": "{count, plural, =0 {Sonuç yok} other {# hat}}"
+    "results": "{count, plural, =0 {Sonuç yok} other {# hat}}",
+    "stations": "İstasyonlar",
+    "lines": "Hatlar"
   },
   "line": {
     "favoriteAdd": "Favorilere ekle",
@@ -146,7 +167,13 @@
       "occupancy": "Kapasiteye göre doluluk",
       "confidenceLow": "Kapasite tahmini düşük güvenilirlikte; doluluk yüzdesi yaklaşık değerdir.",
       "confidenceStatic": "Raylı sistem kapasitesi sabit araç kapasitesi tablosundan gelir."
-    }
+    },
+    "calm": "Rahat saatler",
+    "avoid": "Kaçın",
+    "noCalm": "Gün içinde belirgin bir sakin dönem yok",
+    "stations": "İstasyonlar",
+    "transfer": "Aktarma",
+    "stationsCount": "{count} istasyon"
   },
   "settings": {
     "title": "Ayarlar",
@@ -221,5 +248,16 @@
     "rain": "Yağmurlu",
     "snow": "Karlı",
     "storm": "Fırtınalı"
+  },
+  "station": {
+    "lines": "Geçen hatlar",
+    "access": "Olanaklar",
+    "none": "Bilgi yok",
+    "elevator": "Asansör",
+    "escalator": "Yürüyen merdiven",
+    "wc": "WC",
+    "babyRoom": "Bebek odası",
+    "masjid": "Mescit",
+    "nowAt": "Şu an"
   }
 }

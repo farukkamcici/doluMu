@@ -7,16 +7,16 @@ export const buttonVariants = cva(
   {
     variants: {
       variant: {
-        primary: 'bg-brand text-brand-fg hover:bg-brand/90',
-        secondary: 'border border-line bg-card text-fg hover:bg-card-hover',
-        soft: 'bg-brand-soft text-brand hover:bg-brand-soft/80',
-        ghost: 'text-fg-muted hover:bg-fg/5 hover:text-fg',
+        primary: 'bg-fg text-bg hover:bg-fg/85',
+        secondary: 'border-[1.5px] border-fg bg-transparent text-fg hover:bg-fg/5',
+        soft: 'bg-brand-soft text-fg hover:bg-brand-soft/80',
+        ghost: 'text-fg hover:bg-fg/5',
       },
       size: {
-        sm: 'h-9 rounded-xl px-3 text-sm',
-        md: 'h-11 rounded-xl px-4 text-sm',
-        lg: 'h-12 rounded-2xl px-5 text-base',
-        icon: 'h-11 w-11 rounded-full',
+        sm: 'h-9 rounded-md px-3 text-sm font-semibold',
+        md: 'h-11 rounded-md px-4 text-sm font-semibold',
+        lg: 'h-12 rounded-md px-5 text-base font-semibold',
+        icon: 'h-11 w-11 rounded-md',
       },
     },
     defaultVariants: { variant: 'secondary', size: 'md' },

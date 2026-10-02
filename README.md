@@ -27,9 +27,11 @@
 ### 🚦 **City Traffic Index**
 - Istanbul-wide congestion index from the İBB Traffic Management Center (UYM), refreshed every 5 minutes
 
-### 🗺️ **Route Map**
-- Bus routes per direction and rail lines with all stations, on a light/dark vector basemap
-- Direction labels use the destination stop (e.g. "KADIKÖY yönü")
+### 🗺️ **Network Map**
+- The home screen is a map of Istanbul's rail network and Metrobüs in official line colours
+- Line width shows forecast riders for the chosen hour; scrub or play through the day
+- Tap a line for its page, a station for the lines calling there; "stations near you" uses your location
+- Line pages highlight the route: bus routes per direction, rail lines with every station
 
 ### 🚇 **Rail Lines**
 - Metro, tram, funicular and cable-car lines use their official Metro İstanbul colours and names

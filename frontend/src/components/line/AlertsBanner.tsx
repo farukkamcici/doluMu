@@ -20,7 +20,7 @@ export function AlertsBanner({ status, code }: { status: LineStatus | undefined;
         type="button"
         disabled={!many}
         onClick={() => setOpen(true)}
-        className="flex w-full items-start gap-3 rounded-2xl bg-warn-soft px-4 py-3 text-left text-sm disabled:cursor-default"
+        className="flex w-full items-start gap-3 border-l-4 border-signal bg-warn-soft px-4 py-3 text-left text-sm disabled:cursor-default"
       >
         <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-warn" />
         <span className="min-w-0 flex-1">

@@ -21,7 +21,7 @@ export function FavoriteButton({ code }: { code: string }) {
       aria-pressed={active}
       aria-label={active ? t('favoriteRemove') : t('favoriteAdd')}
       onClick={() => toggle(code)}
-      className={cn(active && 'text-amber-500 hover:text-amber-500')}
+      className={cn(active && 'text-signal hover:text-signal')}
     >
       <Star className="h-5 w-5" fill={active ? 'currentColor' : 'none'} />
     </Button>
@@ -54,7 +54,7 @@ export function ShareButton({ title }: { title: string }) {
 
   return (
     <Button variant="ghost" size="icon" onClick={share} aria-label={copied ? t('linkCopied') : t('share')}>
-      {copied ? <Check className="h-5 w-5 text-brand" /> : <Share2 className="h-5 w-5" />}
+      {copied ? <Check className="h-5 w-5" /> : <Share2 className="h-5 w-5" />}
       <span className="sr-only" aria-live="polite">
         {copied ? t('linkCopied') : ''}
       </span>

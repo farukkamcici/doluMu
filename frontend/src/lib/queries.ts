@@ -1,7 +1,8 @@
 'use client';
-import { useQuery, keepPreviousData } from '@tanstack/react-query';
+import { useQueries, useQuery, keepPreviousData } from '@tanstack/react-query';
 import { api, ApiError, type Direction } from './api';
 import { fetchTopology } from './topology';
+import { fetchMarmaray } from './network';
 import { normalizeQuery } from './lines';
 
 const MINUTE = 60_000;
@@ -110,5 +111,26 @@ export function useTopology(enabled = true) {
     queryFn: fetchTopology,
     enabled,
     staleTime: Infinity,
+  });
+}
+
+export function useMarmarayStations(enabled = true) {
+  return useQuery({
+    queryKey: ['marmaray-stations'],
+    queryFn: fetchMarmaray,
+    enabled,
+    staleTime: Infinity,
+  });
+}
+
+/** Today's forecasts for many lines at once (network board and map). */
+export function useForecasts(codes: string[], date: string) {
+  return useQueries({
+    queries: codes.map((code) => ({
+      queryKey: ['forecast', code, date, null],
+      queryFn: () => api.getForecast(code, date),
+      staleTime: 30 * MINUTE,
+      retry,
+    })),
   });
 }

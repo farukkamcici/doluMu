@@ -41,7 +41,7 @@ export function Segmented<T extends string>({
     <div
       role="radiogroup"
       aria-label={label}
-      className={cn('flex gap-1 rounded-xl bg-bg-subtle p-1', className)}
+      className={cn('flex gap-0 rounded-md border-[1.5px] border-fg p-0.5', className)}
     >
       {options.map((option, index) => {
         const selected = option.value === value;
@@ -59,9 +59,9 @@ export function Segmented<T extends string>({
             onClick={() => onChange(option.value)}
             onKeyDown={(e) => onKeyDown(e, index)}
             className={cn(
-              'min-w-0 flex-1 truncate rounded-lg font-medium transition-colors',
-              size === 'sm' ? 'h-8 px-2 text-xs' : 'h-9 px-3 text-sm',
-              selected ? 'bg-card text-fg shadow-card' : 'text-fg-muted hover:text-fg',
+              'min-w-0 flex-1 truncate rounded-[3px] font-semibold transition-colors',
+              size === 'sm' ? 'h-7 px-2 text-xs' : 'h-9 px-3 text-sm',
+              selected ? 'bg-fg text-bg' : 'text-fg hover:bg-fg/5',
             )}
           >
             {option.label}

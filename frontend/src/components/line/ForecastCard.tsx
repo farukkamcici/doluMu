@@ -1,22 +1,15 @@
 'use client';
 import { useLocale, useTranslations } from 'next-intl';
-import { AlertCircle, CalendarClock } from 'lucide-react';
-import { Card } from '@/components/primitives/Card';
 import { Segmented } from '@/components/primitives/Segmented';
 import { Skeleton } from '@/components/primitives/Skeleton';
-import { Notice } from '@/components/primitives/Notice';
 import { Button } from '@/components/primitives/Button';
 import { HourlyBars } from '@/components/transit/HourlyBars';
 import { LevelPill } from '@/components/transit/LevelPill';
-import { daySummary, type DayProfile } from '@/lib/crowd';
+import type { DayProfile } from '@/lib/crowd';
 import { ApiError } from '@/lib/api';
 import { formatHour } from '@/lib/time';
 
 export type Day = 'today' | 'tomorrow';
-
-const SKELETON_HEIGHTS = Array.from({ length: 24 }, (_, i) =>
-  i < 5 ? 'h-2' : i % 6 === 2 ? 'h-24' : i % 3 === 0 ? 'h-16' : 'h-11',
-);
 
 interface ForecastCardProps {
   day: Day;
@@ -28,6 +21,7 @@ interface ForecastCardProps {
   selectedHour: number;
   onSelectHour: (hour: number) => void;
   currentHour: number | null;
+  color: string | null;
 }
 
 export function ForecastCard({
@@ -40,6 +34,7 @@ export function ForecastCard({
   selectedHour,
   onSelectHour,
   currentHour,
+  color,
 }: ForecastCardProps) {
   const t = useTranslations('line.chart');
   const tc = useTranslations('common');
@@ -49,43 +44,28 @@ export function ForecastCard({
 
   const notReady = error instanceof ApiError && error.status === 404;
   const point = profile?.hours[selectedHour];
-  const summary = profile ? daySummary(profile) : null;
 
   let body;
   if (loading && !profile) {
-    body = (
-      <div className="space-y-4" aria-busy>
-        <Skeleton className="h-6 w-48" />
-        <div className="flex h-32 items-end gap-[3px] pt-5">
-          {SKELETON_HEIGHTS.map((h, i) => (
-            <Skeleton key={i} className={`flex-1 rounded-b-[2px] rounded-t-[5px] ${h}`} />
-          ))}
-        </div>
-      </div>
-    );
+    body = <Skeleton className="h-44 w-full" />;
   } else if (notReady) {
-    body = (
-      <Notice icon={<CalendarClock className="h-5 w-5" />} title={t('noForecast')} />
-    );
+    body = <p className="py-8 text-sm text-fg-muted">{t('noForecast')}</p>;
   } else if (error && !profile) {
     body = (
-      <Notice
-        icon={<AlertCircle className="h-5 w-5" />}
-        title={te('generic')}
-        action={
-          <Button size="sm" onClick={onRetry}>
-            {tc('retry')}
-          </Button>
-        }
-      />
+      <div className="flex items-center justify-between gap-4 py-6">
+        <p className="text-sm text-fg-muted">{te('generic')}</p>
+        <Button size="sm" onClick={onRetry}>
+          {tc('retry')}
+        </Button>
+      </div>
     );
   } else if (profile && !profile.hasData) {
-    body = null;
+    return null;
   } else if (profile && point) {
     body = (
       <>
-        <div className="flex min-h-[2.25rem] flex-wrap items-center gap-x-3 gap-y-1" aria-live="polite">
-          <span className="text-xl font-semibold tabular-nums">{formatHour(point.hour)}</span>
+        <div className="flex min-h-[2rem] flex-wrap items-center gap-x-4 gap-y-1" aria-live="polite">
+          <span className="font-display text-2xl font-bold tabular-nums">{formatHour(point.hour)}</span>
           <LevelPill state={point.state} />
           {point.passengers != null ? (
             <span className="text-sm tabular-nums text-fg-muted">
@@ -96,26 +76,20 @@ export function ForecastCard({
         <HourlyBars
           className="mt-3"
           profile={profile}
+          color={color}
           selectedHour={selectedHour}
           currentHour={currentHour}
           onSelect={onSelectHour}
         />
-        {summary ? (
-          <p className="mt-4 text-sm text-fg-muted">
-            {t('summary', { peak: formatHour(summary.peakHour), quiet: formatHour(summary.quietHour) })}
-          </p>
-        ) : null}
-        <p className="mt-1 text-xs text-fg-subtle">{t('legend')}</p>
+        <p className="mt-3 text-xs text-fg-subtle">{t('legend')}</p>
       </>
     );
   }
 
-  if (body === null) return null;
-
   return (
-    <Card className="p-5">
+    <div className="px-4 py-5 sm:px-5">
       <div className="mb-4 flex items-center justify-between gap-3">
-        <h2 className="truncate text-[15px] font-semibold">{t('title')}</h2>
+        <h2 className="eyebrow">{t('title')}</h2>
         <Segmented
           size="sm"
           className="w-[9.5rem] shrink-0"
@@ -129,6 +103,6 @@ export function ForecastCard({
         />
       </div>
       {body}
-    </Card>
+    </div>
   );
 }

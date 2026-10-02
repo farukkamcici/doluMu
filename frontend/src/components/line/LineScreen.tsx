@@ -1,32 +1,35 @@
 'use client';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { SearchX } from 'lucide-react';
 import { AppBar } from '@/components/app/AppBar';
 import { Segmented } from '@/components/primitives/Segmented';
-import { Notice } from '@/components/primitives/Notice';
 import { Skeleton } from '@/components/primitives/Skeleton';
 import { buttonVariants } from '@/components/primitives/Button';
 import { LineBadge } from '@/components/transit/LineBadge';
-import { Link } from '@/i18n/routing';
+import { MapPanel } from '@/components/map/MapPanel';
+import { SearchButton } from '@/components/search/SearchButton';
+import { StationSheet } from '@/components/station/StationSheet';
+import { Link, useRouter } from '@/i18n/routing';
 import { ApiError, type Direction } from '@/lib/api';
 import { buildDayProfile } from '@/lib/crowd';
-import { lineColor, modeOf } from '@/lib/lines';
-import { useForecast, useLine, useLineStatus, useRoute, useSchedule, useTopology } from '@/lib/queries';
+import { RAIL_COLORS, modeOf } from '@/lib/lines';
+import { lineStations, type NetworkLine, type NetworkStation } from '@/lib/network';
+import { useForecast, useLine, useLineStatus, useMarmarayStations, useRoute, useSchedule } from '@/lib/queries';
 import { addDays } from '@/lib/time';
 import { topologyLine } from '@/lib/topology';
 import { usePrefs } from '@/store/prefs';
 import { useNow } from '@/hooks/useNow';
 import { useLineName } from '@/hooks/useLineName';
+import { useNetwork } from '@/hooks/useNetwork';
+import { useIsDesktop } from '@/hooks/useIsDesktop';
 import { NowCard } from './NowCard';
 import { ForecastCard, type Day } from './ForecastCard';
 import { ScheduleCard } from './ScheduleCard';
-import { RouteCard } from './RouteCard';
 import { DetailsCard } from './DetailsCard';
 import { AlertsBanner } from './AlertsBanner';
+import { StationStrip } from './StationStrip';
 import { FavoriteButton, ShareButton } from './LineActions';
-import { SearchButton } from '@/components/search/SearchButton';
 
 const DIRECTIONS: Direction[] = ['G', 'D'];
 
@@ -52,52 +55,70 @@ function useUrlState() {
   return { dir, setDir, day, setDay };
 }
 
+/** Full-bleed section separated by hairlines (no floating cards). */
+function Block({ children }: { children: ReactNode }) {
+  return <section className="border-b border-line bg-card">{children}</section>;
+}
+
 export function LineScreen({ code }: { code: string }) {
   const t = useTranslations('line');
   const tm = useTranslations('modes');
   const tc = useTranslations('common');
+  const router = useRouter();
   const now = useNow();
+  const desktop = useIsDesktop();
   const pushRecent = usePrefs((s) => s.pushRecent);
   const { dir, setDir, day, setDay } = useUrlState();
   const [pickedHour, setPickedHour] = useState<number | null>(null);
+  const [station, setStation] = useState<NetworkStation | null>(null);
+  const [flyTo, setFlyTo] = useState<{ lat: number; lng: number; zoom?: number } | null>(null);
 
   const line = useLine(code);
   const mode = modeOf(code, line.data?.transport_type_id);
   const busLike = mode === 'bus' || mode === 'metrobus';
+  const ok = line.isSuccess;
 
-  const schedule = useSchedule(code, busLike && line.isSuccess);
-  const directions = useMemo(
-    () => DIRECTIONS.filter((d) => (schedule.data?.[d]?.length ?? 0) > 0),
-    [schedule.data],
-  );
+  const schedule = useSchedule(code, busLike && ok);
+  const directions = useMemo(() => DIRECTIONS.filter((d) => (schedule.data?.[d]?.length ?? 0) > 0), [schedule.data]);
   const direction: Direction | null = busLike ? (dir && directions.includes(dir) ? dir : directions[0] ?? null) : null;
 
   const date = day === 'today' ? now.date : addDays(now.date, 1);
-  const forecast = useForecast(line.isSuccess ? code : null, date, direction);
-  const todayForecast = useForecast(line.isSuccess ? code : null, now.date, direction);
-  const status = useLineStatus(line.isSuccess ? code : null, direction);
-  const route = useRoute(code, busLike && line.isSuccess);
-  const topology = useTopology(mode === 'rail');
-  const topoLine = topologyLine(topology.data, code);
+  const forecast = useForecast(ok ? code : null, date, direction);
+  const todayForecast = useForecast(ok ? code : null, now.date, direction);
+  const status = useLineStatus(ok ? code : null, direction);
+  const route = useRoute(code, busLike && ok);
+  const network = useNetwork();
+  const marmaray = useMarmarayStations(code === 'MARMARAY');
+  const topoLine = topologyLine(network.topology, code);
 
   const profile = useMemo(() => (forecast.data ? buildDayProfile(forecast.data) : null), [forecast.data]);
-  const todayProfile = useMemo(
-    () => (todayForecast.data ? buildDayProfile(todayForecast.data) : null),
-    [todayForecast.data],
+  const todayProfile = useMemo(() => (todayForecast.data ? buildDayProfile(todayForecast.data) : null), [todayForecast.data]);
+
+  // Map: the rail network for context, this line on top (bus routes drawn from the route API).
+  const mapLines = useMemo<NetworkLine[]>(() => {
+    if (!busLike) return network.lines;
+    const shape = (direction && route.data?.[direction]) || route.data?.G || route.data?.D || [];
+    const own: NetworkLine = { code, id: code, color: null, style: 'brt', coords: shape.map(([lat, lng]) => [lng, lat]) };
+    return [...network.lines.filter((l) => l.code !== code), own];
+  }, [busLike, network.lines, route.data, direction, code]);
+  const ownStations = useMemo(
+    () => (busLike ? [] : lineStations(code, network.topology, marmaray.data, network.stations)),
+    [busLike, code, network.topology, marmaray.data, network.stations],
   );
+  const widths = useMemo(() => ({ [code]: 5 }), [code]);
 
   useEffect(() => {
-    if (line.isSuccess) pushRecent(code);
-  }, [line.isSuccess, code, pushRecent]);
+    if (ok) pushRecent(code);
+  }, [ok, code, pushRecent]);
 
   const selectedHour = pickedHour ?? now.hour;
   const notFound = line.error instanceof ApiError && line.error.status === 404;
   const name = useLineName(code, line.data);
-  const color = lineColor(code, line.data?.transport_type_id);
+  const color = RAIL_COLORS[code] ?? null;
 
-  const pickHour = (hour: number, switchToToday = false) => {
-    setPickedHour(hour);
-    if (switchToToday) setDay('today');
+  const selectStation = (s: NetworkStation) => {
+    setStation(s);
+    setFlyTo({ lat: s.lat, lng: s.lng, zoom: 14.5 });
   };
 
   if (notFound) {
@@ -105,38 +126,47 @@ export function LineScreen({ code }: { code: string }) {
       <>
         <AppBar />
         <main className="mx-auto max-w-xl px-4 py-10">
-          <Notice
-            icon={<SearchX className="h-5 w-5" />}
-            title={t('notFoundTitle')}
-            action={
-              <Link href="/" className={buttonVariants({ variant: 'primary', size: 'sm' })}>
-                {tc('home')}
-              </Link>
-            }
-          >
-            {t('notFoundBody', { code })}
-          </Notice>
+          <p className="font-display text-3xl font-bold">{t('notFoundTitle')}</p>
+          <p className="mt-2 text-fg-muted">{t('notFoundBody', { code })}</p>
+          <Link href="/" className={buttonVariants({ variant: 'primary', size: 'md', className: 'mt-6' })}>
+            {tc('home')}
+          </Link>
         </main>
       </>
     );
   }
 
-  return (
-    <>
-      <AppBar
-        actions={
-          <>
-            <SearchButton />
-            <ShareButton title={`${code} · DoluMu`} />
-            <FavoriteButton code={code} />
-          </>
-        }
-      />
+  const map = (
+    <MapPanel
+      className="h-[38vh] min-h-[260px] lg:h-dvh"
+      expandable={!desktop}
+      embedded={!desktop}
+      lines={mapLines}
+      stations={ownStations}
+      widths={widths}
+      focus={code}
+      flyTo={flyTo}
+      onLineClick={(c) => c !== code && router.push(`/line/${encodeURIComponent(c)}`)}
+      onStationClick={selectStation}
+    />
+  );
 
-      <main className="mx-auto max-w-6xl px-4 pb-16 sm:px-6">
-        <header className="flex items-start gap-3 pb-5 pt-1">
+  return (
+    <div className="lg:grid lg:h-dvh lg:grid-cols-[minmax(0,34rem)_minmax(0,1fr)]">
+      <div className="lg:h-dvh lg:overflow-y-auto lg:border-r lg:border-line">
+        <AppBar
+          actions={
+            <>
+              <SearchButton />
+              <ShareButton title={`${code} · DoluMu`} />
+              <FavoriteButton code={code} />
+            </>
+          }
+        />
+
+        <header className="flex items-center gap-3 px-4 pb-4 pt-1 sm:px-5">
           <LineBadge code={code} typeId={line.data?.transport_type_id} size="lg" />
-          <div className="min-w-0 flex-1 pt-0.5">
+          <div className="min-w-0 flex-1">
             {line.isLoading ? (
               <div className="space-y-2">
                 <Skeleton className="h-5 w-48" />
@@ -144,18 +174,20 @@ export function LineScreen({ code }: { code: string }) {
               </div>
             ) : (
               <>
-                <h1 className="text-lg font-semibold leading-snug tracking-tight sm:text-xl">{name || code}</h1>
-                <p className="mt-0.5 text-sm text-fg-muted">{tm(mode)}</p>
+                <h1 className="font-display text-[22px] font-bold leading-tight tracking-tight">{name || code}</h1>
+                <p className="text-sm text-fg-muted">{tm(mode)}</p>
               </>
             )}
           </div>
         </header>
 
-        {line.isError && !notFound ? <Notice className="mb-4">{t('loadError')}</Notice> : null}
+        {!desktop ? map : null}
 
-        <div className="grid grid-cols-[minmax(0,1fr)] gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,26rem)] lg:items-start lg:gap-6">
-          <div className="space-y-4">
-            {directions.length > 1 ? (
+        <div className="border-t border-line">
+          {line.isError ? <p className="px-4 py-4 text-sm text-fg-muted sm:px-5">{t('loadError')}</p> : null}
+
+          {directions.length > 1 ? (
+            <div className="border-b border-line bg-card px-4 py-3 sm:px-5">
               <Segmented
                 label={t('direction')}
                 value={direction ?? 'G'}
@@ -166,22 +198,29 @@ export function LineScreen({ code }: { code: string }) {
                   return { value: d, label, title: label };
                 })}
               />
-            ) : null}
+            </div>
+          ) : null}
 
-            <AlertsBanner status={status.data} code={code} />
+          <AlertsBanner status={status.data} code={code} />
 
+          <Block>
             <NowCard
               profile={todayProfile}
               loading={line.isLoading || todayForecast.isLoading}
               now={now}
               nextServiceTime={status.data?.status === 'OUT_OF_SERVICE' ? status.data.next_service_time : null}
-              onPickHour={(hour) => pickHour(hour, true)}
+              onPickHour={(hour) => {
+                setPickedHour(hour);
+                setDay('today');
+              }}
               onShowTomorrow={() => {
                 setDay('tomorrow');
                 setPickedHour(null);
               }}
             />
+          </Block>
 
+          <Block>
             <ForecastCard
               day={day}
               onDayChange={setDay}
@@ -190,10 +229,13 @@ export function LineScreen({ code }: { code: string }) {
               error={forecast.error}
               onRetry={() => forecast.refetch()}
               selectedHour={selectedHour}
-              onSelectHour={(hour) => pickHour(hour)}
+              onSelectHour={setPickedHour}
               currentHour={day === 'today' ? now.hour : null}
+              color={color}
             />
+          </Block>
 
+          <Block>
             <ScheduleCard
               code={code}
               mode={mode}
@@ -203,21 +245,25 @@ export function LineScreen({ code }: { code: string }) {
               topoLine={topoLine}
               nowMinutes={now.minutes}
             />
-          </div>
+          </Block>
 
-          <div className="space-y-4 lg:sticky lg:top-20">
-            <RouteCard
-              route={route.data}
-              routeLoading={line.isLoading || route.isLoading || topology.isLoading}
-              direction={direction}
-              topoLine={topoLine}
-              color={color}
-            />
+          {ownStations.length > 1 ? (
+            <Block>
+              <StationStrip code={code} color={color ?? 'rgb(var(--fg))'} stations={ownStations} onSelect={selectStation} />
+            </Block>
+          ) : null}
+
+          <Block>
             <DetailsCard code={code} point={profile?.hours[selectedHour] ?? null} />
-            <p className="px-1 text-xs leading-relaxed text-fg-subtle">{tc('notLive')}</p>
-          </div>
+          </Block>
+
+          <p className="px-4 pb-12 pt-6 text-xs leading-relaxed text-fg-subtle sm:px-5">{tc('notLive')}</p>
         </div>
-      </main>
-    </>
+      </div>
+
+      {desktop ? <div className="lg:sticky lg:top-0 lg:h-dvh">{map}</div> : null}
+
+      <StationSheet station={station} onClose={() => setStation(null)} hour={now.hour} />
+    </div>
   );
 }

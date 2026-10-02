@@ -28,34 +28,53 @@
   },
   "levels": {
     "quiet": "Quiet",
-    "normal": "Normal",
+    "normal": "Moderate",
     "busy": "Busy",
-    "peak": "Very busy",
+    "peak": "Peak",
     "closed": "No service",
     "nodata": "No data"
   },
   "levelHints": {
-    "quiet": "One of the quietest times of the day",
-    "normal": "Typical for this line",
-    "busy": "Crowded, seats may be hard to find",
-    "peak": "Among the busiest hours of the day"
+    "quiet": "One of the calmer hours of the day",
+    "normal": "Usual for this line",
+    "busy": "Crowded, seats get scarce",
+    "peak": "The busiest hours of the day"
   },
   "home": {
-    "title": "Which line are you taking?",
-    "subtitle": "See how crowded it will be before you ride.",
-    "searchPlaceholder": "Search: M2, 500T, Kadıköy…",
-    "favorites": "Your favourites",
-    "recents": "Recently viewed",
-    "popular": "Popular lines",
+    "searchPlaceholder": "Search a line or route",
+    "favorites": "Favourites",
+    "board": "Right now",
+    "boardAt": "At {hour}",
+    "backToNow": "Back to now",
+    "groups": {
+      "metro": "Metro",
+      "regional": "Marmaray and Metrobüs",
+      "tram": "Tram",
+      "cable": "Funicular and cable car"
+    },
+    "nextHour": "in 1 h",
+    "trendUp": "rising",
+    "trendDown": "easing",
+    "trendSame": "steady",
+    "mapLegend": "Line width: forecast riders in that hour",
+    "play": "Play the day",
+    "pause": "Pause",
+    "hourLabel": "Hour",
+    "nearby": "Stations near you",
+    "nearbyAction": "Use my location",
+    "nearbyHint": "Show the rail stations closest to you.",
+    "nearbyDenied": "Location permission was denied.",
+    "nearbyError": "Couldn’t get your location.",
+    "locating": "Locating…",
+    "meters": "{m} m",
+    "km": "{km} km",
+    "expandMap": "Expand map",
+    "closeMap": "Collapse map",
+    "busHint": "Search above for bus lines.",
     "quietestAt": "Quietest {hour}",
     "busiestAt": "Busiest {hour}",
-    "noServiceNow": "No service right now",
-    "emptyFavoritesTitle": "Save the lines you ride",
-    "emptyFavoritesBody": "Open a line and tap the star; it will show up here with its current crowd level.",
-    "weather": "Weather",
-    "traffic": "Traffic",
-    "trafficValue": "{percent}% congested",
-    "rain": "{mm} mm rain"
+    "trafficValue": "{percent}%",
+    "traffic": "Traffic"
   },
   "search": {
     "label": "Search lines",
@@ -68,7 +87,9 @@
     "noResults": "No lines found for “{query}”",
     "noResultsHint": "Try a line code (e.g. 15F) or a stop or district name.",
     "error": "Search is unavailable right now.",
-    "results": "{count, plural, =0 {No results} one {# line} other {# lines}}"
+    "results": "{count, plural, =0 {No results} one {# line} other {# lines}}",
+    "stations": "Stations",
+    "lines": "Lines"
   },
   "line": {
     "favoriteAdd": "Add to favourites",
@@ -146,7 +167,13 @@
       "occupancy": "Occupancy vs capacity",
       "confidenceLow": "The capacity estimate has low confidence, so the occupancy figure is approximate.",
       "confidenceStatic": "Rail capacity comes from a fixed per-train capacity table."
-    }
+    },
+    "calm": "Calmer hours",
+    "avoid": "Avoid",
+    "noCalm": "No clearly calm period during the day",
+    "stations": "Stations",
+    "transfer": "Change",
+    "stationsCount": "{count} stations"
   },
   "settings": {
     "title": "Settings",
@@ -221,5 +248,16 @@
     "rain": "Rain",
     "snow": "Snow",
     "storm": "Storm"
+  },
+  "station": {
+    "lines": "Lines",
+    "access": "Facilities",
+    "none": "No information",
+    "elevator": "Lift",
+    "escalator": "Escalator",
+    "wc": "Toilet",
+    "babyRoom": "Baby room",
+    "masjid": "Prayer room",
+    "nowAt": "Now"
   }
 }

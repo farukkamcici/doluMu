@@ -20,19 +20,19 @@ export function Sheet({ open, onOpenChange, title, description, children, classN
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 z-50 bg-slate-950/40 backdrop-blur-[2px] data-[state=open]:animate-fade-in" />
+        <Dialog.Overlay className="fixed inset-0 z-50 bg-black/40 data-[state=open]:animate-fade-in" />
         <Dialog.Content
           className={cn(
             'fixed z-50 flex max-h-[88dvh] flex-col bg-card text-fg shadow-pop focus:outline-none',
-            'inset-x-0 bottom-0 rounded-t-3xl data-[state=open]:animate-sheet-up',
-            'sm:inset-x-auto sm:bottom-auto sm:left-1/2 sm:top-1/2 sm:w-[min(92vw,30rem)] sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-3xl sm:data-[state=open]:animate-pop-in',
+            'inset-x-0 bottom-0 rounded-t-xl data-[state=open]:animate-sheet-up',
+            'sm:inset-x-auto sm:bottom-auto sm:left-1/2 sm:top-1/2 sm:w-[min(92vw,30rem)] sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-xl sm:data-[state=open]:animate-pop-in',
             className,
           )}
         >
           <div className="mx-auto mt-2 h-1 w-10 shrink-0 rounded-full bg-line sm:hidden" aria-hidden />
           <div className="flex shrink-0 items-start justify-between gap-4 px-5 pb-3 pt-4">
             <div className="min-w-0">
-              <Dialog.Title className="text-lg font-semibold leading-tight">{title}</Dialog.Title>
+              <Dialog.Title className="font-display text-2xl font-bold leading-tight tracking-tight">{title}</Dialog.Title>
               {description ? (
                 <Dialog.Description className="mt-1 text-sm text-fg-muted">{description}</Dialog.Description>
               ) : (

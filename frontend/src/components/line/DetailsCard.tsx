@@ -1,8 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
-import { ChevronDown, Info } from 'lucide-react';
-import { Card } from '@/components/primitives/Card';
+import { ChevronDown } from 'lucide-react';
 import { Skeleton } from '@/components/primitives/Skeleton';
 import { useCapacity } from '@/lib/queries';
 import type { HourPoint } from '@/lib/crowd';
@@ -27,27 +26,26 @@ export function DetailsCard({ code, point }: DetailsCardProps) {
   const confidence = capacity.data?.confidence;
 
   return (
-    <Card className="overflow-hidden">
+    <div>
       <button
         type="button"
         aria-expanded={open}
         onClick={() => setOpen((v) => !v)}
-        className="flex w-full items-center gap-3 px-5 py-4 text-left transition-colors hover:bg-card-hover"
+        className="flex w-full items-center gap-3 px-4 py-4 text-left transition-colors hover:bg-card-hover sm:px-5"
       >
-        <Info className="h-4 w-4 shrink-0 text-fg-muted" />
         <span className="flex-1 text-[15px] font-semibold">{t('title')}</span>
         <ChevronDown className={cn('h-4 w-4 text-fg-muted transition-transform', open && 'rotate-180')} />
       </button>
 
       {open ? (
-        <div className="space-y-4 border-t border-line px-5 pb-5 pt-4 text-sm leading-relaxed text-fg-muted">
+        <div className="space-y-4 border-t border-line px-4 pb-5 pt-4 text-sm leading-relaxed text-fg-muted sm:px-5">
           <p>{t('body')}</p>
           <p>{t('relative')}</p>
 
           {point && point.passengers != null ? (
             <div>
               <p className="mb-2 font-medium text-fg">{t('selectedHour', { hour: formatHour(point.hour) })}</p>
-              <dl className="divide-y divide-line overflow-hidden rounded-xl border border-line text-fg">
+              <dl className="divide-y divide-line border-y border-line text-fg">
                 <Row label={t('passengers')} value={n(point.passengers)} />
                 <Row label={t('trips')} value={n(point.tripsPerHour)} />
                 <Row label={t('vehicleCapacity')} value={n(point.vehicleCapacity)} />
@@ -66,13 +64,13 @@ export function DetailsCard({ code, point }: DetailsCardProps) {
           ) : null}
         </div>
       ) : null}
-    </Card>
+    </div>
   );
 }
 
 function Row({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex items-center justify-between gap-4 px-4 py-2.5">
+    <div className="flex items-center justify-between gap-4 py-2.5">
       <dt className="text-fg-muted">{label}</dt>
       <dd className="font-medium tabular-nums">{value}</dd>
     </div>

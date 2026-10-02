@@ -27,17 +27,17 @@ export function AppBar({ title, back = true, actions, className }: AppBarProps) 
   return (
     <header
       className={cn(
-        'pt-safe sticky top-0 z-30 border-b border-transparent bg-bg/85 backdrop-blur-md supports-[backdrop-filter]:bg-bg/70',
+        'pt-safe sticky top-0 z-30 bg-bg',
         className,
       )}
     >
-      <div className="mx-auto flex h-14 max-w-6xl items-center gap-1 px-2 sm:px-4">
+      <div className="flex h-14 items-center gap-1 px-2 sm:px-3">
         {back ? (
           <Button variant="ghost" size="icon" onClick={goBack} aria-label={t('back')}>
             <ArrowLeft className="h-5 w-5" />
           </Button>
         ) : null}
-        <div className="min-w-0 flex-1 truncate px-1 text-[15px] font-semibold">{title}</div>
+        <div className="min-w-0 flex-1 truncate px-1 font-display text-xl font-bold">{title}</div>
         {actions ? <div className="flex items-center gap-1">{actions}</div> : null}
       </div>
     </header>

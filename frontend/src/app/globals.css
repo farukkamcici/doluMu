@@ -2,65 +2,88 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Design tokens as RGB channels so Tailwind can apply alpha (see tailwind.config.js). */
+/*
+ * "Paper and ink": the only chroma comes from official line colours, plus one signal red for
+ * peak hours. Tokens are RGB channels so Tailwind can apply alpha (see tailwind.config.js).
+ */
 :root {
-  --bg: 246 247 249;
-  --bg-subtle: 238 240 243;
-  --card: 255 255 255;
-  --card-hover: 248 250 252;
-  --border: 226 230 236;
-  --fg: 15 23 42;
-  --fg-muted: 71 85 105;
-  --fg-subtle: 148 163 184;
-  --brand: 18 122 117;
-  --brand-fg: 255 255 255;
-  --brand-soft: 225 242 241;
+  --bg: 239 237 231;
+  --bg-subtle: 230 227 220;
+  --card: 248 247 243;
+  --card-hover: 243 241 236;
+  --border: 216 211 201;
+  --fg: 21 21 20;
+  --fg-muted: 92 89 83;
+  --fg-subtle: 138 133 124;
+  --brand: 21 21 20;
+  --brand-fg: 248 247 243;
+  --brand-soft: 226 223 215;
+  --signal: 214 40 31;
 
-  --level-quiet: 22 163 74;
-  --level-normal: 202 138 4;
-  --level-busy: 234 88 12;
-  --level-peak: 220 38 38;
-  --level-closed: 203 213 225;
+  /* Crowd intensity: ink tones, peak in signal red. */
+  --level-quiet: 168 163 153;
+  --level-normal: 112 108 101;
+  --level-busy: 21 21 20;
+  --level-peak: 214 40 31;
+  --level-closed: 216 211 201;
 
-  --mode-bus: 37 99 235;
-  --mode-metrobus: 190 18 60;
-  --mode-rail: 124 58 237;
-  --mode-ferry: 8 145 178;
+  --mode-bus: 21 21 20;
+  --mode-metrobus: 21 21 20;
+  --mode-rail: 21 21 20;
+  --mode-ferry: 30 92 138;
 
-  --warn: 180 83 9;
-  --warn-soft: 254 243 199;
-  --danger: 220 38 38;
+  --warn: 214 40 31;
+  --warn-soft: 247 226 219;
+  --danger: 214 40 31;
+
+  /* Basemap tints (read by the map; one base style recoloured for both themes). */
+  --map-land: #efede7;
+  --map-water: #c9d4d7;
+  --map-park: #e4e4da;
+  --map-road: #fbfaf7;
+  --map-road-casing: #d9d4ca;
+  --map-label: #6f6b63;
+  --map-boundary: #c4bfb4;
 
   color-scheme: light;
 }
 
 .dark {
-  --bg: 9 13 24;
-  --bg-subtle: 14 20 34;
-  --card: 18 25 41;
-  --card-hover: 24 33 52;
-  --border: 33 44 64;
-  --fg: 241 245 249;
-  --fg-muted: 160 174 194;
-  --fg-subtle: 100 116 139;
-  --brand: 45 182 173;
-  --brand-fg: 4 30 29;
-  --brand-soft: 16 46 50;
+  --bg: 14 14 15;
+  --bg-subtle: 22 22 24;
+  --card: 24 24 26;
+  --card-hover: 31 31 34;
+  --border: 46 46 50;
+  --fg: 240 237 230;
+  --fg-muted: 163 159 151;
+  --fg-subtle: 112 108 102;
+  --brand: 240 237 230;
+  --brand-fg: 14 14 15;
+  --brand-soft: 38 38 42;
+  --signal: 255 95 80;
 
-  --level-quiet: 52 211 153;
-  --level-normal: 250 204 21;
-  --level-busy: 251 146 60;
-  --level-peak: 248 113 113;
-  --level-closed: 51 65 85;
+  --level-quiet: 92 89 84;
+  --level-normal: 150 146 139;
+  --level-busy: 240 237 230;
+  --level-peak: 255 95 80;
+  --level-closed: 46 46 50;
 
-  --mode-bus: 96 165 250;
-  --mode-metrobus: 251 113 133;
-  --mode-rail: 167 139 250;
-  --mode-ferry: 34 211 238;
+  --mode-bus: 240 237 230;
+  --mode-metrobus: 240 237 230;
+  --mode-rail: 240 237 230;
+  --mode-ferry: 96 160 205;
 
-  --warn: 251 191 36;
-  --warn-soft: 58 42 10;
-  --danger: 248 113 113;
+  --warn: 255 95 80;
+  --warn-soft: 52 26 22;
+  --danger: 255 95 80;
+
+  --map-land: #1a1a1c;
+  --map-water: #0c1820;
+  --map-park: #1c1e1d;
+  --map-road: #2c2c30;
+  --map-road-casing: #232326;
+  --map-label: #8c8880;
+  --map-boundary: #38383c;
 
   color-scheme: dark;
 }
@@ -73,11 +96,11 @@
 
   body {
     @apply bg-bg text-fg antialiased;
-    font-feature-settings: 'cv11', 'ss01';
+    font-feature-settings: 'tnum' 0;
   }
 
   :focus-visible {
-    @apply outline-none ring-2 ring-brand ring-offset-2 ring-offset-bg;
+    @apply outline-none ring-2 ring-fg ring-offset-2 ring-offset-bg;
   }
 }
 
@@ -94,6 +117,10 @@
   .scrollbar-none::-webkit-scrollbar {
     display: none;
   }
+  /* Signage-style label: condensed, tracked, upper-case. */
+  .eyebrow {
+    @apply font-display text-[13px] font-semibold uppercase tracking-[0.08em] text-fg-muted;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -105,17 +132,58 @@
   }
 }
 
-/* Leaflet: match the app's typography and theme. */
-.leaflet-container {
+/* MapLibre controls in the app's language. */
+.maplibregl-ctrl-attrib {
   font-family: inherit;
-  background: rgb(var(--bg-subtle));
+  font-size: 10px;
+  background: rgb(var(--card) / 0.8) !important;
+  color: rgb(var(--fg-muted));
 }
-.leaflet-tooltip.stop-tooltip {
-  @apply rounded-lg border border-line bg-card px-2 py-1 text-xs font-medium text-fg shadow-pop;
+.maplibregl-ctrl-attrib a {
+  color: inherit !important;
 }
-.leaflet-tooltip.stop-tooltip::before {
+.maplibregl-ctrl-attrib-button {
+  filter: var(--attrib-filter, none);
+}
+.dark .maplibregl-ctrl-attrib-button {
+  filter: invert(1);
+}
+.maplibregl-popup-content {
+  @apply rounded-md bg-card px-2.5 py-1.5 font-sans text-[13px] font-medium text-fg shadow-pop;
+}
+.maplibregl-popup-tip {
   display: none;
 }
-.leaflet-control-attribution {
-  font-size: 10px;
+
+/* Hour scrubber: thin ink track, square thumb, like a timetable cursor. */
+.hour-range {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 28px;
+  background: transparent;
+  cursor: pointer;
+}
+.hour-range::-webkit-slider-runnable-track {
+  height: 2px;
+  background: rgb(var(--fg) / 0.25);
+}
+.hour-range::-moz-range-track {
+  height: 2px;
+  background: rgb(var(--fg) / 0.25);
+}
+.hour-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 14px;
+  height: 22px;
+  margin-top: -10px;
+  border-radius: 2px;
+  background: rgb(var(--fg));
+  border: 2px solid rgb(var(--card));
+}
+.hour-range::-moz-range-thumb {
+  width: 12px;
+  height: 20px;
+  border-radius: 2px;
+  background: rgb(var(--fg));
+  border: 2px solid rgb(var(--card));
 }
