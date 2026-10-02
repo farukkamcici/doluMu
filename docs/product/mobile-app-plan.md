@@ -1,6 +1,6 @@
-# DoluMu iOS uygulaması: plan (v2)
+# DoluMu iOS uygulaması: plan (v3)
 
-> Durum: onaya hazır plan · 2 Ekim 2026 · Ürün sahibi kararları bu dokümanda.
+> Durum: uygulamada · 2 Ekim 2026 · v3: uygulama API'si Vercel'de, sunucu "motor" olarak kalıyor.
 > Tahmin modeline dokunulmaz (tez çalışması); uygulama yalnızca modelin çıktısını gösterir.
 
 ## 0. Kararlar (özet)
@@ -12,8 +12,8 @@
 | Ücret | Ücretsiz. Reklam yok, uygulama içi satın alma yok. |
 | Hesap | **Yok.** Favoriler cihazda saklanır. Bildirimler için cihaz anonim bir kimlikle kaydolur. |
 | Siteyle ilişki | **Tamamen bağımsız.** Site sarmalanmaz, sitenin kodu ya da `/api/live/*` katmanı kullanılmaz. |
-| API | **Tek API: FastAPI backend** (`ibb-transport.onthewifi.com/api/v1`). Sitedeki canlı veri katmanı backend'e taşınır; hesaplar (varış süresi, araç sınıflandırması, güzergah) sunucuda yapılır ve uygulamaya hazır veri gider. |
-| Kod | Ayrı repo: **`farukkamcici/dolumu-mobile`** (gizli). Backend değişiklikleri bu repoda (`ibb-transport`). |
+| API | **Uygulamanın tek adresi: uygulama API'si (Vercel, ücretsiz).** Canlı İBB verisi, varış süresi, araç sınıflandırması ve ekran başına toplu yanıtlar burada. **Sunucu (Hetzner, FastAPI) motor olarak kalır:** tahmin modeli, veritabanı, arşivler, bildirim job'ları. Uygulama sunucuyu hiç görmez; tahminler ve bildirim kaydı uygulama API'si üzerinden geçer. |
+| Kod | Ayrı repo **`farukkamcici/dolumu-mobile`** (gizli): `apps/mobile` (Expo), `apps/api` (Vercel), `packages/core` (ortak tipler ve saf mantık). Motor tarafındaki değişiklikler bu repoda (`ibb-transport`). |
 | Görsel dil | Mevcut **kâğıt & mürekkep** kimliği (Barlow, sinyal kırmızısı, hat renkleri), iOS desenleriyle yeniden kurulur. |
 | Stack | Expo SDK 57 · Expo Router · React Native 0.87 (New Architecture) · TypeScript strict · MapLibre RN 11 · Reanimated + Gesture Handler · @gorhom/bottom-sheet 5 · TanStack Query 5 · Zustand + MMKV · use-intl · expo-notifications · expo-haptics · expo-location · Sentry |
 | Derleme | EAS Build (bulut). Bu Mac'te yalnızca Xcode 27 beta var; Apple beta Xcode ile yapılan derlemeleri mağazaya kabul etmiyor. |
@@ -64,9 +64,22 @@ Kurallar:
   - Hareket azaltma ayarına uyum.
 - Açık/koyu tema sistemi izler; harita aynı stilin iki renk setiyle çizilir.
 
-## 2. Tek API: backend `/api/v1`
+## 2. Mimari ve API
 
-Uygulama yalnızca bu uçları çağırır. Yanıtlar ekranlara göre tasarlanır: bir ekran = bir veya iki istek.
+```
+iPhone ──► Uygulama API'si (Vercel, apps/api, Hono)  ──►  İBB servisleri (Metro İstanbul, İETT, İSPARK)
+               │  /v1/...  CDN önbellekli               ──►  Statik veri (GitHub: durak dizini, güzergahlar, topoloji)
+               └──────────────────────────────────────►  Motor (Hetzner, FastAPI + Postgres): tahmin, geçmiş,
+                                                           cihaz/abonelik/alarm kaydı, bildirim job'ları ──► Expo Push
+```
+
+- **Uygulama API'si** sitedeki canlı veri kodunun (TypeScript) taşınmış hâlidir; sitenin kendisine bağlı değildir.
+  Vercel'in ücretsiz planında, CDN önbelleğiyle çalışır. Sunucunun RAM'ine yük bindirmez.
+- **Motor** yalnızca kendisinin yapabildiğini yapar: model, veritabanı, zamanlanmış işler. Bildirim job'ları
+  canlı durumu (aksama, varış) uygulama API'sinden okur; aynı mantık iki yerde yazılmaz.
+- Vercel'in ücretsiz planı zamanlanmış işi günde bir kez çalıştırdığı için 30 sn'lik alarm kontrolü sunucuda kalır.
+
+Uygulama yalnızca uygulama API'sinin uçlarını çağırır. Yanıtlar ekranlara göre tasarlanır: bir ekran = bir veya iki istek.
 Hesaplanabilen her şey sunucuda hesaplanır.
 
 | Uç | İçerik | Önbellek | Bugünkü karşılığı |
@@ -88,27 +101,27 @@ Hesaplanabilen her şey sunucuda hesaplanır.
 | `POST /v1/alarms` / `DELETE /v1/alarms/{id}` | "Otobüs yaklaşınca": durak, hat, yön, eşik (dk) | — | yeni |
 
 **Uygulama ilkeleri**
-- Sitedeki TypeScript mantığı Python'a taşınır: `metro.ts`, `iett.ts`, `city.ts`, `routes.ts`, `eta.ts`,
-  `network.ts`. Yaklaşık 1.000 satır, birim testleriyle birlikte. Site kendi katmanıyla çalışmaya devam
-  eder; istenirse sonra bu API'ye geçer.
+- Sitedeki TypeScript mantığı (`metro.ts`, `iett.ts`, `city.ts`, `routes.ts`, `eta.ts`, `network.ts`, `crowd.ts`)
+  `packages/core` ve `apps/api`'ye taşınır; Python'a çevrilmez. Site kendi katmanıyla çalışmaya devam eder.
+- Tahmin, güvenilirlik ve cihaz uçları motora (`/api/...`) sunucudan sunucuya yönlendirilir; motorun adresi
+  uygulamaya gömülmez.
 - Önbellek:
   - Bellek içi TTL önbellek (`cachetools`) + İBB hata verirse son başarılı yanıtı sunma.
   - Yanıtlarda `Cache-Control` ve ETag; gzip.
-- Statik veri (durak dizini, güzergahlar, topoloji, istasyon yoğunluğu) aylık GitHub Action ile üretilmeye
-  devam eder; backend bunları repodan okur (topolojiyi zaten böyle okuyor).
-- Sözleşme: FastAPI'nin OpenAPI şemasından uygulama için tipli istemci üretilir (`openapi-typescript` +
-  `openapi-fetch`). Uç değişirse uygulamadaki tip kontrolü hatayı yakalar.
+- Statik veri (durak dizini, güzergahlar, topoloji, istasyon yoğunluğu) aylık GitHub Action ile `ibb-transport`
+  reposunda üretilmeye devam eder; uygulama API'si bunları GitHub'dan okuyup önbelleğe alır.
+- Sözleşme: yanıt tipleri `packages/core`'da; API ve uygulama aynı tipleri kullanır, tip kontrolü uyumsuzluğu yakalar.
 - Uyumluluk: mağazadaki eski sürümler aylarca yaşar. `/v1` geriye uyumlu değişir; uyumu bozan
   değişiklik `/v2` olur. İstemci her istekte `X-App-Version` gönderir.
 - Adres: bugünkü dinamik DNS adresi kullanılır. Değişmesi gerekirse yeni adres uygulamaya EAS Update
   ile (mağaza incelemesi olmadan) gönderilebilsin diye adres derleme sırasında değil, JS yapılandırmasında tutulur.
 
-**Bildirim altyapısı (backend)**
+**Bildirim altyapısı (motor)**
 - Tablolar: `devices` (anonim kimlik, push token, dil, son görülme), `subscriptions`,
   `alarms` (durak, hat, yön, eşik, son geçerlilik), `notification_log` (tekrarları önlemek için).
 - Job'lar (APScheduler):
-  - 2 dk'da bir: Metro durumunu ve arızaları öncekiyle karşılaştır, abonelere değişikliği bildir.
-  - 30 sn'de bir: aktif alarmlar için hattın varış tahminini hesapla; eşik aşılınca bildir ve alarmı kapat.
+  - 2 dk'da bir: uygulama API'sinden `/v1/status` oku, öncekiyle karşılaştır, abonelere değişikliği bildir.
+  - 30 sn'de bir: aktif alarmlar için uygulama API'sinden `/v1/stops/{kod}` oku; eşik aşılınca bildir ve alarmı kapat.
 - Gönderim: Expo Push API (gönderim makbuzları kontrol edilir, geçersiz token'lar silinir).
 - Gizlilik: konum ya da kişisel veri saklanmaz. Cihaz kaydı 90 gün kullanılmazsa silinir.
 
@@ -116,7 +129,10 @@ Hesaplanabilen her şey sunucuda hesaplanır.
 
 ```
 dolumu-mobile/
-├─ app/                       ← Expo Router
+├─ packages/core/             ← ortak tipler + saf mantık (seviyeler, varış, güzergah, saat)
+├─ apps/api/                  ← uygulama API'si (Hono, Vercel)
+└─ apps/mobile/
+   ├─ app/                    ← Expo Router
 │  ├─ _layout.tsx             ← sağlayıcılar (Query + MMKV kalıcılığı, tema, çeviri, bildirim yönlendirme)
 │  ├─ index.tsx               ← harita + alt panel
 │  ├─ line/[code].tsx
@@ -184,7 +200,7 @@ dolumu-mobile/
 
 | Faz | İçerik | Bitti sayılması için |
 |---|---|---|
-| **0 · API v1** | Canlı veri katmanını Python'a taşıma, `/v1` uçları, önbellek, testler, OpenAPI | Tüm `/v1` uçları canlıda, testler yeşil, site etkilenmemiş |
+| **0 · Uygulama API'si** | `packages/core` + `apps/api` (Vercel), `/v1` uçları, testler | Tüm `/v1` uçları canlıda; site ve motor etkilenmemiş |
 | **1 · İskelet** | Repo, Expo, development build, tema, fontlar, çeviri, API istemcisi, harita | iOS simülatörde ağ haritası ve tema çalışıyor |
 | **2 · Ekranlar** | Ana ekran paneli, arama, hat, durak, istasyon, favoriler, ayarlar, konum | Sitedeki her işlevin mobil karşılığı var |
 | **3 · Bildirimler** | Cihaz kaydı, abonelikler, alarm, backend job'ları, izin akışı | Gerçek cihazda aksama ve "haber ver" bildirimi geliyor |
@@ -210,9 +226,9 @@ Bunlar Apple hesabına giriş ve iki aşamalı doğrulama gerektirdiği için be
 
 | Risk | Önlem |
 |---|---|
-| Canlı veri mantığını Python'a taşırken davranış farkı | Aynı girdilerle TS ve Python çıktısını karşılaştıran testler (500T, 19, M2 örnekleri) |
-| Küçük VPS'te (2 çekirdek, 3,7 GB) yük | Uç başına önbellek, gzip, İBB çağrılarının tek seferde paylaşılması. Gerekirse sunucuyu büyütmek. |
-| Dinamik DNS adresinin değişmesi | Adres JS yapılandırmasında; EAS Update ile değiştirilebilir |
+| Uygulama API'si ile sitedeki canlı veri kodunun zamanla ayrışması | Mantık `packages/core`'da; site ileride aynı API'ye geçebilir |
+| Küçük VPS'te (2 çekirdek, 3,7 GB) yük | Canlı trafik Vercel'de; sunucu yalnızca tahmin ve bildirim işleri yapar |
+| Vercel ücretsiz plan limitleri | CDN önbelleği; aşılırsa Pro plan ya da API'nin sunucuya taşınması (aynı TS kodu) |
 | MapLibre RN ile yeni RN sürümü uyumu | Faz 1'in ilk işi harita prototipi |
 | Bildirim gürültüsü | Yalnızca 3 tür, saatlik sınır, istasyon arıza bildirimleri varsayılan kapalı |
 | Modelin yanlışlıkla değişmesi | `/v1` yalnızca mevcut tahminleri okur; model ve eğitim kodu kapsam dışı |
