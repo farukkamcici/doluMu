@@ -3,6 +3,7 @@ from fastapi.responses import JSONResponse
 import httpx
 from datetime import datetime, timedelta
 from typing import Optional
+from zoneinfo import ZoneInfo
 
 router = APIRouter()
 
@@ -10,6 +11,28 @@ router = APIRouter()
 _traffic_cache: Optional[dict] = None
 _cache_timestamp: Optional[datetime] = None
 CACHE_TTL_SECONDS = 300  # 5 minutes
+
+async def _latest_from_history(client: httpx.AsyncClient, now: datetime):
+    """Newest value of the 5-minute traffic index history, if it is less than two hours old."""
+    try:
+        res = await client.get(
+            "https://tkmservices.ibb.gov.tr/web/api/TrafficData/v1/TrafficIndexHistory/1/5M",
+            headers={"User-Agent": "IstanbulTransportApp/1.0"},
+        )
+        res.raise_for_status()
+        rows = res.json()
+        if not rows:
+            return None
+        latest = max(rows, key=lambda r: r.get("TrafficIndexDate", ""))
+        # Timestamps are Istanbul local time; the history runs about half an hour behind.
+        stamp = datetime.fromisoformat(latest["TrafficIndexDate"])
+        local_now = datetime.now(ZoneInfo("Europe/Istanbul")).replace(tzinfo=None)
+        if abs((local_now - stamp).total_seconds()) > 7200:
+            return None
+        return latest.get("TrafficIndex") or None
+    except Exception:  # noqa: BLE001 - the live value is still returned (as missing)
+        return None
+
 
 @router.get("/traffic/istanbul")
 async def get_istanbul_traffic():
@@ -42,9 +65,14 @@ async def get_istanbul_traffic():
             # Extract traffic index (TI is primary, fallback to TI_Av)
             ti = data.get("TI")
             ti_av = data.get("TI_Av")
-            percent = ti if ti is not None else ti_av
-            
-            if percent is None:
+            percent = ti if ti else ti_av
+
+            # The live feed sometimes reports all zeros for hours while the 5-minute history
+            # keeps updating; a city-wide index of 0 is never real, so read the history then.
+            if not percent:
+                percent = await _latest_from_history(client, now)
+
+            if not percent:
                 return JSONResponse(
                     {"percent": None, "source": "IMM_UYM", "updatedAt": now.isoformat()},
                     status_code=200
