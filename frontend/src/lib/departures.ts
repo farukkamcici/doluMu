@@ -14,11 +14,14 @@ export function toDepartures(times: string[] | undefined): Departure[] {
   for (const label of times ?? []) {
     const base = parseClock(label);
     if (base == null) continue;
-    if (base + offset < previous) offset += 1440;
-    previous = base + offset;
-    out.push({ label, minutes: previous });
+    // Only a big step back is midnight ("23:56" → "00:26"). Timetables also contain small
+    // inversions ("07:14 07:04" where branches interleave); those are sorted, not a new day.
+    if (base + offset < previous - 720) offset += 1440;
+    const minutes = base + offset;
+    previous = Math.max(previous, minutes);
+    out.push({ label, minutes });
   }
-  return out;
+  return out.sort((a, b) => a.minutes - b.minutes);
 }
 
 /** Minutes until the next planned departure from the first stop (null when none is left today). */
