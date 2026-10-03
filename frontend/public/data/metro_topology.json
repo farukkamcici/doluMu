@@ -1,6 +1,6 @@
 {
  "metadata": {
-  "generated_at": "2026-10-02T13:22:44.477Z",
+  "generated_at": "2026-10-03T07:41:37.474Z",
   "source": "Metro İstanbul MetroMobile V2 (GetLines, GetStations, GetDirectionsByLineIdAndStationId)",
   "total_lines": 18,
   "total_stations": 248
@@ -12,7 +12,7 @@
    "description": "Yenikapı-Atatürk Havalimanı Metro Hattı",
    "description_en": "Yenikapi-Ataturk Airport Metro Line",
    "color": "#ee3124",
-   "first_time": "05:50",
+   "first_time": "00:35",
    "last_time": "00:00",
    "is_active": true,
    "stations": [
@@ -857,8 +857,8 @@
    "description": "Yenikapı-Seyrantepe-Hacıosman Metro Hattı",
    "description_en": "Yenikapi-Seyrantepe-Haciosman Metro Line",
    "color": "#009944",
-   "first_time": "05:57",
-   "last_time": "00:00",
+   "first_time": "00:20",
+   "last_time": "23:59",
    "is_active": true,
    "stations": [
     {
@@ -1837,7 +1837,7 @@
    "description": "Kadıköy-Sabiha Gökçen Havalimanı Metro Hattı",
    "description_en": "Kadikoy-Sabiha Gokcen Airport Metro Line",
    "color": "#e91e76",
-   "first_time": "06:00",
+   "first_time": "00:30",
    "last_time": "23:59",
    "is_active": true,
    "stations": [
@@ -2462,8 +2462,8 @@
    "description": "Üsküdar-Sultanbeyli Metro Hattı",
    "description_en": "Uskudar-Sultanbeyli Metro Line",
    "color": "#683064",
-   "first_time": "06:00",
-   "last_time": "00:02",
+   "first_time": "00:14",
+   "last_time": "00:04",
    "is_active": true,
    "stations": [
     {
@@ -3105,7 +3105,7 @@
    "description": "Levent-Boğaziçi Ü. | Hisarüstü Metro Hattı",
    "description_en": "Levent-Bogazici U. | Hisarustu Metro Line",
    "color": "#caa977",
-   "first_time": "06:00",
+   "first_time": "00:30",
    "last_time": "00:00",
    "is_active": true,
    "stations": [
@@ -3218,7 +3218,7 @@
    "description_en": "Yildiz-Mahmutbey Metro Line",
    "color": "#f89aba",
    "first_time": "06:00",
-   "last_time": "00:25",
+   "last_time": "00:30",
    "is_active": true,
    "stations": [
     {
@@ -3680,7 +3680,7 @@
    "description": "Bostancı-Parseller Metro Hattı",
    "description_en": "Bostanci-Parseller Metro Line",
    "color": "#447abe",
-   "first_time": "06:00",
+   "first_time": "06:05",
    "last_time": "00:00",
    "is_active": true,
    "stations": [
@@ -5266,7 +5266,7 @@
    "description": "Kadıköy-Moda Tramvay Hattı",
    "description_en": "Kadikoy-Moda Tram Line",
    "color": "#a86528",
-   "first_time": "07:10",
+   "first_time": "08:30",
    "last_time": "21:00",
    "is_active": true,
    "stations": [
