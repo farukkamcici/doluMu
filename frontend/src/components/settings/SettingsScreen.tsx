@@ -8,7 +8,7 @@ import { Card } from '@/components/primitives/Card';
 import { Segmented } from '@/components/primitives/Segmented';
 import { Button } from '@/components/primitives/Button';
 import { Sheet } from '@/components/primitives/Sheet';
-import { usePathname, useRouter } from '@/i18n/routing';
+import { Link, usePathname, useRouter } from '@/i18n/routing';
 import { usePrefs } from '@/store/prefs';
 import { useMounted } from '@/hooks/useMounted';
 import { usePwaInstall } from '@/hooks/usePwaInstall';
@@ -93,6 +93,8 @@ export function SettingsScreen() {
             </span>
             <ChevronRight className="h-5 w-5 text-fg-subtle" />
           </button>
+          <LinkRow href="/support" label={t('supportPage')} />
+          <LinkRow href="/privacy" label={t('privacy')} />
         </Group>
 
         <Group title={t('data')} description={t('dataDesc')}>
@@ -160,6 +162,15 @@ function Group({
       {description ? <p className="px-4 text-sm text-fg-muted sm:px-5">{description}</p> : null}
       <Card className="divide-y divide-line overflow-hidden">{children}</Card>
     </div>
+  );
+}
+
+function LinkRow({ href, label }: { href: '/support' | '/privacy'; label: string }) {
+  return (
+    <Link href={href} className="flex w-full items-center gap-3 px-4 py-3.5 transition-colors hover:bg-card-hover sm:px-5">
+      <span className="min-w-0 flex-1 text-sm font-medium">{label}</span>
+      <ChevronRight className="h-5 w-5 text-fg-subtle" />
+    </Link>
   );
 }
 

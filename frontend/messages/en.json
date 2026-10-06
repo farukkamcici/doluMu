@@ -180,6 +180,8 @@
     "support": "Support",
     "report": "Report a problem",
     "reportDesc": "Bug, wrong data or a feature idea",
+    "privacy": "Privacy policy",
+    "supportPage": "Help and common questions",
     "about": "About",
     "aboutBody": "DoluMu is an independent project offering hourly crowd forecasts and live line information for Istanbul public transport. It is not affiliated with İBB or the operators.",
     "sources": "Data sources",
@@ -332,5 +334,112 @@
     "early": "Departures left on schedule.",
     "bar": "{date}: {pct} on time · {trips} trips · {cancelled} cancelled",
     "note": "Trips leaving the first stop within 3 minutes of plan. Source: İETT trip archive."
+  },
+  "legal": {
+    "privacy": {
+      "title": "Privacy policy",
+      "updated": "Last updated: 6 October 2026",
+      "sections": [
+        {
+          "title": "In short",
+          "body": [
+            "DoluMu is an independent project offering hourly crowd forecasts and live line information for Istanbul public transport. This policy covers both the website (dolumu.app) and the iOS app.",
+            "There are no accounts; we never ask for your name, phone number or advertising identifier. We do not track you across apps or websites, show ads, or sell your data."
+          ]
+        },
+        {
+          "title": "What stays on your device",
+          "body": [
+            "Favourites, recent searches, language and theme are kept only on your device (browser storage or your phone) and are never sent to us. You can delete them under Settings → Your data."
+          ]
+        },
+        {
+          "title": "Location",
+          "body": [
+            "Your location is used only when you ask for it and allow it, never in the background.",
+            "On the website, nearby stations are worked out in your browser; your location is not sent to our servers.",
+            "In the iOS app, a position rounded to about 100 m is sent to our server to find nearby stations, stops and İstanbulkart top-up points. It is not stored; it may only appear in our hosting provider's short-lived technical request logs. Your exact position never leaves your phone."
+          ]
+        },
+        {
+          "title": "Notifications and alarms (iOS)",
+          "body": [
+            "When you turn on a disruption alert or a bus alarm, your device is registered with an anonymous ID and a push token. The lines, stations and alarm details you choose (stop, line, direction, minutes before arrival) are stored with that registration.",
+            "Alarms last at most 60 minutes. Device registrations unused for 90 days are deleted. You can turn notifications off at any time in iOS Settings."
+          ]
+        },
+        {
+          "title": "Feedback",
+          "body": [
+            "When you use Report a problem on the website or Send feedback in the app, the text, an optional line code and, if you give it, your email address are kept only to look into your report and reply. An email address is optional."
+          ]
+        },
+        {
+          "title": "Usage statistics",
+          "body": [
+            "The website uses Vercel Web Analytics for aggregate page-view counts; it uses no cookies and does not identify you. The iOS app contains no analytics or crash-reporting tools."
+          ]
+        },
+        {
+          "title": "Service providers",
+          "body": [
+            "The website and the app API run on Vercel; the forecast and notification server runs at Hetzner (Germany). Notifications are delivered through Expo and the Apple Push Notification service. Map tiles load from OpenFreeMap; these requests include your IP address and the area you are viewing.",
+            "Transit data is fetched by our servers from the open services of İBB, Metro İstanbul and İETT; no data about you is sent to them."
+          ]
+        },
+        {
+          "title": "Your rights",
+          "body": [
+            "Under Turkey's Personal Data Protection Law (KVKK) and applicable law, you can ask to access, correct or delete your data. Write to the address below.",
+            "You can also remove your notification registration yourself: turn off all alerts or delete the app, and it is deleted within 90 days."
+          ]
+        },
+        {
+          "title": "Children",
+          "body": [
+            "DoluMu does not knowingly collect personal data from children under 13."
+          ]
+        },
+        {
+          "title": "Changes",
+          "body": [
+            "If this policy changes, the current version is published on this page with its date."
+          ]
+        }
+      ],
+      "contact": "Contact",
+      "contactBody": "For privacy questions and requests:"
+    },
+    "support": {
+      "title": "Support",
+      "intro": "Write to us with questions, bugs or wrong data in DoluMu.",
+      "email": "Email",
+      "report": "Report a problem form",
+      "reportDesc": "Under Settings on the website and in the app",
+      "faq": "Common questions",
+      "questions": [
+        {
+          "q": "Is crowding live?",
+          "a": "No. Crowding is an hourly forecast made from past ridership, the calendar and the weather. Arrival times, vehicle positions and disruptions come live from İBB, Metro İstanbul and İETT."
+        },
+        {
+          "q": "Why is \"Near you\" empty?",
+          "a": "Location permission is off, or you are outside Istanbul. On iPhone, turn it on in Settings → DoluMu → Location. You can browse lines and stops from anywhere through Map or Search."
+        },
+        {
+          "q": "I don't get notifications",
+          "a": "Check that Settings → DoluMu → Notifications is on. Bus alarms last 60 minutes; disruption alerts arrive only when a new disruption starts."
+        },
+        {
+          "q": "How do I delete my data?",
+          "a": "Favourites and searches: Settings → Your data. For your notification registration, turn off all alerts or delete the app; it is deleted within 90 days. You can also ask by email."
+        },
+        {
+          "q": "Is DoluMu made by İBB?",
+          "a": "No. DoluMu is an independent project with no official connection to İBB, Metro İstanbul, İETT or other operators. It uses their open data services."
+        }
+      ],
+      "privacy": "Privacy policy"
+    }
   }
 }

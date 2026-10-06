@@ -180,6 +180,8 @@
     "support": "Destek",
     "report": "Sorun bildir",
     "reportDesc": "Hata, yanlış veri veya özellik isteği",
+    "privacy": "Gizlilik politikası",
+    "supportPage": "Destek ve sık sorulanlar",
     "about": "Hakkında",
     "aboutBody": "DoluMu, İstanbul’daki toplu taşıma hatları için saatlik kalabalık tahmini ve canlı hat bilgisi sunan bağımsız bir projedir. İBB veya işletmelerle resmi bir bağı yoktur.",
     "sources": "Veri kaynakları",
@@ -332,5 +334,112 @@
     "early": "Kalkışlar planlanan saatte.",
     "bar": "{date}: {pct} zamanında · {trips} sefer · {cancelled} iptal",
     "note": "İlk duraktan, planlanan saate en fazla 3 dk sapmayla kalkan seferler. Kaynak: İETT sefer arşivi."
+  },
+  "legal": {
+    "privacy": {
+      "title": "Gizlilik politikası",
+      "updated": "Son güncelleme: 6 Ekim 2026",
+      "sections": [
+        {
+          "title": "Kısaca",
+          "body": [
+            "DoluMu, İstanbul toplu taşıması için saatlik kalabalık tahmini ve canlı hat bilgisi sunan bağımsız bir projedir. Bu politika hem web sitesini (dolumu.app) hem iOS uygulamasını kapsar.",
+            "Hesap açılmaz; ad, telefon numarası ya da reklam kimliği istenmez. Sizi uygulamalar veya siteler arasında izlemeyiz, reklam göstermeyiz, verilerinizi satmayız."
+          ]
+        },
+        {
+          "title": "Cihazınızda kalanlar",
+          "body": [
+            "Favoriler, son aramalar, dil ve tema tercihi yalnızca cihazınızda (tarayıcı depolamasında ya da telefonda) tutulur ve bize gönderilmez. Ayarlar → Verilerin bölümünden silebilirsiniz."
+          ]
+        },
+        {
+          "title": "Konum",
+          "body": [
+            "Konumunuz yalnızca siz istediğinizde ve izin verirseniz kullanılır; arka planda kullanılmaz.",
+            "Web sitesinde yakındaki istasyonlar tarayıcınızda hesaplanır, konumunuz sunucuya gönderilmez.",
+            "iOS uygulamasında yakındaki istasyon, durak ve İstanbulkart dolum noktalarını bulmak için sunucuya yaklaşık 100 metreye yuvarlanmış konum gönderilir. Bu konum saklanmaz; yalnızca barındırma sağlayıcısının kısa süreli teknik istek kayıtlarında görünebilir. Tam konumunuz telefonunuzdan çıkmaz."
+          ]
+        },
+        {
+          "title": "Bildirimler ve alarmlar (iOS)",
+          "body": [
+            "Bir aksama bildirimi ya da otobüs alarmı açtığınızda cihazınız anonim bir kimlik ve bildirim anahtarıyla (push token) kaydedilir. Seçtiğiniz hatlar, istasyonlar ve alarm bilgileri (durak, hat, yön, kaç dakika kala) bu kayda bağlı tutulur.",
+            "Alarmlar en çok 60 dakika geçerlidir. 90 gün kullanılmayan cihaz kayıtları silinir. Bildirimleri istediğiniz zaman iOS Ayarlar'ından kapatabilirsiniz."
+          ]
+        },
+        {
+          "title": "Geri bildirim",
+          "body": [
+            "Sitede Sorun bildir, uygulamada Geri bildirim gönder formuna yazdığınız metin, isteğe bağlı hat kodu ve yazarsanız e-posta adresiniz, yalnızca bildiriminizi incelemek ve size dönmek için saklanır. E-posta vermek zorunlu değildir."
+          ]
+        },
+        {
+          "title": "Kullanım istatistikleri",
+          "body": [
+            "Web sitesi, çerez kullanmayan ve kişiyi tanımlamayan toplu sayfa görüntüleme sayıları için Vercel Web Analytics kullanır. iOS uygulamasında analiz ya da çökme raporlama aracı yoktur."
+          ]
+        },
+        {
+          "title": "Hizmet sağlayıcılar",
+          "body": [
+            "Web sitesi ve uygulama API'si Vercel'de, tahmin ve bildirim sunucusu Hetzner'de (Almanya) çalışır. Bildirimler Expo ve Apple Push Notification service üzerinden iletilir. Harita görüntüleri OpenFreeMap'ten yüklenir; bu istek IP adresinizi ve görüntülenen bölgeyi içerir.",
+            "Ulaşım verileri İBB, Metro İstanbul ve İETT'nin açık servislerinden sunucularımız tarafından alınır; bu kurumlara sizinle ilgili veri gönderilmez."
+          ]
+        },
+        {
+          "title": "Haklarınız",
+          "body": [
+            "6698 sayılı Kişisel Verilerin Korunması Kanunu (KVKK) ve ilgili mevzuat kapsamında verilerinize erişme, düzeltilmesini ya da silinmesini isteme haklarına sahipsiniz. Bunun için aşağıdaki adrese yazabilirsiniz.",
+            "Bildirim kaydınızı kendiniz de kaldırabilirsiniz: tüm uyarıları kapatın ya da uygulamayı silin; kayıt en geç 90 gün içinde silinir."
+          ]
+        },
+        {
+          "title": "Çocuklar",
+          "body": [
+            "DoluMu 13 yaşın altındaki çocuklardan bilerek kişisel veri toplamaz."
+          ]
+        },
+        {
+          "title": "Değişiklikler",
+          "body": [
+            "Bu politika değişirse güncel hali tarihiyle birlikte bu sayfada yayımlanır."
+          ]
+        }
+      ],
+      "contact": "İletişim",
+      "contactBody": "Gizlilikle ilgili sorular ve talepler için:"
+    },
+    "support": {
+      "title": "Destek",
+      "intro": "DoluMu ile ilgili sorular, hatalar ve yanlış veri bildirimleri için bize yazabilirsiniz.",
+      "email": "E-posta",
+      "report": "Sorun bildir formu",
+      "reportDesc": "Sitede ve uygulamada Ayarlar altında",
+      "faq": "Sık sorulanlar",
+      "questions": [
+        {
+          "q": "Doluluk bilgisi canlı mı?",
+          "a": "Hayır. Doluluk, geçmiş yolcu verisi, takvim ve hava durumuyla üretilen saatlik bir tahmindir. Varış süreleri, araç konumları ve aksamalar ise İBB, Metro İstanbul ve İETT'nin canlı verisinden gelir."
+        },
+        {
+          "q": "\"Yakınında\" bölümü neden boş?",
+          "a": "Konum izni verilmemiş ya da İstanbul dışındasınız. iPhone'da Ayarlar → DoluMu → Konum'dan izni açabilirsiniz. Hatlara ve duraklara her yerden Harita ya da Ara üzerinden bakabilirsiniz."
+        },
+        {
+          "q": "Bildirim gelmiyor",
+          "a": "iPhone'da Ayarlar → DoluMu → Bildirimler'in açık olduğunu kontrol edin. Otobüs alarmları 60 dakika geçerlidir; aksama bildirimleri yalnızca yeni bir aksama olduğunda gelir."
+        },
+        {
+          "q": "Verilerimi nasıl silerim?",
+          "a": "Favoriler ve aramalar Ayarlar → Verilerin bölümünden silinir. Bildirim kaydı için tüm uyarıları kapatın ya da uygulamayı silin; kayıt 90 gün içinde silinir. Silme isteğinizi e-postayla da iletebilirsiniz."
+        },
+        {
+          "q": "DoluMu İBB'nin uygulaması mı?",
+          "a": "Hayır. DoluMu bağımsız bir projedir; İBB, Metro İstanbul, İETT veya diğer işletmelerle resmi bir bağı yoktur. Verileri bu kurumların açık veri servislerinden alır."
+        }
+      ],
+      "privacy": "Gizlilik politikası"
+    }
   }
 }
