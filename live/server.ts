@@ -19,7 +19,8 @@ app.use('*', compress());
 /** JSON with a CDN cache window and a long stale window, like the old Vercel routes. */
 async function json<T>(c: Context, key: string, seconds: number, load: () => Promise<T>) {
   try {
-    const data = await cached(key, seconds, load);
+    // While the probe finds İBB unreachable, answer at once instead of after the 10 s timeout.
+    const data = await cached(key, seconds, load, { wait: lastProbe()?.ok !== false });
     return c.json(data as object, 200, {
       'Cache-Control': `public, s-maxage=${seconds}, stale-while-revalidate=${seconds * 10}`,
     });

@@ -2,7 +2,9 @@
  * In-memory cache for the live loaders, so İBB is called at most once per key and window however
  * many people ask. An expired value is still served at once while it refreshes in the background
  * (up to `staleFactor` windows old); after a failed refresh the next try waits RETRY_MS, so a dead
- * upstream is not hammered and nobody waits on its timeout while a stale copy exists.
+ * upstream is not hammered and nobody waits on its timeout while a stale copy exists. With
+ * `wait: false` (İBB known to be unreachable) a key with nothing to serve fails at once and the
+ * refresh runs in the background, so the data comes back by itself when İBB does.
  */
 interface Entry {
   value?: unknown;
@@ -33,7 +35,12 @@ function refresh<T>(key: string, load: () => Promise<T>): Promise<T> {
   return pending;
 }
 
-export async function cached<T>(key: string, ttlSeconds: number, load: () => Promise<T>, staleFactor = 10): Promise<T> {
+export async function cached<T>(
+  key: string,
+  ttlSeconds: number,
+  load: () => Promise<T>,
+  { staleFactor = 10, wait = true }: { staleFactor?: number; wait?: boolean } = {},
+): Promise<T> {
   const now = Date.now();
   const entry = store.get(key);
   const age = entry ? now - entry.at : Infinity;
@@ -44,6 +51,10 @@ export async function cached<T>(key: string, ttlSeconds: number, load: () => Pro
   if (entry?.value !== undefined && age < Math.max(ttl * staleFactor, 300_000)) {
     if (!entry.pending && !coolingDown) refresh(key, load).catch((e: Error) => console.error('[live] refresh', key, e.message));
     return entry.value as T;
+  }
+  if (!wait) {
+    if (!entry?.pending && !coolingDown) refresh(key, load).catch((e: Error) => console.error('[live] refresh', key, e.message));
+    throw entry?.error ?? new Error('upstream unreachable');
   }
   if (entry?.pending) return entry.pending as Promise<T>;
   if (coolingDown && entry?.error) throw entry.error;

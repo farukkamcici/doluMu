@@ -3,7 +3,8 @@ Live list of İETT bus lines (GetHat_json).
 
 The forecast database's line list comes from 2022–24 ridership data; about a fifth of those bus
 lines no longer run. This registry lets jobs and search skip them. If İETT is unreachable it
-returns None and callers fall back to the full database list.
+returns None and callers fall back to the full database list. Refreshes run in a background thread,
+so a caller (search) never waits on İETT's timeout.
 """
 from __future__ import annotations
 
@@ -26,6 +27,8 @@ _ENVELOPE = (
     "</soap:Body></soap:Envelope>"
 )
 _TTL_SECONDS = 12 * 3600
+# After a failed refresh, wait this long before trying again.
+_RETRY_SECONDS = 10 * 60
 # Sanity floor: a near-empty answer means İETT had a hiccup, not that lines were cancelled.
 _MIN_LINES = 300
 
@@ -34,6 +37,8 @@ class IettLineRegistry:
     def __init__(self) -> None:
         self._codes: Optional[Set[str]] = None
         self._fetched_at = 0.0
+        self._failed_at = 0.0
+        self._refreshing = False
         self._lock = threading.Lock()
 
     def _fetch(self) -> Set[str]:
@@ -53,17 +58,28 @@ class IettLineRegistry:
             raise ValueError(f"GetHat_json returned only {len(codes)} lines")
         return codes
 
+    def _refresh(self) -> None:
+        try:
+            codes = self._fetch()
+            with self._lock:
+                self._codes, self._fetched_at = codes, time.time()
+            logger.info("İETT registry refreshed: %d active lines", len(codes))
+        except Exception as exc:  # noqa: BLE001 - any failure means "unknown"
+            with self._lock:
+                self._failed_at = time.time()
+            logger.warning("İETT registry unavailable (%s); keeping %s", exc, "previous list" if self._codes else "no filter")
+        finally:
+            with self._lock:
+                self._refreshing = False
+
     def active_codes(self) -> Optional[Set[str]]:
         """Codes of lines İETT runs today, or None when unknown (callers must not filter then)."""
         with self._lock:
-            if self._codes is not None and time.time() - self._fetched_at < _TTL_SECONDS:
-                return self._codes
-            try:
-                self._codes = self._fetch()
-                self._fetched_at = time.time()
-                logger.info("İETT registry refreshed: %d active lines", len(self._codes))
-            except Exception as exc:  # noqa: BLE001 - any failure means "unknown"
-                logger.warning("İETT registry unavailable (%s); keeping %s", exc, "previous list" if self._codes else "no filter")
+            now = time.time()
+            stale = self._codes is None or now - self._fetched_at >= _TTL_SECONDS
+            if stale and not self._refreshing and now - self._failed_at >= _RETRY_SECONDS:
+                self._refreshing = True
+                threading.Thread(target=self._refresh, name="iett-registry", daemon=True).start()
             return self._codes
 
 
