@@ -5,6 +5,12 @@ import { LineScreen } from '@/components/line/LineScreen';
 
 type Props = { params: Promise<{ locale: string; code: string }> };
 
+// No lines are built ahead: each page is rendered on its first visit and then served from the cache
+// (the screen loads its data in the browser), instead of rendering on every request.
+export function generateStaticParams() {
+  return [];
+}
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale, code } = await params;
   const t = await getTranslations({ locale, namespace: 'line.chart' });
