@@ -1,0 +1,26 @@
+# Runs on the Hetzner server in /opt/dolumu/live-web (deploy.sh), next to the Dokploy API stack.
+# Traefik (Dokploy's) routes https://ibb-transport.onthewifi.com/live/* here; everything else on
+# that host still goes to the API. IBB_PROXY_URL (optional, see egress.ts) is set in egress.conf there.
+services:
+  live:
+    build: ./src
+    image: dolumu-live-web:latest
+    restart: unless-stopped
+    env_file:
+      - path: egress.conf
+        required: false
+    mem_limit: 256m
+    cpus: 0.5
+    networks: [dokploy-network]
+    labels:
+      traefik.enable: "true"
+      traefik.docker.network: dokploy-network
+      traefik.http.routers.dolumu-live-web.rule: Host(`ibb-transport.onthewifi.com`) && PathPrefix(`/live/`)
+      traefik.http.routers.dolumu-live-web.entrypoints: websecure
+      traefik.http.routers.dolumu-live-web.tls.certresolver: letsencrypt
+      traefik.http.routers.dolumu-live-web.service: dolumu-live-web
+      traefik.http.services.dolumu-live-web.loadbalancer.server.port: "8080"
+
+networks:
+  dokploy-network:
+    external: true

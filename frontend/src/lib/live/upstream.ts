@@ -2,14 +2,14 @@ import 'server-only';
 
 /**
  * Server-side access to İBB open-data services (Metro İstanbul REST, İETT SOAP). None of them
- * send CORS headers, so the browser talks to our /api/live routes and these helpers do the
- * upstream calls. Responses are cached by Next's data cache (`revalidate`), so a flaky upstream
- * costs at most one slow request per cache window.
+ * send CORS headers, so the browser talks to our /api/live routes (rewritten to the live server,
+ * ../../../../live) and these helpers do the upstream calls. That server caches every loader; the
+ * `revalidate` hints only matter if they run inside Next again.
  */
 
 const METRO = 'https://api.ibb.gov.tr/MetroIstanbul/api/MetroMobile/V2';
 const IETT = 'https://api.ibb.gov.tr/iett';
-const TIMEOUT_MS = 25_000;
+const TIMEOUT_MS = 12_000;
 
 export class UpstreamError extends Error {}
 
